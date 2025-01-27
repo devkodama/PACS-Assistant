@@ -1,0 +1,272 @@
+/* styles.css
+ *
+ *
+ */
+
+
+
+/* CSS reset from https://www.joshwcomeau.com/css/custom-css-reset/ */
+
+/* 1. Use a more-intuitive box-sizing model */
+*, *::before, *::after {
+    box-sizing: border-box;
+  }
+/* 2. Remove default margin */
+* {
+  margin: 0;
+}
+/* 3. Add accessible line-height */
+/* 4. Improve text rendering */
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/* 5. Improve media defaults */
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+/* 6. Inherit fonts for form controls */
+input, button, textarea, select {
+  font: inherit;
+}
+/* 7. Avoid text overflows */
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+/* 8. Improve line wrapping */
+p {
+  text-wrap: pretty;
+}
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+/* 9. Create a root stacking context */
+#root, #__next {
+  isolation: isolate;
+}
+
+
+
+/* CSS basic styles for header/3 column/footer page */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Style the header */
+.header {
+/*  background-color: #f1f1f1;
+  padding: 30px;
+  text-align: center;
+  font-size: 35px;
+*/
+  padding: 10px;
+}
+
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+/*  height: 300px; /* Should be removed. Only for demonstration */
+}
+
+/* Left and right column */
+.column.side {
+  width: 25%;
+  padding: 10px;
+}
+
+/* Middle column */
+.column.middle {
+/*  width: 50%;
+  padding: 10px;
+*/
+  padding: 10px;
+}
+
+
+/***********************************************/
+
+/* App bar */
+
+.column.appbar {
+  float: right;
+  position: sticky;
+  top: 10px;
+  width: 48px;
+  margin: 4px;
+}
+
+/* App icons */
+.app-icon {
+  width: 48px;
+  height: 44px;
+  background-color: inherit; 
+  background-repeat: no-repeat;
+  background-position: 7px 4px;
+/*  padding: 4px;*/
+}
+
+#app-power {
+  background-image: url('../images/power-off.png');
+  background-position: 0;
+  margin: 8px 0;
+  transition: background-image 0.5s;
+}
+#app-VPN {
+  background-image: url('../images/VPN-off.png');
+  transition: background-image 0.5s;
+}
+#app-EI {
+  background-image: url('../images/EI-off.png');
+  transition: background-image 0.5s;
+}
+#app-PS {
+  background-image: url('../images/PS-off.png');
+  transition: background-image 0.5s;
+}
+#app-EPIC {
+  background-image: url('../images/EPIC-off.png');
+  transition: background-image 0.5s;
+}
+
+/* App group */
+.app-group {
+  border: 1px solid #404040
+}
+
+
+/***********************************************/
+
+/* Status bar */
+
+#statusbar {
+  position: fixed;
+  height: 32px;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  background-color: #404040;
+
+  color: #e0e0e0;
+
+  padding-left: 10px;
+  line-height: 32px;    /* same as height, vertically centers text */
+  text-wrap: nowrap;
+}
+
+#statusbartext {
+   
+}
+
+#microphonestatus {
+  float: right;
+  width: 25%;
+  min-width: 150px;
+  max-width: 400px;
+  background-color: #404040;
+  padding: 0 16px;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+
+#windowinfo {
+  font-size: small;
+   
+}
+/***********************************************/
+
+
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+
+/* Style the footer */
+.footer {
+/*  background-color: #f1f1f1;
+  padding: 10px;
+  text-align: center;
+*/
+  padding: 10px;
+}
+
+
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+@media (max-width: 600px) {
+  .column.side, .column.middle {
+    width: 100%;
+  }
+}
+
+
+
+/* Context menus - from https://dev.to/iamafro/how-to-create-a-custom-context-menu--5d7p */
+
+.context-menu {
+  position: fixed;
+  display: none;
+  width: 150px;
+  z-index: 1;
+  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+  transition: display 0.3s ease-in;
+
+  .context-menu-list {
+    list-style: none;
+    z-index: 1;
+    padding: 0;
+
+    .context-menu-item {
+      font-weight: 500;
+      z-index: 1;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      margin-right: 16px;
+      border-bottom: 1.5px solid rgba(0, 0, 0, 0.2);
+      background: rgba(64, 64, 64, 0.4);
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(240, 240, 240, 0.2);
+      }
+    }
+  }
+}
+
+
+
+
+/* PACS Assistant styles */
+
+html {
+  background-color: #202020;
+  color: #c0c0c0;
+}
+
+
+
+.main {
+  padding: 10px;
+}
+
+
+#patientname {
+  font-size: larger;
+  font-weight: bold;
+}
+
+#dob {
+  display: inline;
+}
+
+#agesex {
+  display: inline;
+  font-weight: bold;
+}
