@@ -154,7 +154,7 @@ $^+Tab:: {
 
 ; CapsLock mapping
 ;	CapsLock -> PowerScribe Start/Stop Dictation (F4)
-;	Shift-CapsLock -> PowerScribe Sign Dictation (F12)
+;	Shift-CapsLock -> PowerScribe Sign Dictation (F12) OR EI Start reading (Ctrl-Enter)
 ;	Ctrl-CapsLock -> PowerScribe Draft Dictation (F9)
 ;	Ctrl-Shift-CapsLock -> PowerScribe Prelim Dictation (Alt-F Alt-M (File > Prelim))
 ;
@@ -172,8 +172,13 @@ $CapsLock:: {
 }
 $+CapsLock:: {
 	if PA_Active && PACheckContext( , , "EI", "PS") {
-		PSSend("{F12}")							; Sign report
-		PASound("sign report")
+		if PSIsReport() {
+			PSSend("{F12}")							; Sign report
+			PASound("sign report")
+		} else {
+			EISend("^{Enter}")					; Start reading
+			PASound("Start dictation")
+		}
 	} else {
 		SetCapsLockState true
 	}

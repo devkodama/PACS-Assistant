@@ -113,7 +113,7 @@ EIClickImages(buttonname) {
 			hwndEI := PAWindows["EI"]["images1"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
-				if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText[buttonname]) {
+				if FindText(&x, &y, x0, y0, x0 + 1000, y0 + 64, 0, 0, PAText[buttonname]) {
 					PA_WindowBusy := true
 					WinActivate(hwndEI)
 					CoordMode("Mouse", "Screen")
