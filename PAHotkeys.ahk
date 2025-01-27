@@ -86,6 +86,24 @@ F3:: {
 }
 
 
+; ^F3:: {
+
+; 	hwndEI := PAWindows["EI"]["images1"].hwnd
+; 	if hwndEI {
+; 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+; ;msgbox("xywh=" x0 "," y0 "," w0 "," h0 " but=" PAText["EI_RemoveFromList"])
+; 		ok := FindText(&x, &y, x0, y0, x0 + 1280, y0 + 64, 0, 0, PAText["EI_RemoveFromList"])
+; ;		MsgBox("ok: " ok)
+; 		MsgBox("ok[1].1 ok[1].2 ok[1].3 ok[1].4 ok[1].x ok[1].y ok[1].id = " ok[1].1 " " ok[1].2 " " ok[1].3 " " ok[1].4 " " ok[1].x " " ok[1].y " " ok[1].id)
+; 		PAToolTip("xywh0=" x0 "," y0 "," w0 "," h0 "  xy=" x "," y)
+; 		if ok {
+; ; PAToolTip("found close")
+; 		}
+; 	}	
+; }
+
+
+
 ; Tab key mapping:
 ;	Tab -> PowerScribe Next field
 ;	Shift-Tab -> PowerScribe Previous field
@@ -261,6 +279,19 @@ $+`:: {
 	}
 }
 
+
+; Esc key mapping
+;	Esc -> Close current case
+;
+; In effect for EI images1 and images2 windows.
+;
+$Esc:: {
+	if PA_Active && PACheckContext( , , "EI images1 images2") {
+		EIClickImages("EI_RemoveFromList")
+	} else {
+		Send("{Esc}")
+	}
+}
 
 
 

@@ -210,7 +210,7 @@ PSOpen_PSreport() {
 	global PACurrentStudy
 	global PA_Dictate_autooff
 
-	; PASound("Report opened")
+	PAStatus("Report opened")
 
 	; When the PS report window appears, refresh the current patient in PA
 	

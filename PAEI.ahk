@@ -76,27 +76,59 @@ EISend(cmdstring := "", targetwindow := "images1") {
 ;
 EIClickDesktop(buttonname) {
 
-	; ToolTip buttonname
-	; SetTimer ToolTip, -1000
-
 	switch buttonname {
 		case "EISearch", "EIList", "EIText", "EIImage", "EIEpic":
 			hwndEI := PAWindows["EI"]["desktop"].hwnd
-			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
-			if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText[buttonname]) {
-				PA_WindowBusy := true
-				WinActivate(hwndEI)
-				CoordMode("Mouse", "Screen")
-				MouseGetPos(&savex, &savey)
-				FindText().Click(x, y)
-				PA_WindowBusy := false
-				MouseMove(savex, savey)
+			if hwndEI {
+				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+				if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText[buttonname]) {
+					PA_WindowBusy := true
+					WinActivate(hwndEI)
+					CoordMode("Mouse", "Screen")
+					MouseGetPos(&savex, &savey)
+					FindText().Click(x, y)
+					PA_WindowBusy := false
+					MouseMove(savex, savey)
+				}
 			}
 		default:
-
+			;
 	}
 
 }
+
+
+; Click a button image, specified by buttonname, on the EI Images1 window
+;
+; Valid button names are:
+;	"EI_RemoveFromList"
+;
+; Searches the client area of the EI images1 window within
+; the coordinates (0,32) and (320,80) for the button (image search with FindText)
+;
+EIClickImages(buttonname) {
+
+	switch buttonname {
+		case "EI_RemoveFromList":
+			hwndEI := PAWindows["EI"]["images1"].hwnd
+			if hwndEI {
+				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+				if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText[buttonname]) {
+					PA_WindowBusy := true
+					WinActivate(hwndEI)
+					CoordMode("Mouse", "Screen")
+					MouseGetPos(&savex, &savey)
+					FindText().Click(x, y)
+					PA_WindowBusy := false
+					MouseMove(savex, savey)
+				}
+			}
+		default:
+			;
+	}
+
+}
+
 
 
 

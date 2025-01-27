@@ -17,12 +17,12 @@
 global PAText := Map()
 
 ;EI Login left top edge of username or password fields (35px x 12px)
-PAText["EILoginField"] := "|<>*168$21.zzzzzzzk006000U"
+PAText["EILoginField"] := "|<EILoginField>*168$21.zzzzzzzk006000U"
 
 
 
 ; EI Desktop toolbar Search button icon (magnifying glass)
-PAText["EISearch"] := "|<>*142$21.zw3zy07zVsTszlyDzDnzsyTzbnzwyTzbnzwyTz7lztzDyDkTXw00z10DkTzw7zz1zzsTzz7zzw"
+PAText["EISearch"] := "|<EISearch>*142$21.zw3zy07zVsTszlyDzDnzsyTzbnzwyTzbnzwyTz7lztzDyDkTXw00z10DkTzw7zz1zzsTzz7zzw"
 
 ; EI Desktop toolbar Go to List area button icon (clipboard)
 PAText["EIList"] := "|<EIList>*113$18.z0zySTyrT0n0Mz6PzqM06TzyTzyM3yTzyTzyMTyTzyTzyM1yTzyTzyMzyTzyTzy000U"
@@ -92,6 +92,8 @@ PAText["EI_Horz"] := "|<EI_Horz>467BAC-0.90$12.0000zz00U"
 
 
 
+; EI Images Study Detail icon set
+;
 ; Large is for 1x1 viewport
 ; Medium is for 1x2, 1x3, 2x1, 2x2, 2x3, 3x1 viewports
 ; Small is for 2x4, 3x3 viewports
@@ -115,6 +117,10 @@ PAText["EI_SD_SOff"] := "|<EI_SD_SOff>*106$10.zwTkz1wXn7CA0E1U"
 PAText["EI_SDOn"] := PAText["EI_SD_LOn"] . PAText["EI_SD_MOn"] . PAText["EI_SD_SOn"]
 PAText["EI_SDOff"] := PAText["EI_SD_LOff"] . PAText["EI_SD_MOff"] . PAText["EI_SD_SOff"]
 PAText["EI_SD"] := PAText["EI_SD_LOn"] . PAText["EI_SD_LOff"] . PAText["EI_SD_MOn"] . PAText["EI_SD_MOff"] . PAText["EI_SD_SOn"] . PAText["EI_SD_SOff"]
+
+
+; EI Images Remove from list button
+PAText["EI_RemoveFromList"] := "|<EI_RemoveFromList>*160$24.zzzzzzzzzzzzzzzzzzzzzzwzz7UTz30Tz00TzU0Tzk0Tzs0Tzs0zzk3zzU1zz1Uzz3kTz7sTzzwzzzzzzzzzzzzzzzzzU"
 
 
 
