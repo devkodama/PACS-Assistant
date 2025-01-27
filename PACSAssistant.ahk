@@ -42,7 +42,7 @@ DetectHiddenText true			; don't search hidden text by default
 
 
 ; for debugging use
-#Include debug.ahk
+#Include Debug.ahk
 
 
 

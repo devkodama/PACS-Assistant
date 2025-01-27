@@ -1,4 +1,4 @@
-/* debug.ahk
+/* Debug.ahk
 **
 ** Debug code helpers
 **
