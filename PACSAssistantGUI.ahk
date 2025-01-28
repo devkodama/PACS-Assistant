@@ -353,7 +353,7 @@ PAGui_Size(thisGui, MinMax, Width, Height) {
 PAGui_Exit(*) {
 
     PAStatus("Closing PACS Assistant...")
-    
+
     ; save PA window position
     PAWindows.SaveWindowPositions("PA")
     PAWindows.SaveSettings("PA")
@@ -361,10 +361,8 @@ PAGui_Exit(*) {
     ; stop daemons
     InitDaemons(false)
 
-    ; sleep for a while to allow running timers to complete ?
-    Sleep(2000)
-    ;	Sleep(Max(DISPATCH_INTERVAL, GUIREFRESH_INTERVAL, JIGGLEMOUSE_UPDATE_INTERVAL, WATCHMOUSE_UPDATE_INTERVAL, WATCHWINDOWS_UPDATE_INTERVAL))
-
+    ; stop windows "Close" event callbacks
+    WinEvent.Stop("Close")
 
     ; terminate the script
     ExitApp()
