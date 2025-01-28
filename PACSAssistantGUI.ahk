@@ -192,7 +192,7 @@ PAGui_PACSStartup(cred := PACredentials) {
     }
 
     if resultVPN && resultEI {
-            PAStatus("PACS started successfully")
+            PAStatus("PACS started")
             returnresult := 1
     } else {
         if !resultVPN {
@@ -320,24 +320,6 @@ PAGui_Init(*) {
 
 	}
   
-;    PAGui.PostWebMessageAsString("alert('message from ahk')") ; doesn't work??
-
-
-/*
-    ; blink the EI icon
-    n := 10
-    while n > 0 {
-        script := "document.getElementById('app-EI').innerHTML = '<img src=`"images/EI.png`">'"
-        result := PAGui.QueryPage(script)
-        sleep(500)        
-        script := "document.getElementById('app-EI').innerHTML = '<img src=`"images/EI-off.png`">'"
-        result := PAGui.QueryPage(script)
-        sleep(500)        
-
-        n--
-    }
-*/
-
 }
 
 

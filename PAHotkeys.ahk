@@ -173,9 +173,11 @@ $CapsLock:: {
 $+CapsLock:: {
 	if PA_Active && PACheckContext( , , "EI", "PS") {
 		if PSIsReport() {
+			; PS has an open report, so sign the report
 			PSSend("{F12}")							; Sign report
 			PASound("sign report")
 		} else {
+			; PS does not have an open report, so try to start reading the next case
 			EISend("^{Enter}")					; Start reading
 			PASound("Start dictation")
 		}
@@ -286,7 +288,7 @@ $+`:: {
 
 
 ; Esc key mapping
-;	Esc -> Close current case
+;	Esc -> Close current study (Remove from list)
 ;
 ; In effect for EI images1 and images2 windows.
 ;
