@@ -20,6 +20,9 @@
 #HotIf WinActive('ahk_exe code.exe')
 
 ~^s:: {
+    ; shut down daemons
+    InitDaemons(false)
+
     PAToolTip("Reloading script " A_ScriptName " in 3 seconds...")
     Sleep(1000)
     PAToolTip("Reloading script " A_ScriptName " in 2 seconds...")

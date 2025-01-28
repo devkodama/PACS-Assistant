@@ -34,6 +34,11 @@ F2:: {
     PAToggle()
 }
 
++F2:: {
+	PAToolTip("+F2")
+	PAGui.Title := PAGUI_WINDOWTITLE
+}
+
 
 F3:: {
 	global PACurrentPatient

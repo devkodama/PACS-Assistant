@@ -93,7 +93,7 @@ body {
 .column.appbar {
   float: right;
   position: sticky;
-  top: 10px;
+  top: 20px;
   width: 48px;
   margin: 4px;
 }
@@ -143,17 +143,20 @@ body {
 
 #statusbar {
   position: fixed;
-  height: 32px;
-  width: 100%;
   left: 0;
   bottom: 0;
-  background-color: #404040;
+  width: 100%;
 
-  color: #e0e0e0;
-
+  height: 24px;
+  line-height: 24px;    /* same as height, vertically centers text */
   padding-left: 10px;
-  line-height: 32px;    /* same as height, vertically centers text */
+
+  user-select: none;
+  font-size: 0.9rem;
   text-wrap: nowrap;
+
+  background-color: #404040;
+  color: #e0e0e0;
 }
 
 #statusbartext {
@@ -172,10 +175,76 @@ body {
 }
 
 
-#windowinfo {
-  font-size: small;
-   
+
+/***********************************************/
+
+/* These definitions are for the Web-based TitleBar */
+#titlebar {
+  cursor: default;
+  user-select: none;
+  display: flex;
+  align-items: stretch;
+
+  height: 30px;
+  padding-left: 10px;
+
+  font-size: 0.rem;
+  text-wrap: nowrap;
+
+  background-color: #191b4d;
+  color: #c0c0c0;
 }
+
+.ahk-titleBar {
+  flex-grow: 1;
+  padding: 0.25rem 0.5rem;
+}
+/* per bootstrap - https://getbootstrap.com/docs/5.0/utilities/spacing/ */
+/* .flex-grow-1 {
+  flex-grow: 1;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+} */
+
+.ahk-title-btn {
+  /* float: right; */
+  padding: 0.35em 1.0em;
+  cursor: pointer;
+  vertical-align: bottom;
+  font-family: Webdings;
+  font-size: 0.9rem;
+}
+      
+body .ahk-title-btn-restore {
+  display: none
+}
+
+body.ahk-maximized .ahk-title-btn-restore {
+  display: block;
+}
+
+body.ahk-maximized .ahk-title-btn-maximize {
+  display: none;
+}
+
+.ahk-title-btn:hover {
+  background: rgba(0, 0, 0, .3);
+}
+
+.ahk-title-btn-close:hover {
+  background: #dc3545;
+}
+/* End Web-based TitleBar */
+
+
+
+
 /***********************************************/
 
 
@@ -243,6 +312,7 @@ body {
 
 
 
+
 /* PACS Assistant styles */
 
 html {
@@ -250,10 +320,16 @@ html {
   color: #c0c0c0;
 }
 
+body {
+  overflow: hidden;
+  height: 100%;
+}
 
 
-.main {
+#main {
   padding: 10px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 
@@ -269,4 +345,11 @@ html {
 #agesex {
   display: inline;
   font-weight: bold;
+}
+
+
+
+#windowinfo {
+  font-size: small;
+   
 }

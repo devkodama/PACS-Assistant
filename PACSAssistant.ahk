@@ -21,6 +21,7 @@ DetectHiddenText true			; don't search hidden text by default
 
 
 #Include <WinEvent>
+#Include <Credentials>
 
 #Include Utils.ahk
 #Include PASound.ahk
@@ -157,7 +158,7 @@ DISPATCH_INTERVAL := 100
 
 
 ; interval (ms) for updating GUI display
-GUIREFRESH_INTERVAL := 100
+GUIREFRESH_INTERVAL := 200
 
 ; timeout (ms) for clearing status bar text
 GUISTATUSBAR_TIMEOUT := 60000	; 60 sec

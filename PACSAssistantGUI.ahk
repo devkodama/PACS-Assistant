@@ -267,11 +267,10 @@ PAGui_Init(*) {
     global PAGui
 
     ; Create the GUI
-    PAGui := WebViewToo()
+    PAGui := WebViewToo(,,, true)
 
     ;PAGui.Debug()
     PAGui.Opt("+Resize -MaximizeBox")
-    PAGui.Title := PAGUI_WINDOWTITLE
 
     /**
 	 * In order to use PostWebMessageAsJson() or PostWebMessageAsString(), you'll need to setup your webpage to listen to messages
@@ -286,7 +285,10 @@ PAGui_Init(*) {
 
     ; load the page
     PAGui.Load(PAGUI_HOMEPAGE)
-        
+    
+    ; set up resize handler
+    PAGui.OnEvent("Size", PAGui_Size)
+    
     ; set up exit handler
     PAGui.OnEvent("Close", (*) => PAGui_Exit())
     
@@ -300,6 +302,10 @@ PAGui_Init(*) {
     ;MyWindow.AddCallBackToScript("Tooltip", WebTooltipEvent)
     ;MyWindow.AddCallbackToScript("ahkFormSubmit", FormSubmitHandler)
 
+
+    PAGui.Title := PAGUI_WINDOWTITLE
+
+
     ; display the PACS Assistant window
     ; restore PACS Assistant window position
 	x := PAWindows["PA"]["main"].xpos
@@ -307,8 +313,8 @@ PAGui_Init(*) {
 	w := PAWindows["PA"]["main"].width
 	h := PAWindows["PA"]["main"].height
 	if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
-;		PAGui.Show("X" . x . " Y" . y . " W" . w . " H" . h)
-        PAGui.Show()
+		PAGui.Show("X" . x . " Y" . y . " W" . w . " H" . h, PAGUI_WINDOWTITLE)
+;        PAGui.Show()
 
         PAWindows.Update("PA")
 
@@ -317,9 +323,29 @@ PAGui_Init(*) {
 	} else {
 
 		PAGui.Show()
+        PAGui.Title := PAGUI_WINDOWTITLE
 
 	}
   
+}
+
+; Called when GUI is resized
+PAGui_Size(thisGui, MinMax, Width, Height) {
+
+    if MinMax = -1 {
+        ; The window has been minimized. No action needed.
+        return
+    }
+
+    ; Otherwise, the window has been resized or maximized.
+    ; Recalculate the height of the main display area and change the height of div#main
+
+    PAGui.GetClientPos(&x, &y, &w, &h)
+;    PAToolTip(x ", " y ", " w ", " h)
+    h := h - 54
+    PAGui.PostWebMessageAsString("document.getElementById('main').style = `"height: " . h . "px;`"")
+
+
 }
 
 
