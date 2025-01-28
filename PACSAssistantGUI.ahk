@@ -352,6 +352,8 @@ PAGui_Size(thisGui, MinMax, Width, Height) {
 ; Called when GUI window is closed
 PAGui_Exit(*) {
 
+    PAStatus("Closing PACS Assistant...")
+    
     ; save PA window position
     PAWindows.SaveWindowPositions("PA")
     PAWindows.SaveSettings("PA")
@@ -365,5 +367,5 @@ PAGui_Exit(*) {
 
 
     ; terminate the script
-;    ExitApp()
+    ExitApp()
 }
