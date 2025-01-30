@@ -1,6 +1,6 @@
 # PACS Assistant
 
-![PACS Assistant](assets/PA main screen.png)
+![PACS Assistant](assets\PA main screen.png)
 
 ## Introduction
 
