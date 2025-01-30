@@ -41,6 +41,12 @@
       <div id="microphonestatus">Microphone</div>
     </div>
 
+    <!-- Tab bar -->
+    <div class="tabbar">
+      <div id="tab-home" class="tab-icon default" onclick="openTab(this.id, 'home')"></div>
+      <div id="tab-settings" class="tab-icon" onclick="openTab(this.id, 'settings')"></div>
+    </div>
+
     <!-- Application bar -->
     <div class="appbar">
       <div class="app-icon context-menu-target" id="app-power" onmouseenter="ahk.Hover(this.alt)"
@@ -53,13 +59,7 @@
       </div>
     </div>
 
-    <!-- Tab bar -->
-    <div class="tabbar">
-      <div id="tab-home" class="tab-icon default" onclick="openTab(this.id, 'home')"></div>
-      <div id="tab-settings" class="tab-icon" onclick="openTab(this.id, 'settings')"></div>
-    </div>
-
-
+    
     <!-- Primary display area -->
     <div id="main">
 

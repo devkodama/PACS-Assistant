@@ -47,23 +47,124 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
+/***********************************************/
 
-/* CSS basic styles for header/3 column/footer page */
+/* CSS basic styles */
 
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Style the header */
-.header {
-/*  background-color: #f1f1f1;
-  padding: 30px;
-  text-align: center;
-  font-size: 35px;
-*/
-  padding: 10px;
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
+
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+@media (max-width: 600px) {
+  .column.side, .column.middle {
+    width: 100%;
+  }
+}
+
+
+
+
+/***********************************************/
+
+/* Title bar (web-based, not windows system) */
+
+#titlebar {
+  cursor: default;
+  user-select: none;
+  display: flex;
+  align-items: stretch;
+
+  height: 24px;
+  line-height: 16px;    /* same as height, vertically centers text */
+  padding-left: 10px;
+
+  font-size: 0.9rem;
+  text-wrap: nowrap;
+
+  background-color: #191b4d;
+  color: #c0c0c0;
+}
+
+.ahk-titleBar {
+  flex-grow: 1;
+  padding: 0.25rem 0.5rem;
+}
+
+.ahk-title-btn {
+  padding: 0.35em 1.0em;
+  cursor: pointer;
+  vertical-align: bottom;
+  font-family: Webdings;
+  font-size: 0.9rem;
+}
+
+body .ahk-title-btn-restore {
+  display: none
+}
+
+body.ahk-maximized .ahk-title-btn-restore {
+  display: block;
+}
+
+body.ahk-maximized .ahk-title-btn-maximize {
+  display: none;
+}
+
+.ahk-title-btn:hover {
+  background: rgba(0, 0, 0, .3);
+}
+
+.ahk-title-btn-close:hover {
+  background: #dc3545;
+}
+
+
+/***********************************************/
+
+/* Status bar */
+
+#statusbar {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+
+  height: 24px;
+  line-height: 24px;    /* same as height, vertically centers text */
+  padding-left: 10px;
+
+  user-select: none;
+  font-size: 0.9rem;
+  text-wrap: nowrap;
+
+  background-color: #404040;
+  color: #e0e0e0;
+}
+
+/* #statusbartext {
+   
+} */
+
+#microphonestatus {
+  float: right;
+  width: 25%;
+  min-width: 150px;
+  max-width: 400px;
+  background-color: #404040;
+  padding: 0 16px;
+  text-align: center;
+  transition: background-color 0.2s;
+}
 
 
 /***********************************************/
@@ -85,20 +186,19 @@ body {
   background-repeat: no-repeat;
   background-position: 8px 12px;
   opacity: 50%;
+  transition: opacity 0.2s;
 }
 .tab-icon.active, .tab-icon:hover {
   opacity: 100%;
+  transition: opacity 0.2s;
 }
 
 #tab-home {
   background-image: url('../images/home.png');
-  /* transition: background-image 0.5s; */
 }
 #tab-settings {
   background-image: url('../images/settings.png');
-  /* transition: background-image 0.5s; */
 }
-
 
 
 /***********************************************/
@@ -154,144 +254,6 @@ body {
 
 /***********************************************/
 
-/* Status bar */
-
-#statusbar {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-
-  height: 24px;
-  line-height: 24px;    /* same as height, vertically centers text */
-  padding-left: 10px;
-
-  user-select: none;
-  font-size: 0.9rem;
-  text-wrap: nowrap;
-
-  background-color: #404040;
-  color: #e0e0e0;
-}
-
-/* #statusbartext {
-   
-} */
-
-#microphonestatus {
-  float: right;
-  width: 25%;
-  min-width: 150px;
-  max-width: 400px;
-  background-color: #404040;
-  padding: 0 16px;
-  text-align: center;
-  transition: background-color 0.2s;
-}
-
-
-
-/***********************************************/
-
-/* These definitions are for the Web-based TitleBar */
-#titlebar {
-  cursor: default;
-  user-select: none;
-  display: flex;
-  align-items: stretch;
-
-  height: 30px;
-  padding-left: 10px;
-
-  font-size: 0.rem;
-  text-wrap: nowrap;
-
-  background-color: #191b4d;
-  color: #c0c0c0;
-}
-
-.ahk-titleBar {
-  flex-grow: 1;
-  padding: 0.25rem 0.5rem;
-}
-/* per bootstrap - https://getbootstrap.com/docs/5.0/utilities/spacing/ */
-/* .flex-grow-1 {
-  flex-grow: 1;
-}
-.px-2 {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-.py-1 {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-} */
-
-.ahk-title-btn {
-  /* float: right; */
-  padding: 0.35em 1.0em;
-  cursor: pointer;
-  vertical-align: bottom;
-  font-family: Webdings;
-  font-size: 0.9rem;
-}
-      
-body .ahk-title-btn-restore {
-  display: none
-}
-
-body.ahk-maximized .ahk-title-btn-restore {
-  display: block;
-}
-
-body.ahk-maximized .ahk-title-btn-maximize {
-  display: none;
-}
-
-.ahk-title-btn:hover {
-  background: rgba(0, 0, 0, .3);
-}
-
-.ahk-title-btn-close:hover {
-  background: #dc3545;
-}
-/* End Web-based TitleBar */
-
-
-
-
-/***********************************************/
-
-
-
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-
-
-/* Style the footer */
-.footer {
-/*  background-color: #f1f1f1;
-  padding: 10px;
-  text-align: center;
-*/
-  padding: 10px;
-}
-
-
-/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
-@media (max-width: 600px) {
-  .column.side, .column.middle {
-    width: 100%;
-  }
-}
-
-
-
 /* Context menus - from https://dev.to/iamafro/how-to-create-a-custom-context-menu--5d7p */
 
 .context-menu {
@@ -326,7 +288,7 @@ body.ahk-maximized .ahk-title-btn-maximize {
 
 
 
-
+/***********************************************/
 
 /* PACS Assistant styles */
 
@@ -340,6 +302,9 @@ body {
   height: 100%;
 }
 
+
+
+/***********************************************/
 
 #main {
   border-left: 1px solid #202020;
@@ -380,3 +345,5 @@ body {
   font-size: small;
    
 }
+
+
