@@ -35,7 +35,9 @@ DetectHiddenText true			; don't search hidden text by default
 #Include PAPS.ahk
 #Include PAEPIC.ahk
 
-#include PAInfo.ahk
+#Include PAInfo.ahk
+#Include PASettings.ahk
+
 
 #Include PAICDCode.ahk
 

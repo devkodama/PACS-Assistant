@@ -20,6 +20,7 @@
 #HotIf WinActive('ahk_exe code.exe')
 
 ~^s:: {
+    
     ; stop daemons
     InitDaemons(false)
 
