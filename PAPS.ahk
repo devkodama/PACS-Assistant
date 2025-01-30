@@ -192,13 +192,13 @@ PSClose_PSmain() {
 
 
 ; helper function called by PSOpen_PSreport() and PSClose_PSreport()
-_PSStopDictation() {
+_PSStopDictate() {
 	global PA_Dictate_autooff
 
 	; only turn off mic if user is report window is not reopened within timeout
 	if PA_Dictate_autooff {
 		PSSend("{F4}")						; Stop Dictation
-		PASound("toggle dictate")
+;		PASound("toggle dictate")
 		PA_Dictate_autooff := false
 	}
 }
@@ -220,6 +220,7 @@ PSOpen_PSreport() {
 
 	PACurrentStudy.lastfirst := ""
 	PACurrentStudy.dobraw := ""
+	PACurrentStudy.accession := ""
 	PACurrentStudy.description := ""
 	PACurrentStudy.facility := ""
 	PACurrentStudy.patienttype := ""
@@ -228,6 +229,8 @@ PSOpen_PSreport() {
 	PACurrentStudy.referringmd := ""
 	PACurrentStudy.reason := ""
 	PACurrentStudy.techcomments := ""
+
+	Sleep(1000)		; try to improve reliability of EI data scraping
 
 	pt := EIRetrievePatientInfo()
 	if pt { 
@@ -240,6 +243,7 @@ PSOpen_PSreport() {
 		If st {
 			PACurrentStudy.lastfirst := st.lastfirst
 			PACurrentStudy.dobraw := st.dobraw
+			PACurrentStudy.accession := st.accession
 			PACurrentStudy.description := st.description
 			PACurrentStudy.facility := st.facility
 			PACurrentStudy.patienttype := st.patienttype
@@ -250,17 +254,30 @@ PSOpen_PSreport() {
 			PACurrentStudy.techcomments := st.techcomments
 		}
 	}
-	
-	if PA_Dictate_autooff {
-		; mic should already by on, so don't do anything
-		PA_Dictate_autooff := false
-		SetTimer(_PSStopDictation, 0)		; cancel pending microphone off action
-	} else {
-		if PAOptions["PS_dictate_autoon"] && !PSDictateIsOn(true) {
+
+	if PAOptions["PS_dictate_autoon"].setting {
+		if PA_Dictate_autooff {
+			; mic should already by on, so cancel the autooff timer and don't toggle the mic
+			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
+			PA_Dictate_autooff := false
+		} else if !PSDictateIsOn(true) {
+			; mic is not on so start dication
 			PSSend("{F4}")						; Start Dictation
 			PASound("toggle dictate")
 		}
-	}
+	}	
+
+	; if PA_Dictate_autooff {
+	; 	; mic should already by on, so don't do anything
+	; 	PA_Dictate_autooff := false
+	; 	SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action
+	; } else {
+	; 	if PAOptions["PS_dictate_autoon"] && !PSDictateIsOn(true) {
+	; 		PSSend("{F4}")						; Start Dictation
+	; 		PASound("toggle dictate")
+	; 	}
+	; }
+
 }
 
 
@@ -268,18 +285,18 @@ PSOpen_PSreport() {
 PSClose_PSreport() {
 	global PA_Dictate_autooff
 
-	if PSDictateIsOn(true) {
+	if PAOptions["PS_dictate_autoon"].setting && PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
 		PA_Dictate_autooff := true
-		SetTimer(_PSStopDictation, -1000)		; delay 1000 ms
+		SetTimer(_PSStopDictate, -PS_DICTATEAUTOOFF_DELAY)		; turn off mic after delay
 	}
 }
 
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["logout"].CenterWindow(_PSParent())
 	}
 	if PAOptions["PSlogout_dismiss"].setting {
@@ -291,7 +308,7 @@ PSOpen_PSlogout() {
 
 ; Hook function called when PS window appears
 PSOpen_PSsavespeech() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["savespeech"].CenterWindow(_PSParent())
 	}
 	if PAOptions["PSsavespeech_dismiss"].setting {
@@ -302,28 +319,28 @@ PSOpen_PSsavespeech() {
 
 ; Hook function called when PS window appears
 PSOpen_PSsavereport() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["savereport"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSdeletereport() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["deletereport"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSunfilled() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["unfilled"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSconfirmaddendum() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["confirmaddendum"].CenterWindow(_PSParent())
 	}
 	if PAOptions["PSconfirmaddendum_dismiss"].setting {
@@ -334,35 +351,35 @@ PSOpen_PSconfirmaddendum() {
 
 ; Hook function called when PS window appears
 PSOpen_PSconfirmanotheraddendum() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["confirmanotheraddendum"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSexisting() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["existing"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PScontinue() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["continue"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSownership() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["ownership"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSmicrophone() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["microphone"].CenterWindow(_PSParent())
 	}
 	if PAOptions["PSmicrophone_dismiss"].setting {
@@ -373,13 +390,13 @@ PSOpen_PSmicrophone() {
 
 ; Hook function called when PS window appears
 PSOpen_PSfind() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["find"].CenterWindow(_PSParent())
 	}
 }
 
 PSOpen_PSspelling() {
-	if PAOptions["PScenter_dialog"] {
+	if PAOptions["PScenter_dialog"].setting {
 		PAWindows["PS"]["spelling"].CenterWindow(_PSParent())
 	}
 }

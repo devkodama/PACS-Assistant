@@ -102,6 +102,7 @@ _RefreshGUI() {
 
 	; Update current patient display if there have been any changes
 	if true || PACurrentPatient.changed {
+
 		patientname := StrUpper(PACurrentPatient.lastfirst)
 		dob := PACurrentPatient.dob
 		age := PACurrentPatient.age
@@ -117,39 +118,45 @@ _RefreshGUI() {
 	; Update current study display if there have been any changes
 	if true || PACurrentStudy.changed {
 
-		studyinfo := ""
-		studyinfo .= "acc=" . PACurrentStudy.accession
-		studyinfo .= " // " . PACurrentStudy.description
-		studyinfo .= "<br />" . PACurrentStudy.facility
-		studyinfo .= " // " . PACurrentStudy.patienttype
-		studyinfo .= " // " . PACurrentStudy.priority
-		studyinfo .= " // " . PACurrentStudy.orderingmd
-		for o in PACurrentStudy.other {
-			studyinfo .= " // other=" . o
-		}
-		studyinfo .= "<br /><br />REASON: " . PACurrentStudy.reason
-		studyinfo .= "<br /><br />COMMENTS: " . PACurrentStudy.techcomments
-		studyinfo .= "<br /><br />"
+		if true || PACurrentStudy.accession {
 
-		icdcodes := ""
-		spos := 1
-	 	while fpos := RegExMatch(PACurrentStudy.reason, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
-;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
-	 		icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
-	 		spos := fpos + fobj.Len
-	 	}
-	 	spos := 1
-		while fpos := RegExMatch(PACurrentStudy.techcomments, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
-;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
-			icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
-			spos := fpos + fobj.Len
-		}
+			studyinfo := ""
+			studyinfo .= "acc=" . PACurrentStudy.accession
+			studyinfo .= " // " . PACurrentStudy.description
+			studyinfo .= "<br />" . PACurrentStudy.facility
+			studyinfo .= " // " . PACurrentStudy.patienttype
+			studyinfo .= " // " . PACurrentStudy.priority
+			studyinfo .= " // " . PACurrentStudy.orderingmd
+			for o in PACurrentStudy.other {
+				studyinfo .= " // other=" . o
+			}
+			studyinfo .= "<br /><br />REASON: " . PACurrentStudy.reason
+			studyinfo .= "<br /><br />COMMENTS: " . PACurrentStudy.techcomments
+			studyinfo .= "<br /><br />"
 
-		if icdcodes {
-			studyinfo .= "ICD Codes: " . icdcodes . "<br />"
-		}
+			icdcodes := ""
+			spos := 1
+			while fpos := RegExMatch(PACurrentStudy.reason, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
+	;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
+				icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
+				spos := fpos + fobj.Len
+			}
+			spos := 1
+			while fpos := RegExMatch(PACurrentStudy.techcomments, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
+	;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
+				icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
+				spos := fpos + fobj.Len
+			}
 
-;PAToolTip(studyinfo)
+			if icdcodes {
+				studyinfo .= "ICD Codes: " . icdcodes . "<br />"
+			}
+
+	;PAToolTip(studyinfo)
+		} else {
+
+			studyinfo := "No exam"
+		}
 
 		PAGui.PostWebMessageAsString("document.getElementById('studyinfo').innerHTML = '" . studyinfo . "'")
 

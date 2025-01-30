@@ -159,9 +159,9 @@ body {
   color: #e0e0e0;
 }
 
-#statusbartext {
+/* #statusbartext {
    
-}
+} */
 
 #microphonestatus {
   float: right;
@@ -317,7 +317,7 @@ body.ahk-maximized .ahk-title-btn-maximize {
 
 html {
   background-color: #101010;
-  color: #c0c0c0;
+  color: #e0e0e0;
 }
 
 body {
@@ -338,13 +338,14 @@ body {
   font-weight: bold;
 }
 
-#dob {
-  display: inline;
-}
-
 #agesex {
   display: inline;
   font-weight: bold;
+}
+
+#dob {
+  display: inline-block;
+  float: right;
 }
 
 

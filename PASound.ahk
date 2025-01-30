@@ -54,10 +54,10 @@ class SoundItem {
 
 ; Sounds maps PA events to voice or audio feedback
 Sounds := Map()
-Sounds["sign report"] := SoundItem("Signed", , , "Report signed")
+Sounds["sign report"] := SoundItem("Sign report", , , "Sign report")
 ;Sounds["sign report"] := SoundItem(, A_WinDir "\Media\tada.wav")
-Sounds["draft report"] := SoundItem("Saved as draft", , , "Saved as draft")
-Sounds["prelim report"] := SoundItem("Preliminary report", , , "Saved as preliminary report")
+Sounds["draft report"] := SoundItem("Save as draft", , , "Save as draft")
+Sounds["prelim report"] := SoundItem("Preliminary report", , , "Save as preliminary report")
 Sounds["EPIC"] := SoundItem("EPIC was clicked")
 Sounds["toggle dictate"] := SoundItem(, , 392)
 

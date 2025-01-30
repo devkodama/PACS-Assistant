@@ -218,6 +218,11 @@ EI_SHUTDOWN_TIMEOUT := 60
 ; EI server string
 EI_SERVER := "mivcsp.adventhealth.com"
 
+
+; time delay (ms) for turing off microphone after a report is closed
+PS_DICTATEAUTOOFF_DELAY := 7000
+
+
 ; timeout (seconds) for shutting down EPIC
 EPIC_SHUTDOWN_TIMEOUT := 30
 
