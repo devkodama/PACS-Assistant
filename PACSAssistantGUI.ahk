@@ -326,6 +326,11 @@ PAGui_Init(*) {
         PAGui.Title := PAGUI_WINDOWTITLE
 
 	}
+
+    ; call resize to calculate and set the height of the main display area
+    ; wihtout actually changing the window size
+    PAGui.GetClientPos(, , &w, &h)
+    PAGui_Size(PAGui, 0, w, h)
   
 }
 
@@ -340,11 +345,10 @@ PAGui_Size(thisGui, MinMax, Width, Height) {
     ; Otherwise, the window has been resized or maximized.
     ; Recalculate the height of the main display area and change the height of div#main
 
-    PAGui.GetClientPos(&x, &y, &w, &h)
+;    PAGui.GetClientPos(&x, &y, &w, &h)
 ;    PAToolTip(x ", " y ", " w ", " h)
-    h := h - 54
+    h := Height - 54
     PAGui.PostWebMessageAsString("document.getElementById('main').style = `"height: " . h . "px;`"")
-
 
 }
 
@@ -364,6 +368,8 @@ PAGui_Exit(*) {
     ; stop windows "Close" event callbacks
     WinEvent.Stop("Close")
 
+    Sleep(1000)
+    
     ; terminate the script
     ExitApp()
 }
