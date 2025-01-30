@@ -65,32 +65,47 @@ body {
 }
 
 
-/* Create three unequal columns that floats next to each other */
-.column {
+
+/***********************************************/
+
+/* Tab bar */
+
+.tabbar {
   float: left;
-/*  height: 300px; /* Should be removed. Only for demonstration */
+  position: sticky;
+  margin-top: 8px;
+  width: 40px;
 }
 
-/* Left and right column */
-.column.side {
-  width: 25%;
-  padding: 10px;
+/* Tab icons */
+.tab-icon {
+  width: 40px;
+  height: 48px;
+  background-color: inherit; 
+  background-repeat: no-repeat;
+  background-position: 8px 12px;
+  opacity: 50%;
+}
+.tab-icon.active, .tab-icon:hover {
+  opacity: 100%;
 }
 
-/* Middle column */
-.column.middle {
-/*  width: 50%;
-  padding: 10px;
-*/
-  padding: 10px;
+#tab-home {
+  background-image: url('../images/home.png');
+  /* transition: background-image 0.5s; */
 }
+#tab-settings {
+  background-image: url('../images/settings.png');
+  /* transition: background-image 0.5s; */
+}
+
 
 
 /***********************************************/
 
 /* App bar */
 
-.column.appbar {
+.appbar {
   float: right;
   position: sticky;
   top: 20px;
@@ -327,11 +342,23 @@ body {
 
 
 #main {
+  border-left: 1px solid #202020;
+
   padding: 10px;
   overflow-y: auto;
   scrollbar-width: thin;
 }
 
+#patient {
+  display: inline-block;
+  width: 60%;
+}
+
+#toolbar {
+  display: inline-block;
+  width: 40%;
+  float: right;
+}
 
 #patientname {
   font-size: larger;
@@ -347,7 +374,6 @@ body {
   display: inline-block;
   float: right;
 }
-
 
 
 #windowinfo {

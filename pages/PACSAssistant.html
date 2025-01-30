@@ -1,164 +1,160 @@
 <!doctype html>
 <html lang="en">
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>A Basic HTML5 Template</title>
-  <meta name="description" content="A simple HTML5 Template for new projects.">
-  <meta name="author" content="SitePoint">
+    <title>A Basic HTML5 Template</title>
+    <meta name="description" content="A simple HTML5 Template for new projects.">
+    <meta name="author" content="SitePoint">
 
-  <meta property="og:title" content="A Basic HTML5 Template">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.sitepoint.com/a-basic-html5-template/">
-  <meta property="og:description" content="A simple HTML5 Template for new projects.">
-  <meta property="og:image" content="image.png">
+    <meta property="og:title" content="A Basic HTML5 Template">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.sitepoint.com/a-basic-html5-template/">
+    <meta property="og:description" content="A simple HTML5 Template for new projects.">
+    <meta property="og:image" content="image.png">
 
-  <link rel="icon" href="/favicon.ico">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-  <link rel="stylesheet" href="css/styles.css?v=1.0">
+    <link rel="stylesheet" href="css/styles.css?v=1.0">
 
-</head>
+  </head>
 
-<body>
+  <body>
 
-  <!-- Title bar -->
-  <div id="titlebar">
-    <div class="ahk-titleBar" onmousedown="ahk.DragWindow()">
-      <span>PACS Assistant</span>
-    </div>
-  
-    <div class="ahk-title-btn" onclick="ahk.Minimize()">0</div>
-    <div class="ahk-title-btn ahk-title-btn-close" onclick="ahk.Close()">r</div>
-  </div>
-
-  <!-- Application bar -->
-  <div class="column appbar">
-    <div class="app-icon context-menu-target" id="app-power" onmouseenter="ahk.Hover(this.alt)"
-      onclick="ahk.ClickId(this.id)"></div>
-    <div class="app-group">
-      <div class="app-icon context-menu-target" id="app-VPN" onclick="ahk.ClickId(this.id)"></div>
-      <div class="app-icon context-menu-target" id="app-EI" onclick="ahk.ClickId(this.id)"></div>
-      <div class="app-icon context-menu-target" id="app-PS" onclick="ahk.ClickId(this.id)"></div>
-      <div class="app-icon context-menu-target" id="app-EPIC" onclick="ahk.ClickId(this.id)"></div>
-    </div>
-  </div>
-
-  <!-- Status bar, with microphone on/off indicator -->
-  <div id="statusbar">
-    <span id="statusbartext">Status Bar Text</span>
-    <div id="microphonestatus">Microphone</div>
-  </div>
-
-
-  <!-- Primary display area -->
-  <div id="main">
-
-    <!-- Patient info area -->
-    <div>
-      <div id="patientname"></div>
-      <div id="agesex"></div>
-      <div id="dob"></div>
+    <!-- Title bar -->
+    <div id="titlebar">
+      <div class="ahk-titleBar" onmousedown="ahk.DragWindow()">
+        <span>PACS Assistant</span>
+      </div>
+    
+      <div class="ahk-title-btn" onclick="ahk.Minimize()">0</div>
+      <div class="ahk-title-btn ahk-title-btn-close" onclick="ahk.Close()">r</div>
     </div>
 
-    <!-- Study info area -->
-    <div>
-      <div id="studyinfo"></div>
+    <!-- Status bar, with microphone on/off indicator -->
+    <div id="statusbar">
+      <span id="statusbartext">Status Bar Text</span>
+      <div id="microphonestatus">Microphone</div>
     </div>
 
-
-    <br />
-
-    <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)"
-      class="btn btn-block btn-outline-primary">Save window positions</button>
-    <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
-      class="btn btn-block btn-outline-primary">Restore window positions</button>
-    <button type="button" id="button-togglePA" onclick="ahk.ClickId(this.id)"
-      class="btn btn-block btn-outline-primary">Disable PACS Assistant</button>
-
-    <br />
-    <br />
-
-
-    <div id="windowinfo"></div>
-
-  </div>
-
-
-  <!-- 
-  <div class="row">
-    <div class="column side">
-      <div class="header">
-        <h2 onmouseenter="ahk.Hover('Example Tooltip')">Header</h2>
-
+    <!-- Application bar -->
+    <div class="appbar">
+      <div class="app-icon context-menu-target" id="app-power" onmouseenter="ahk.Hover(this.alt)"
+        onclick="ahk.ClickId(this.id)"></div>
+      <div class="app-group">
+        <div class="app-icon context-menu-target" id="app-VPN" onclick="ahk.ClickId(this.id)"></div>
+        <div class="app-icon context-menu-target" id="app-EI" onclick="ahk.ClickId(this.id)"></div>
+        <div class="app-icon context-menu-target" id="app-PS" onclick="ahk.ClickId(this.id)"></div>
+        <div class="app-icon context-menu-target" id="app-EPIC" onclick="ahk.ClickId(this.id)"></div>
       </div>
     </div>
-      <p id="statusarea"></p>
+
+    <!-- Tab bar -->
+    <div class="tabbar">
+      <div id="tab-home" class="tab-icon default" onclick="openTab(this.id, 'home')"></div>
+      <div id="tab-settings" class="tab-icon" onclick="openTab(this.id, 'settings')"></div>
     </div>
-    <div class="column side">Column 3</div>
 
 
-                <button type="button" id="button-test" onclick="ahk.ClickId(this.id)" class="btn btn-block btn-outline-primary">Test</button>
-
-  </div>
-  </div>
--->
-  <!--
-  <div class="footer">
-    <p>Footer</p>
-  </div>
--->
+    <!-- Primary display area -->
+    <div id="main">
 
 
+      <!-- Home page -->
+      <div id="home" class="tabpage">
+
+        <!-- Patient info area -->
+        <div id="patient">
+          <div id="patientname"></div>
+          <div id="agesex"></div>
+          <div id="dob"></div>
+        </div>
+
+        <!-- Toolbar panel -->
+        <div id="toolbar">
+          tools and research results here
+        </div>
+
+        <!-- Study info area -->
+        <div id="study">
+          <div id="studyinfo"></div>
+        </div>
+
+      </div>
+      <!-- End Home page -->
 
 
-  <!-- right-click context menus -->
+      <!-- Settings page -->
+      <div id="settings" class="tabpage">
+        
+        <div id="windowinfo"></div>
 
-  <div id="context-menu-power" class="context-menu">
-    <ul class="context-menu-list">
-      <li class="context-menu-item" id="app-power-startup" onclick="ahk.ClickId(this.id)">Start up PACS</li>
-      <li class="context-menu-item" id="app-power-shutdown" onclick="ahk.ClickId(this.id)">Shut down PACS</li>
-    </ul>
-  </div>
+        <br />
 
-  <div id="context-menu-VPN" class="context-menu">
-    <ul class="context-menu-list">
-      <li class="context-menu-item" id="app-VPN-connect" onclick="ahk.ClickId(this.id)">Connect VPN</li>
-      <li class="context-menu-item" id="app-VPN-disconnect" onclick="ahk.ClickId(this.id)">Disconnect VPN</li>
-    </ul>
-  </div>
+        <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Save window positions</button>
+        <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Restore window positions</button>
+        <button type="button" id="button-togglePA" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Disable PACS Assistant</button>
+        
+      </div>
+      <!-- End Settings page -->
+      
 
-  <div id="context-menu-EI" class="context-menu">
-    <ul class="context-menu-list">
-      <li class="context-menu-item" id="app-EI-startup" onclick="ahk.ClickId(this.id)">Start EI</li>
-      <li class="context-menu-item" id="app-EI-shutdown" onclick="ahk.ClickId(this.id)">Close EI</li>
-    </ul>
-  </div>
-
-  <div id="context-menu-PS" class="context-menu">
-    <ul class="context-menu-list">
-      <li class="context-menu-item" id="app-PS-startup" onclick="ahk.ClickId(this.id)">Start PowerScribe</li>
-      <li class="context-menu-item" id="app-PS-shutdown" onclick="ahk.ClickId(this.id)">Close PowerScribe</li>
-      <li class="context-menu-item" id="app-PS-forceclose" onclick="ahk.ClickId(this.id)">Force close PowerScribe</li>
-    </ul>
-  </div>
-
-  <div id="context-menu-EPIC" class="context-menu">
-    <ul class="context-menu-list">
-      <li class="context-menu-item" id="app-EPIC-startup" onclick="ahk.ClickId(this.id)">Start Epic</li>
-      <li class="context-menu-item" id="app-EPIC-shutdown" onclick="ahk.ClickId(this.id)">Close Epic</li>
-    </ul>
-  </div>
+    </div>
+    <!-- End Primary display area -->
+      
 
 
+    <!-- right-click context menus -->
 
-  <!-- scripts at end of body for performance reasons -->
+    <div id="context-menu-power" class="context-menu">
+      <ul class="context-menu-list">
+        <li class="context-menu-item" id="app-power-startup" onclick="ahk.ClickId(this.id)">Start up PACS</li>
+        <li class="context-menu-item" id="app-power-shutdown" onclick="ahk.ClickId(this.id)">Shut down PACS</li>
+      </ul>
+    </div>
 
-  <script src="js/scripts.js"></script>
+    <div id="context-menu-VPN" class="context-menu">
+      <ul class="context-menu-list">
+        <li class="context-menu-item" id="app-VPN-connect" onclick="ahk.ClickId(this.id)">Connect VPN</li>
+        <li class="context-menu-item" id="app-VPN-disconnect" onclick="ahk.ClickId(this.id)">Disconnect VPN</li>
+      </ul>
+    </div>
 
-</body>
+    <div id="context-menu-EI" class="context-menu">
+      <ul class="context-menu-list">
+        <li class="context-menu-item" id="app-EI-startup" onclick="ahk.ClickId(this.id)">Start EI</li>
+        <li class="context-menu-item" id="app-EI-shutdown" onclick="ahk.ClickId(this.id)">Close EI</li>
+      </ul>
+    </div>
+
+    <div id="context-menu-PS" class="context-menu">
+      <ul class="context-menu-list">
+        <li class="context-menu-item" id="app-PS-startup" onclick="ahk.ClickId(this.id)">Start PowerScribe</li>
+        <li class="context-menu-item" id="app-PS-shutdown" onclick="ahk.ClickId(this.id)">Close PowerScribe</li>
+        <li class="context-menu-item" id="app-PS-forceclose" onclick="ahk.ClickId(this.id)">Force close PowerScribe</li>
+      </ul>
+    </div>
+
+    <div id="context-menu-EPIC" class="context-menu">
+      <ul class="context-menu-list">
+        <li class="context-menu-item" id="app-EPIC-startup" onclick="ahk.ClickId(this.id)">Start Epic</li>
+        <li class="context-menu-item" id="app-EPIC-shutdown" onclick="ahk.ClickId(this.id)">Close Epic</li>
+      </ul>
+    </div>
+
+
+
+    <!-- scripts at end of body for performance reasons -->
+
+    <script src="js/scripts.js"></script>
+
+  </body>
 
 </html>

@@ -75,3 +75,36 @@ document.querySelectorAll(".context-menu-target").forEach( m => {
         return false;
         });
 });
+
+
+
+/* Tab functions */
+
+// shows the page with id of pageid
+// tab is the button/link that was clicked
+function openTab(tabid, pageid) {
+    var i, tabpages, tablinks;
+
+    // Hide all elements with class="tabpage"
+    tabpages = document.getElementsByClassName("tabpage");
+    for (i = 0; i < tabpages.length; i++) {
+        tabpages[i].style.display = "none";
+    }
+
+    // Remove the active class from tab icons
+    tablinks = document.getElementsByClassName("tab-icon");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].classList.remove("active");
+    }
+
+    // Show the specified page
+    document.getElementById(pageid).style.display = "block";
+
+    // Add the active class to the current tab/button
+    document.getElementById(tabid).classList.add("active");
+}
+
+
+
+// Get the first tab-icon element with class="default" and click on it
+document.getElementsByClassName("tab-icon default")[0].click();
