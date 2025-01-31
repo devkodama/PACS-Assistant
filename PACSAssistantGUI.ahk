@@ -323,7 +323,6 @@ PAGui_Init(*) {
 	} else {
 
 		PAGui.Show()
-        PAGui.Title := PAGUI_WINDOWTITLE
 
 	}
 
@@ -332,7 +331,11 @@ PAGui_Init(*) {
     PAGui.GetClientPos(, , &w, &h)
     PAGui_Size(PAGui, 0, w, h)
   
+    ; Set up the Settings page, which has dynamically generated HTML
+	PAGui.PostWebMessageAsString("document.getElementById('settingsform').innerHTML = '" PASettings_HTMLForm() "'")
+
 }
+
 
 ; Called when GUI is resized
 PAGui_Size(thisGui, MinMax, Width, Height) {

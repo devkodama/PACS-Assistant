@@ -54,7 +54,7 @@ class SoundItem {
 
 ; Sounds maps PA events to voice or audio feedback
 Sounds := Map()
-Sounds["sign report"] := SoundItem("Sign report", , , "Sign report")
+Sounds["sign report"] := SoundItem("Signed", , , "Sign report")
 ;Sounds["sign report"] := SoundItem(, A_WinDir "\Media\tada.wav")
 Sounds["draft report"] := SoundItem("Save as draft", , , "Save as draft")
 Sounds["prelim report"] := SoundItem("Preliminary report", , , "Save as preliminary report")
@@ -92,7 +92,7 @@ PASound(message) {
             voices := _SoundObj.GetVoices()
             
             ; set voice to use
-            _SoundObj.Voice := voices.Item(PAOptions["PA_voice"].setting)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+            _SoundObj.Voice := voices.Item(PASettings["PA_voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
             ; speak phrase
             _SoundObj.Speak(sound.voice, 0x01)
@@ -117,7 +117,7 @@ PASound(message) {
         voices := _SoundObj.GetVoices()
 
         ; set voice to use
-        _SoundObj.Voice := voices.Item(PAOptions["PA_voice"].setting)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+        _SoundObj.Voice := voices.Item(PASettings["PA_voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
         ; speak phrase
         _SoundObj.Speak(message, 0x01)

@@ -61,51 +61,6 @@ DetectHiddenText true			; don't search hidden text by default
 global PA_Active := true
 
 
-; Option switches for individual functions that can be performed by PACS Assistant
-class Option {
-	setting := ""			; the current setting
-	description :=""		; description of this option
-	possible := 0			; array of possible settings
-
-	; optposs should be an array of options
-	__New(optsetting := false, optdesc := "", optposs := 0) {
-		this.setting := optsetting
-		this.description := optdesc
-		if IsObject(optposs) {
-			this.possible := optposs.Clone()
-		}else {
-			this.possible := 0
-		}
-	}
-}
-PAOptions := Map()
-PAOptions["MouseJiggler"] := Option(true, "Turn on mouse jiggler to keep screen from going to sleep.", [true, false])
-
-PAOptions["ClickLock"] := Option("Manual", "Click lock setting for left mouse button.", ["Off", "Manual", "Auto"])
-PAOptions["ClickLock_interval"] := Option(2000, "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.", [0, 5000])
-
-PAOptions["EIcollaborator_show"] := Option(false, "Show Collaborator window at EI startup.", [true, false])
-
-PAOptions["PSlogout_dismiss"] := Option(true, "Automatically dismiss PowerScribe 'Logout anyway?' message.", [true, false])
-PAOptions["PSlogout_dismiss_reply"] := Option("Yes", "Reply to PowerScribe 'Logout anyway?' message.", ["&Yes", "&No"])
-
-PAOptions["PSsavespeech_dismiss"] := Option(false, "Automatically dismiss PowerScribe 'Save changes to speech files?' message.", [true, false])
-PAOptions["PSsavespeech_dismiss_reply"] := Option("&No", "Reply to PowerScribe 'Save speech files?' message.", ["&Yes", "&No"])
-
-PAOptions["PSconfirmaddendum_dismiss"] := Option(true, "Automatically dismiss PowerScribe 'Create addendum?' message.", [true, false])
-PAOptions["PSconfirmaddendum_dismiss_reply"] := Option("&Yes", "Reply to PowerScribe 'Create addendum?' message.", ["&Yes", "&No"])
-
-PAOptions["PS_dictate_autoon"] := Option(true, "Automatically turn on microphone when starting to dictate a report or addendum.", [true, false])
-PAOptions["PS_dictate_idletimeout"] := Option(0, "Turn off microphone after this many minutes of inactivity (0 = never turn off).", [0, 3600])
-
-PAOptions["PSmicrophone_dismiss"] := Option(true, "Automatically dismiss PowerScribe 'Microphone disconnected' message.", [true, false])
-PAOptions["PSmicrophone_dismiss_reply"] := Option("OK", "Reply to PowerScribe 'Microphone disconnected' message.", ["OK"])
-
-PAOptions["PScenter_dialog"] := Option(true, "Always position confirmation dialogs and spelling window over the main PowerScribe window.", [true, false])
-
-PAOptions["PSspelling_autoclose"] := Option(true, "Close the Spelling popup window unless the mouse is over the PowerScribe window.", [true, false])
-
-PAOptions["PA_voice"] := Option(1, "Synthesized voice (0 for Dave, 1 for Zira, 2 for Mark).", [0, 2])
 
 
 
@@ -160,7 +115,7 @@ DISPATCH_INTERVAL := 100
 
 
 ; interval (ms) for updating GUI display
-GUIREFRESH_INTERVAL := 200
+GUIREFRESH_INTERVAL := 250
 
 ; timeout (ms) for clearing status bar text
 GUISTATUSBAR_TIMEOUT := 60000	; 60 sec
@@ -1160,7 +1115,6 @@ PA_Init() {
 ;
 PA_Main() {
 	global PACurrentPatient
-
 
 	; Basic set up
 	PA_Init()

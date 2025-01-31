@@ -347,3 +347,52 @@ body {
 }
 
 
+
+/***********************************************/
+
+/* Settings page */
+
+#PAsettings {
+  width: 60%;
+  font-size: 0.8rem;
+}
+
+.set-cat > summary {
+  font-weight: bold;
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #404040;
+}
+
+.set-opt {
+  display: flex;
+  padding-top: 0.25rem;
+  padding-left: 1rem;
+  border-bottom: 1px solid #404040;
+}
+
+.set-desc {
+  flex: 4;
+}
+
+.set-val {
+  flex: 1;
+  text-align: center;
+  align-content: center;
+}
+
+.set-val [type=checkbox] {
+
+}
+
+.set-val [type=text], .set-val [type=password] {
+  width: 100%;
+  padding: 0 5px;
+  border: none;
+}
+
+.set-val select {
+  width: 100%;
+  float: right;
+}
+

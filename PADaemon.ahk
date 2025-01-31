@@ -101,7 +101,7 @@ _RefreshGUI() {
 	running := true
 
 	; Update current patient display if there have been any changes
-	if true || PACurrentPatient.changed {
+	if PACurrentPatient.changed {
 
 		patientname := StrUpper(PACurrentPatient.lastfirst)
 		dob := PACurrentPatient.dob
@@ -115,54 +115,68 @@ _RefreshGUI() {
 		; reset changed flag
 		PACurrentPatient.changed := false
 	}
+
 	; Update current study display if there have been any changes
 	if true || PACurrentStudy.changed {
 
-		if true || PACurrentStudy.accession {
+		studyinfo := ""
+		; studyinfo .= "acc=" . PACurrentStudy.accession
+		studyinfo .= "<br /><b>" PACurrentStudy.description "</b>"
 
-			studyinfo := ""
-			studyinfo .= "acc=" . PACurrentStudy.accession
-			studyinfo .= " // " . PACurrentStudy.description
-			studyinfo .= "<br />" . PACurrentStudy.facility
-			studyinfo .= " // " . PACurrentStudy.patienttype
-			studyinfo .= " // " . PACurrentStudy.priority
-			studyinfo .= " // " . PACurrentStudy.orderingmd
-			for o in PACurrentStudy.other {
-				studyinfo .= " // other=" . o
-			}
-			studyinfo .= "<br /><br />REASON: " . PACurrentStudy.reason
-			studyinfo .= "<br /><br />COMMENTS: " . PACurrentStudy.techcomments
-			studyinfo .= "<br /><br />"
+; ToolTip(PACurrentStudy.description)
+; Sleep(500)
 
-			icdcodes := ""
-			spos := 1
-			while fpos := RegExMatch(PACurrentStudy.reason, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
-	;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
-				icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
-				spos := fpos + fobj.Len
-			}
-			spos := 1
-			while fpos := RegExMatch(PACurrentStudy.techcomments, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
-	;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
-				icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
-				spos := fpos + fobj.Len
-			}
+		; studyinfo .= "<br />" . PACurrentStudy.facility
+		; studyinfo .= " // " . PACurrentStudy.patienttype
+		; studyinfo .= " // " . PACurrentStudy.priority
+		studyinfo .= "<br /> " . StrTitle(PACurrentStudy.orderingmd)
 
-			if icdcodes {
-				studyinfo .= "ICD Codes: " . icdcodes . "<br />"
-			}
+		studyinfo .= "<br /><br />laterality: " . PACurrentStudy.laterality
 
-	;PAToolTip(studyinfo)
-		} else {
 
-			studyinfo := "No exam"
+		for o in PACurrentStudy.other {
+			studyinfo .= "<br /> other: " . o
+		}
+		; studyinfo .= "<br /><br /><span style ='color: #808080; font-size: 0.8em;'>reason </span>" . PACurrentStudy.reason
+		; studyinfo .= "<br /><span style ='color: #808080; font-size: 0.8em;'>tech</span>" . PACurrentStudy.techcomments
+		studyinfo .= "<br /><span>reason: </span>" . PACurrentStudy.reason
+		studyinfo .= "<br /><span >tech: </span>" . PACurrentStudy.techcomments
+
+		icdcodes := ""
+		spos := 1
+		while fpos := RegExMatch(PACurrentStudy.reason, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
+;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
+			icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
+			spos := fpos + fobj.Len
+		}
+		spos := 1
+		while fpos := RegExMatch(PACurrentStudy.techcomments, "i)\b([A-TV-Z][0-9][A-Z0-9](\.?[A-Z0-9]{0,4})?)\b", &fobj, spos) {
+;	            msgbox "Found icd10: " fobj[0] " spos: " spos " fpos: " fpos " fobj.Len: " fobj.Len
+			icdcodes .= (icdcodes?"<br />":"") . fobj[0] . " - " . ICDLookupCode(fobj[0])
+			spos := fpos + fobj.Len
 		}
 
-		PAGui.PostWebMessageAsString("document.getElementById('studyinfo').innerHTML = '" . studyinfo . "'")
+		; if any icdcodes were found, show them 
+		if icdcodes {
+			studyinfo .= "ICD Codes: " . icdcodes . "<br />"
+		}
+	
+; PAToolTip(studyinfo)
 
 		; reset changed flag
 		PACurrentStudy.changed := false
+
+		PAGui.PostWebMessageAsString("document.getElementById('studyinfo').innerHTML = '" . studyinfo . "'")
+
+	} else {
+
+		studyinfo := "No exam"
+;  PAToolTip(studyinfo)
+
+		PAGui.PostWebMessageAsString("document.getElementById('studyinfo').innerHTML = '" . studyinfo . "'")
+
 	}
+
 
 	; Update window info area
 	PAGui.PostWebMessageAsString("document.getElementById('windowinfo').innerHTML = `"" . PAWindowInfo . A_Now . "`"")
@@ -317,7 +331,7 @@ _RefreshGUI() {
 
 ; Jiggle the mouse to keep screen awake
 _JiggleMouse() {
-	if PAOptions["MouseJiggler"].setting {
+	if PASettings["MouseJiggler"].value {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
 	}
@@ -375,7 +389,7 @@ _WatchMouse() {
 	}
 	; local function to autoclose the PS spelling window
 	_ClosePSspelling() {
-		if PAOptions["PSspelling_autoclose"] && PAWindows["PS"]["spelling"].visible {
+		if PASettings["PSspelling_autoclose"] && PAWindows["PS"]["spelling"].visible {
 			PAWindows["PS"]["spelling"].Close()
 		}
 	}

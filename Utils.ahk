@@ -11,6 +11,13 @@
 
 
 ;
+;
+EscapeHTML(Text) {
+    return StrReplace(StrReplace(StrReplace(StrReplace(StrReplace(Text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"), "`"", "&quot;"), "'", "&#039;")
+}
+
+
+;
 ; not used? 
 ;
 GetCMDOutput(command){
