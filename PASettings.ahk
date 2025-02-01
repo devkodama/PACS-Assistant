@@ -12,6 +12,11 @@
 
 
 
+/*
+** Includes
+*/
+
+#Include Utils.ahk
 
 
 
@@ -32,24 +37,27 @@ global PASettingsList := Array()
 
 ; Class to hold for an individual setting that can be performed by PACS Assistant
 ; possible values for settingtype:
-;   "bool"      - possiblevalues is assumed to be [true, false]
-;   "num"       - possiblevalues is array of [lowerbound, upperbound]
-;   "text"      - possiblevalues not used
-;   "select"    - possiblevalues is map of options ["opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...]
+;   "bool"      - possiblevalues is ignored, as it assumed to be [true, false]
+;   "num"       - possiblevalues is an array of [lowerbound, upperbound], or empty if no limits
+;   "text"      - possiblevalues is an integer defining maximum length of text
+;   "select"    - possiblevalues is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
 class Setting {
 	type := ""              ; Type of value
+    default := ""           ; Default value
     value := ""		    	; Current value
-	possible := 0			; Array (Map) of possible values for this setting
+	possible := 0			; Array or Map, usage depends on type
 	description :=""		; Description of this setting, shown to user on settings page
 
-	__New(settingtype := "", newvalue := false, possiblevalues:= 0, desc := "") {
+	__New(settingtype := "", defaultvalue := "", possiblevalues:= 0, desc := "") {
         this.type := settingtype
-		this.value := newvalue
-		if IsObject(possiblevalues) {
-			this.possible := possiblevalues.Clone()
-		}else {
-			this.possible := 0
-		}
+        this.default := defaultvalue
+		this.value := defaultvalue
+        this.possible := possiblevalues        
+		; if IsObject(possiblevalues) {
+		; 	this.possible := possiblevalues.Clone()
+		; }else {
+		; 	this.possible := 0
+		; }
 		this.description := desc
 	}
 }
@@ -58,62 +66,65 @@ class Setting {
 
 ; All user modifiable settings are defined here 
 ;
-PASettings["MouseJiggler"] := Setting("bool", true, [true, false], "Jiggle the mouse occasionally to keep the screen from going to sleep.")
+PASettings["MouseJiggler"] := Setting("bool", true, , "Enable mouse jiggler to keep the screen from going to sleep")
 
-PASettings["ClickLock"] := Setting("select", "Manual", ["Off", "Off", "Manual", "Manual", "Auto", "Auto"], "Click lock setting for left mouse button.")
+PASettings["ClickLock"] := Setting("select", "Manual", Map("Off", "Off", "Manual", "Manual", "Auto", "Auto"), "Enable Click Lock for left mouse button")
 PASettings["ClickLock_interval"] := Setting("num", 2000, [500, 5000], "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
-PASettings["EIcollaborator_show"] := Setting("bool", false, [true, false], "Show Collaborator window at EI startup.")
+PASettings["EIcollaborator_show"] := Setting("bool", false, , "Show Collaborator window at EI startup")
 
-PASettings["PSlogout_dismiss"] := Setting("bool", true, [true, false], "Automatically dismiss PowerScribe 'Logout anyway?' message.")
-PASettings["PSlogout_dismiss_reply"] := Setting("select", "&Yes", ["Yes", "&Yes", "No", "&No"], "Reply to PowerScribe 'Logout anyway?' message.")
+PASettings["PSlogout_dismiss"] := Setting("bool", true, , "Automatically answer logout confirmation message")
+PASettings["PSlogout_dismiss_reply"] := Setting("select", "&Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PSsavespeech_dismiss"] := Setting("bool", false, [true, false], "Automatically dismiss PowerScribe 'Save changes to speech files?' message.")
-PASettings["PSsavespeech_dismiss_reply"] := Setting("select", "&No", ["Yes", "&Yes", "No", "&No"], "Reply to PowerScribe 'Save speech files?' message.")
+PASettings["PSsavespeech_dismiss"] := Setting("bool", false, , "Automatically answer 'Save changes to speech files?' message")
+PASettings["PSsavespeech_dismiss_reply"] := Setting("select", "&No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PSconfirmaddendum_dismiss"] := Setting("bool", true, [true, false], "Automatically dismiss PowerScribe 'Create addendum?' message.")
-PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("select", "&Yes", ["Yes", "&Yes", "No", "&No"], "Reply to PowerScribe 'Create addendum?' message.")
+PASettings["PSconfirmaddendum_dismiss"] := Setting("bool", true, , "Automatically answer 'Create addendum?' message")
+PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("select", "&Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PS_dictate_autoon"] := Setting("bool", true, [true, false], "Automatically turn on microphone when starting to dictate a report or addendum.")
-PASettings["PS_dictate_idletimeout"] := Setting("num", 0, [0, 3600], "Turn off microphone after this many minutes of inactivity (0 = never turn off).")
+PASettings["PS_dictate_autoon"] := Setting("bool", true, , "Automatically turn on microphone when starting to dictate, and off after finishing a dictation")
 
-PASettings["PSmicrophone_dismiss"] := Setting("bool", true, [true, false], "Automatically dismiss PowerScribe 'Microphone disconnected' message.")
-PASettings["PSmicrophone_dismiss_reply"] := Setting("select", "OK", ["OK", "OK"], "Reply to PowerScribe 'Microphone disconnected' message.")
+PASettings["PS_dictate_idleoff"] := Setting("bool", true, , "Automatically turn microphone after a period of inactivity")
+PASettings["PS_dictate_idletimeout"] := Setting("num", 1, [1, 720], "How many minutes?")
 
-PASettings["PScenter_dialog"] := Setting("bool", true, [true, false], "Always position confirmation dialogs and spelling window over the main PowerScribe window.")
+PASettings["PSmicrophone_dismiss"] := Setting("bool", true, , "Automatically dismiss 'Microphone disconnected' message")
+PASettings["PSmicrophone_dismiss_reply"] := Setting("select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
 
-PASettings["PSspelling_autoclose"] := Setting("bool", true, [true, false], "Close the Spelling popup window unless the mouse is over the PowerScribe window.")
+PASettings["PScenter_dialog"] := Setting("bool", true, , "Always center message boxes over the main window")
 
-PASettings["PA_voice"] := Setting("select", 1, [0, "Dave", 1, "Zira", 2, "Mark"], "Synthesized voice (0 for Dave, 1 for Zira, 2 for Mark).")
+PASettings["PSspelling_autoclose"] := Setting("bool", true, , "Auto close the Spelling window except in the PowerScribe window")
+
+PASettings["PA_voice"] := Setting("select", "Zira", Map("Dave", 0, "Zira", 1, "Mark", 2), "Which synthesized voice to use")
 
 PASettings["PA_username"] := Setting("text", "", 20, "Username")
 PASettings["PA_password"] := Setting("text", "", 20, "Password")
 
 
 ; Organize the settings to be displayed on the GUI Settings page
-PASettingsList.Push(":Username/Password")
+PASettingsList.Push("#Username/Password")
 PASettingsList.Push("PA_username")
 PASettingsList.Push("PA_password")
 
-PASettingsList.Push(":General")
+PASettingsList.Push("#General")
 PASettingsList.Push("MouseJiggler")
-PASettingsList.Push("ClickLock")
-PASettingsList.Push("ClickLock_interval")
+PASettingsList.Push("PA_voice")
 
-PASettingsList.Push(":EI")
+PASettingsList.Push("#EI")
 PASettingsList.Push("EIcollaborator_show")
+PASettingsList.Push("ClickLock")
+PASettingsList.Push(">ClickLock_interval")
 
-PASettingsList.Push(":PowerScribe")
+PASettingsList.Push("#PowerScribe")
 PASettingsList.Push("PS_dictate_autoon")
 PASettingsList.Push("PS_dictate_idletimeout")
 PASettingsList.Push("PSconfirmaddendum_dismiss")
-PASettingsList.Push("PSconfirmaddendum_dismiss_reply")
+PASettingsList.Push(">PSconfirmaddendum_dismiss_reply")
 PASettingsList.Push("PSlogout_dismiss")
-PASettingsList.Push("PSlogout_dismiss_reply")
+PASettingsList.Push(">PSlogout_dismiss_reply")
 PASettingsList.Push("PSsavespeech_dismiss")
-PASettingsList.Push("PSsavespeech_dismiss_reply")
+PASettingsList.Push(">PSsavespeech_dismiss_reply")
 PASettingsList.Push("PSmicrophone_dismiss")
-PASettingsList.Push("PSmicrophone_dismiss_reply")
+
 PASettingsList.Push("PScenter_dialog")
 PASettingsList.Push("PSspelling_autoclose")
 
@@ -184,7 +195,7 @@ PASettings_HTMLForm() {
 
     for i, optname in PASettingsList {
 
-        if (SubStr(optname, 1, 1) == ":") {
+        if (SubStr(optname, 1, 1) == "#") {
             ; this is a Category heading
 
             catname := SubStr(optname, 2)
@@ -199,14 +210,26 @@ PASettings_HTMLForm() {
         } else {
             ; this is an Option
 
+            indent := 0
+            while SubStr(optname, 1, 1) == ">" {
+                indent++
+                optname := SubStr(optname, 2)
+            }
+
+            indentclass := "setopt-in" . indent
+
             switch PASettings[optname].type {
                 case "bool":
                     ; output a toggle switch
 
                     form .= '<div class="set-opt" id="setopt-' optname '">'
-                    form .= '<div class="set-desc">' EscapeHTML(PASettings[optname].description) '</div>'
+                    if indent {
+                        form .= '<div class="set-desc set-indent' indent '">' EscapeHTML(PASettings[optname].description) '</div>'
+                    } else {
+                        form .= '<div class="set-desc">' EscapeHTML(PASettings[optname].description) '</div>'
+                    }
                     form .= '<div class="set-val">'
-                    form .= '<input id="setval-' optname '" type="checkbox" value="' PASettings[optname].value '">'
+                    form .= '<input id="setval-' optname '" role="switch" oninput="handleInput(this);" type="checkbox"' (PASettings[optname].value ? ' checked>' : '>')
                     form .= '</div>'
                     form .= '</div>'
 
@@ -217,9 +240,13 @@ PASettings_HTMLForm() {
                     ; output a text field
 
                     form .= '<div class="set-opt" id="setopt-' optname '">'
-                    form .= '<div class="set-desc">' EscapeHTML(PASettings[optname].description) '</div>'
+                    if indent {
+                        form .= '<div class="set-desc set-indent' indent '">' EscapeHTML(PASettings[optname].description) '</div>'
+                    } else {
+                        form .= '<div class="set-desc">' EscapeHTML(PASettings[optname].description) '</div>'
+                    }
                     form .= '<div class="set-val">'
-                    form .= '<input id="setval-' optname '" type="text" value="' PASettings[optname].value '">'
+                    form .= '<input id="setval-' optname '" type="text" oninput="handleInput(this);" value="' PASettings[optname].value '">'
                     form .= '</div>'
                     form .= '</div>'
               
@@ -227,18 +254,25 @@ PASettings_HTMLForm() {
                     ; output a select list
 
                     form .= '<div class="set-opt" id="setopt-' optname '">'
-                    form .= '<div class="set-desc">' EscapeHTML(PASettings[optname].description) '</div>'
-                    form .= '<div class="set-val">'
-
-                    form .= '<select id="setval-' optname '" >'
-                    
-                    for k, v in PASettings[optname].possible {
-                        ; if v matches the current value PASettings[optname].value, then add the selected attribute
-                        form .= '<option value="' v '"' (v == PASettings[optname].value ? 'selected' : '') '>' k '</option>'
+                    if indent {
+                        form .= '<div class="set-desc set-indent' indent '">' EscapeHTML(PASettings[optname].description) '</div>'
+                    } else {
+                        form .= '<div class="set-desc">' EscapeHTML(PASettings[optname].description) '</div>'
                     }
+                    form .= '<div class="set-val">'
+                    form .= '<select id="setval-' optname '" oninput="handleInput(this);">'
+
+                    ; create options for the select list from the map of possible values
+                    for k, v in PASettings[optname].possible {
+                        ; if k matches the current value PASettings[optname].value, then add the selected attribute
+                        form .= '<option' ((k == PASettings[optname].value) ? ' selected>' : '>') k '</option>'
+                    }
+
                     form .= '</select>'
                     form .= '</div>'
                     form .= '</div>'
+
+                    form .= '<script> document.querySelector("#settingsform input").addEventListener("input", handleInput); </script>'
 
                 default:
                     

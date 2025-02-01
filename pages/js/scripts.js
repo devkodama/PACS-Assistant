@@ -108,3 +108,23 @@ function openTab(tabid, pageid) {
 
 // Get the first tab-icon element with class="default" and click on it
 document.getElementsByClassName("tab-icon default")[0].click();
+
+
+
+
+/** Form element functions
+ * 
+ * Respond to changes in input or select elements
+ * 
+ */
+
+// document.querySelector("#settingsform input").addEventListener("input", handleInput);
+
+
+/* handles an input change event */
+function handleInput(content) {
+    var logarea = document.getElementById("log");
+    
+    logarea.textContent = content.value + "/" + content.checked + "/" + content.id;       
+    
+}

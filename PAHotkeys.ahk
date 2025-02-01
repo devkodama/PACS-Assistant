@@ -38,10 +38,16 @@ F2:: {
 	global PAGui
 
 	PAToolTip("+F2")
-	form := PASettings_HTMLForm()
-	MsgBox(form)
-	PAGui.PostWebMessageAsString("document.getElementById('settingsform').innerHTML = '" form "'")
+
+	myarr := ["a", "b", "c", "d", "e", "f"]
+	myobj := Map("a", "b", "c", "d", "e", "f")
+
+	msgbox(myobj["a"])
+	
+
 }
+
+
 
 
 F3:: {
