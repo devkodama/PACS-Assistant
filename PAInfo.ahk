@@ -17,13 +17,13 @@
 
 #include <DateParse>
 
+#Include PAGlobals.ahk
+
 
 
 /*
 ** Globals
 */
-
-INFO_DOB_FORMAT := "M/d/yyyy"
 
 
 

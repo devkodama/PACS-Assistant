@@ -15,6 +15,9 @@
 
 #Include <FindText>
 #Include "PAFindTextStrings.ahk"
+
+#Include PAGlobals.ahk
+
 #include "PAInfo.ahk"
 
 
@@ -302,7 +305,7 @@ EIClose_EIdesktop() {
 ; Returns 1 if EI startup is successful, 0 if unsuccessful. (e.g.
 ;  after timeout or if user cancels).
 ; 
-EIStart(cred := PACredentials) {
+EIStart(cred := CurrentUserCredentials) {
 	global PA_Active
 	static running := false			; true if the EIStartup is already running
 

@@ -17,6 +17,24 @@ EscapeHTML(Text) {
 }
 
 
+
+
+;
+;
+;
+StrJoin(arr, delimiter := "", OmitChars := "") {
+
+    string := Trim(arr[1],OmitChars)
+    i := 1
+    while i++ < arr.Length {
+        string .= delimiter . Trim(arr[i],OmitChars)
+    } 
+	return string
+}
+
+
+
+
 ;
 ; not used? 
 ;

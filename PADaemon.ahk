@@ -17,8 +17,7 @@
 ;global PAGui
 
 
-
-
+#Include PAGlobals.ahk
 
 #include PAICDCode.ahk
 

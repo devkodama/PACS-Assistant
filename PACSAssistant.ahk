@@ -21,9 +21,12 @@ DetectHiddenText true			; don't search hidden text by default
 
 
 #Include <WinEvent>
-#Include <Credentials>
+#Include <Cred>
 
 #Include Utils.ahk
+
+#Include PAGlobals.ahk
+
 #Include PASound.ahk
 
 #Include PAFindTextStrings.ahk
@@ -47,158 +50,6 @@ DetectHiddenText true			; don't search hidden text by default
 ; for debugging use
 #Include Debug.ahk
 
-
-
-
-/**
- *
- * Global variables and constants for PACS Assistant
- * 
- */
-
-; This is the top level on/off switch for PACS Assistant.
-; If false, many PACS Assistant functions are disabled.
-global PA_Active := true
-
-
-
-
-
-; This is set to false after the first time PAWindows.Update() is called
-global _PAUpdate_Initial := true
-
-
-; Credentials of current user
-global PACredentials := {username: "skl424", password: "Melani3jn"}
-
-
-; Current Patient
-global PACurrentPatient := Patient()
-
-; Current Exam
-global PACurrentStudy := Study()
-
-; Window Info for GUI display
-global PAWindowInfo := ""
-
-; Status bar contents
-global PAStatusBarText := ""
-
-; Power button status
-global PAStatus_PowerButton := ""
-
-
-; This is used internally by PS to determine whether to turn off the mic
-global PA_Dictate_autooff := false
-
-
-; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
-global PA_DoubleClickSetting := 400
-
-; This holds the Windows mouse speed setting (1-20) - value is updated by 
-global PA_MouseSpeedSetting := 10
-
-; WindowBusy is a semaphore which if true prevents activation of a
-; different window by PACS Assistant
-global PA_WindowBusy := false
-
-; updated with the handle of the window under the mouse cursor every time
-; _UpdateMouseWindow() is called
-global PA_WindowUnderMouse := 0
-
-
-; dispatch queue
-global DispatchQueue := Array()
-
-; interval (ms) for dispatching PA functions
-DISPATCH_INTERVAL := 100
-
-
-; interval (ms) for updating GUI display
-GUIREFRESH_INTERVAL := 250
-
-; timeout (ms) for clearing status bar text
-GUISTATUSBAR_TIMEOUT := 60000	; 60 sec
-
-; interval (ms) for updating window under mouse ( _UpdateMouseWindow() )
-WATCHMOUSE_UPDATE_INTERVAL := 200
-
-; interval (ms) for updating window statuses
-WATCHWINDOWS_UPDATE_INTERVAL := 500
-
-; interval (ms) for updating dictate button status
-WATCHDICTATE_UPDATE_INTERVAL := 100
-
-; interval (ms) for updating VPN connection status
-WATCHVPN_UPDATE_INTERVAL := 2000
-
-; interval (ms) for jiggling mouse to keeping screen awake
-JIGGLEMOUSE_UPDATE_INTERVAL := 180000		; 3 minutes
-
-; minimum width and height to consider a window position valid
-WINDOWPOSITION_MINWIDTH := 100
-WINDOWPOSITION_MINHEIGHT := 100
-
-; Windows constant (style of visible windows)
-WS_VISIBLE := 0x10000000
-
-
-; Executable paths
-EXE_VPN := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpnui.exe"
-EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe"
-
-EXE_EI := "C:\Program Files (x86)\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
-
-; Settings filepath
-FILE_SETTINGS := "settings.ini"
-
-
-; maximum timeout (seconds) for making VPN connection from start to finish
-VPN_CONNECT_TIMEOUT := 120
-; maximum timeout (seconds) for disconnecting VPN connection
-VPN_DISCONNECT_TIMEOUT := 10
-; timeout (seconds) for starting up VPN UI (main window)
-; or for waiting for initial login window to appear
-VPN_DIALOG_TIMEOUT := 10
-; VPN URL string
-VPN_URL := "vpn.adventhealth.com/SecureAuth"
-
-
-; timeout (seconds) for starting up EI to get to login window
-EI_LOGIN_TIMEOUT := 60
-; timeout (seconds) for getting to EI desktop window after login
-EI_DESKTOP_TIMEOUT := 60
-; timeout (seconds) for allowing Collaborator window to appear after login
-EI_COLLABORATOR_TIMEOUT := 10
-; timeout (seconds) for shutting down EI
-EI_SHUTDOWN_TIMEOUT := 60
-; EI server string
-EI_SERVER := "mivcsp.adventhealth.com"
-
-
-; time delay (ms) for turing off microphone after a report is closed
-PS_DICTATEAUTOOFF_DELAY := 7000
-
-
-; timeout (seconds) for shutting down EPIC
-EPIC_SHUTDOWN_TIMEOUT := 30
-
-; filepath to icd code table
-ICD_CODEFILE := "icd10codes.txt"
-
-
-
-; Text/color to display when microphone is off
-MICROPHONETEXT_OFF := "Microphone Off"
-MICROPHONECOLOR_OFF := "#303030"
-
-; Text to display when microphone is on
-MICROPHONETEXT_ON := "Microphone On"
-MICROPHONECOLOR_ON := "#d02020"
-
-
-; Format to return DOB from patient info
-INFO_DOB_FORMAT := "M/d/yyyy"
 
 
 
@@ -573,11 +424,14 @@ class WindowItem {
 		if this.width >= WINDOWPOSITION_MINWIDTH && this.height >= WINDOWPOSITION_MINHEIGHT {
 			appkey := this.appkey
 			winkey := this.winkey
-			sectionname := A_ComputerName . (PACredentials.username ? "_" . PACredentials.username : "" ) . "_WindowPosition"
-			IniWrite(this.xpos, FILE_SETTINGS, sectionname, appkey . winkey . "_xpos") 
-			IniWrite(this.ypos, FILE_SETTINGS, sectionname, appkey . winkey . "_ypos")
-			IniWrite(this.width, FILE_SETTINGS, sectionname, appkey . winkey . "_width")
-			IniWrite(this.height, FILE_SETTINGS, sectionname, appkey . winkey . "_height")
+			sectionname := A_ComputerName . "_WindowPosition"
+			inifile := PASettings["inifile"].value
+			if inifile {
+				IniWrite(this.xpos, inifile, sectionname, appkey . winkey . "_xpos") 
+				IniWrite(this.ypos, inifile, sectionname, appkey . winkey . "_ypos")
+				IniWrite(this.width, inifile, sectionname, appkey . winkey . "_width")
+				IniWrite(this.height, inifile, sectionname, appkey . winkey . "_height")
+			}
 		}
 	}
 
@@ -585,16 +439,19 @@ class WindowItem {
 	ReadSettings() {
 		appkey := this.appkey
 		winkey := this.winkey
-		sectionname := A_ComputerName . (PACredentials.username ? "_" . PACredentials.username : "" ) . "_WindowPosition"
-		x := IniRead(FILE_SETTINGS, sectionname, appkey . winkey . "_xpos", -1)
-		y := IniRead(FILE_SETTINGS, sectionname, appkey . winkey . "_ypos", -1)
-		w := IniRead(FILE_SETTINGS, sectionname, appkey . winkey . "_width", 0)
-		h := IniRead(FILE_SETTINGS, sectionname, appkey . winkey . "_height", 0)
-		if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
-			this.xpos := x
-			this.ypos := y
-			this.width := w
-			this.height := h
+		sectionname := A_ComputerName . "_WindowPosition"
+		inifile := PASettings["inifile"].value
+		if inifile {
+			x := IniRead(inifile, sectionname, appkey . winkey . "_xpos", -1)
+			y := IniRead(inifile, sectionname, appkey . winkey . "_ypos", -1)
+			w := IniRead(inifile, sectionname, appkey . winkey . "_width", 0)
+			h := IniRead(inifile, sectionname, appkey . winkey . "_height", 0)
+			if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+				this.xpos := x
+				this.ypos := y
+				this.width := w
+				this.height := h
+			}
 		}
 	}
 
@@ -1084,6 +941,9 @@ PA_Init() {
 
 	; Get Windows system double click setting
 	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
+
+	; Initialize systemwide settings
+	PASettings_Init()
 
 	; Register Windows hooks to monitor window open events for all the
 	; windows of interest (all of the windows in PAWindows)

@@ -352,7 +352,7 @@ body {
 
 /* Settings page */
 
-#PAsettings {
+#PASettings {
   width: 50%;
   font-size: 0.9rem;
 }
@@ -382,6 +382,9 @@ body {
 }
 .set-indent2 {
   padding-left: 2.5rem;
+}
+.set-err {
+    color: #e00000;
 }
 
 .set-val {

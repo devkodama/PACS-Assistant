@@ -15,14 +15,14 @@
 #Include <WebView2>
 #Include <WebViewToo>
 
+#include "Debug.ahk"
+
+#Include PAGlobals.ahk
 
 
 /**
  * Globals
  */
-
-PAGUI_WINDOWTITLE := "PACS Assistant"
-PAGUI_HOMEPAGE := "pages/PACSAssistant.html"
 
 global PAWindows
 global PAGui
@@ -103,9 +103,34 @@ ClickId(WebView, id) {
 }
 
 
-HoverEvent(WebView, Msg) {
-    PAToolTip(Msg, 1000)
+HoverEvent(WebView, msg) {
+    PAToolTip(msg, 1000)
 }
+
+
+
+
+
+/***************************************/
+
+
+; Helper functions to simplfy making changes to GUI web page
+;
+
+; PAGui_Post() simplifies changes to the DOM.
+;
+; e.g. GUIPost("patientname", "innerHTML", "John Smith")
+; will replace the innerHTML property of the DOM element having id="patientname" with "John Smith"
+PAGui_Post(id, propname, propval) {
+    if _PAGUI_Running {
+	    PAGui.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "'")
+    }
+}
+
+
+
+/***************************************/
+
 
 
 ; Set Status Bar text
@@ -163,7 +188,7 @@ PAGui_SaveWindowPositions(*) {
 
 ; Start up PACS
 ; 
-; The parameter cred is an object with username and password properties.
+; The parameter cred is a Credentials object with username and password properties.
 ;
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
@@ -174,8 +199,7 @@ PAGui_SaveWindowPositions(*) {
 ;
 ; Returns 1 once start up is successful, 0 if unsuccessful
 ; 
-PAGui_PACSStartup(cred := PACredentials) {
-    global PACredentials
+PAGui_PACSStartup(cred := CurrentUserCredentials) {
     static running := false
 
     ; prevent reentry
@@ -265,6 +289,7 @@ PAGui_PACSShutdown() {
 ; Called when GUI window is first started (opened)
 PAGui_Init(*) {
     global PAGui
+    global _PAGUI_Running
 
     ; Create the GUI
     PAGui := WebViewToo(,,, true)
@@ -292,9 +317,11 @@ PAGui_Init(*) {
     ; set up exit handler
     PAGui.OnEvent("Close", (*) => PAGui_Exit())
     
-    ; set up click and hover handlers for web page
+    ; set up event handlers for web page
+    ; parameters are "<function name for html>", <ahk function name>
     PAGui.AddCallbackToScript("Hover", HoverEvent)
     PAGui.AddCallbackToScript("ClickId", ClickId)
+    PAGui.AddCallbackToScript("HandleFormInput", HandleFormInput)
 
     ;MyWindow.AddHostObjectToScript("ahkButtonClick", {func:WebButtonClickEvent})
     
@@ -332,7 +359,28 @@ PAGui_Init(*) {
     PAGui_Size(PAGui, 0, w, h)
   
     ; Set up the Settings page, which has dynamically generated HTML
-	PAGui.PostWebMessageAsString("document.getElementById('settingsform').innerHTML = '" PASettings_HTMLForm() "'")
+	; PAGui.PostWebMessageAsString("document.getElementById('settingsform').innerHTML = '" PASettings_HTMLForm() "'")
+    ; form := PASettings_HTMLForm()
+    
+    ; For unknown reasons, need to sleep to give GUI form time to render
+    ; before trying to manipulate DOM. Without the Sleep(), the Settings
+    ; form doesn't get displayed.
+    Sleep(1000)
+    
+    ; declare GUI to be up and running
+    _PAGUI_Running := true
+
+    ; update GUI to show current user
+    if PASettings["username"].value {
+        PAGui_Post("curuser", "innerHTML", " - " . PASettings["username"].value)
+    } else {
+        PAGui_Post("curuser", "innerHTML", "")
+    }
+
+    ; display the settings page
+    PAGui_Post("settingsform", "innerHTML", PASettings_HTMLForm())
+
+    ; PAGui_Post("log", "innerHTML", CurrentUserCredentials.username "/" CurrentUserCredentials.password (PASettings.Has("inifile") ? "/" PASettings["inifile"].value : ""))
 
 }
 

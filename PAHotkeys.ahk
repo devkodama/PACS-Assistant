@@ -13,6 +13,7 @@
 #Include <FindText>
 #Include "PAFindTextStrings.ahk"
 
+#Include PAGlobals.ahk
 
 
 /*
@@ -20,7 +21,6 @@
 */
 
 
-global PA_Active
 
 
 
@@ -37,12 +37,8 @@ F2:: {
 +F2:: {
 	global PAGui
 
-	PAToolTip("+F2")
 
-	myarr := ["a", "b", "c", "d", "e", "f"]
-	myobj := Map("a", "b", "c", "d", "e", "f")
-
-	msgbox(myobj["a"])
+	PAGui_Post("log", "innerHTML", CurrentUserCredentials.username " / " CurrentUserCredentials.password)
 	
 
 }

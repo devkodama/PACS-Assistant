@@ -121,10 +121,20 @@ document.getElementsByClassName("tab-icon default")[0].click();
 // document.querySelector("#settingsform input").addEventListener("input", handleInput);
 
 
-/* handles an input change event */
-function handleInput(content) {
-    var logarea = document.getElementById("log");
-    
-    logarea.textContent = content.value + "/" + content.checked + "/" + content.id;       
-    
+/* handles input or change events */
+function handleCheckbox(elem) {
+    // pass to ahk
+    ahk.HandleFormInput(elem.id, elem.checked)
+}
+function handleNum(elem) {
+    // pass to ahk
+    ahk.HandleFormInput(elem.id, elem.value)
+}
+function handleText(elem) {
+    // pass to ahk
+    ahk.HandleFormInput(elem.id, elem.value)
+}
+function handleSelect(elem) {
+    // pass to ahk
+    ahk.HandleFormInput(elem.id, elem.value)
 }

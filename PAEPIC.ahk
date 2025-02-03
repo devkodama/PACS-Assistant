@@ -16,6 +16,7 @@
 #Include <FindText>
 #Include PAFindTextStrings.ahk
 
+#Include PAGlobals.ahk
 
 /*
 ** Global variables and constants used in this module

@@ -1,5 +1,5 @@
 /** 
- * Credentials.ahk
+ * Cred.ahk
  *
  * Credentials management using Windows Credential Manager API
  * 
@@ -27,10 +27,6 @@
 ; if !CredDelete("AHK_CredForScript1")
 ; 	MsgBox "Failed to delete cred"
 
-; if (cred := CredRead("AHK_CredForScript1"))
-; 	MsgBox cred.name "," cred.username "," cred.password
-; else
-; 	MsgBox "Cred not found"
 
 
 ; Write username and password to credential name.

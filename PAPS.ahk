@@ -1,6 +1,6 @@
 /* PAPS.ahk
 **
-** Utility scripts for working with PowerScribe 360
+** Scripts for working with PowerScribe 360
 **
 **
 */
@@ -16,16 +16,7 @@
 #Include <FindText>
 #Include PAFindTextStrings.ahk
 
-
-/*
-** Global variables and constants used in this module
-*/
-
-WM_SETTEXT := 0x000C
-WM_GETTEXT := 0x000D
-EM_GETSEL := 0x00B0
-EM_SETSEL := 0x00B1
-EM_SETREADONLY := 0x00CF
+#Include PAGlobals.ahk
 
 
 

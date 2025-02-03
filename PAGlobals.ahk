@@ -16,10 +16,13 @@
 
 ; This is the top level on/off switch for PACS Assistant.
 ; If false, many PACS Assistant functions are disabled.
-global PA_Active := true
+global PA_Active := false
 
 ; This is set to false after the first time PAWindows.Update() is called
 global _PAUpdate_Initial := true
+
+; This is set to true after the GUI is up and running.
+global _PAGUI_Running := false
 
 
 ; Current Patient
@@ -41,7 +44,6 @@ global PAStatus_PowerButton := ""
 ; This is used internally by PS to determine whether to turn off the mic
 global PA_Dictate_autooff := false
 
-
 ; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
 global PA_DoubleClickSetting := 400
 
@@ -57,12 +59,22 @@ global PA_WindowBusy := false
 global PA_WindowUnderMouse := 0
 
 
-; dispatch queue
+; Global dispatch queue
 global DispatchQueue := Array()
 
 
-; Settings map
-global PASettings
+; PASettings holds settings used across PACS Assistant.
+; Each entry is a {"key", Setting()} pair. See PASettings.ahk for Setting
+; class and PASettings[] definitions.
+global PASettings := Map()
+
+; credentials of current user. See PASettings.ahk for Credential
+; class definition.
+global CurrentUserCredentials := Credential()
+
+
+
+
 
 global PAText
 
