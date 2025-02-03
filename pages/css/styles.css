@@ -347,3 +347,126 @@ body {
 }
 
 
+
+/***********************************************/
+
+/* Settings page */
+
+#PASettings {
+  width: 50%;
+  font-size: 0.9rem;
+}
+
+.set-cat {
+  /* margin-top: 0.5rem; */
+}
+.set-cat > summary {
+  font-weight: bold;
+  color: lightblue;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #404040;
+}
+
+.set-opt {
+  display: flex;
+  padding-top: 0.25rem;
+  padding-left: 1.25rem;
+  border-bottom: 1px solid #404040;
+}
+
+.set-desc {
+  flex: 4;
+}
+.set-indent1 {
+  padding-left: 1.25rem;
+}
+.set-indent2 {
+  padding-left: 2.5rem;
+}
+.set-err {
+    color: #e00000;
+}
+
+.set-val {
+  flex: 1;
+  text-align: center;
+  align-content: center;
+}
+
+.set-val [type=checkbox] {
+
+}
+
+.set-val [type=text], .set-val [type=password] {
+  width: 100%;
+  padding: 0 5px;
+  border: none;
+}
+
+.set-val select {
+  width: 100%;
+  float: right;
+  text-align: center;
+}
+
+
+
+/***********************************************/
+
+/** Toggle switch css 
+ * See https://alvaromontoro.com/blog/68017/creating-a-css-only-toggle-switch
+ */
+
+/* this generates the outline of the switch (outer part) */
+input:where([type="checkbox"][role="switch"]) {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  position: relative;
+  color: inherit;
+  font-size: inherit;
+  width: 2em;
+  height: 1em;
+  box-sizing: content-box;
+  border: 1px solid #808080;
+  border-radius: 1em;
+  vertical-align: text-bottom;
+  margin: auto;
+  background-color: #404040;
+  transition: background-color 0.1s;
+}
+
+/* change the background color when the switch is on */
+input:where([type="checkbox"][role="switch"]):checked {
+  background-color: #008000;
+  transition: background-color 0.1s;
+}
+
+ /* ::before generates the switch (inner part) */
+input:where([type="checkbox"][role="switch"])::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(0, -50%);
+  box-sizing: border-box;
+  width: 0.7em;
+  height: 0.7em;
+  margin: 0 0.15em;
+  border: 1px solid;
+  border-radius: 50%;
+  background: currentcolor;
+  transition: left 0.1s;
+}
+
+/* move the switch position when the switch is on */
+input:where([type="checkbox"][role="switch"]):checked::before {
+  left: 1em;
+  transition: left 0.1s;
+}
+
+/* if the switch is disabled  */
+input:where([type="checkbox"][role="switch"]):disabled {
+  opacity: 0.4;
+}
+

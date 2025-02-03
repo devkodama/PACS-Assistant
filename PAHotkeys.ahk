@@ -13,6 +13,7 @@
 #Include <FindText>
 #Include "PAFindTextStrings.ahk"
 
+#Include PAGlobals.ahk
 
 
 /*
@@ -20,7 +21,6 @@
 */
 
 
-global PA_Active
 
 
 
@@ -35,9 +35,15 @@ F2:: {
 }
 
 +F2:: {
-	PAToolTip("+F2")
-	PAGui.Title := PAGUI_WINDOWTITLE
+	global PAGui
+
+
+	PAGui_Post("log", "innerHTML", CurrentUserCredentials.username " / " CurrentUserCredentials.password)
+	
+
 }
+
+
 
 
 F3:: {
@@ -68,6 +74,9 @@ F3:: {
 		}
 
 	}
+
+	; MsgBox PACurrentStudy.print()
+
 
 }
 
@@ -385,7 +394,7 @@ $Space:: {
 	if PA_Active {
 		PAWindows.GetAppWin("", &app, &win)
 		if PACheckContext(app, win, "EI images1 images2") {
-			if PAOptions["ClickLock"].setting = "Manual" && GetKeyState("LButton") {
+			if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 				; space was pressed while L mouse button is logically down, inside an EI images window
 				if !LButton_ClickLockmanual {
 					; check whether L mouse button is physically down
@@ -471,7 +480,7 @@ global LButton_ClickLockmanual := false
 	; PAToolTip("LButton down - last:" Button_lastdown)
 
 	if PA_Active {
-		if PAOptions["ClickLock"].setting = "Manual" {
+		if PASettings["ClickLock"].value = "Manual" {
 ;	 		if LButton_ClickLockon {
 ;				Click("U")
 ;				SoundBeep(600, 100)
@@ -480,10 +489,10 @@ global LButton_ClickLockmanual := false
 			; else {
 			; 	Click("D")
 			; }
-		} else if PAOptions["ClickLock"].setting = "Auto" {
+		} else if PASettings["ClickLock"].value = "Auto" {
 			if PACheckContext( , , "EI images1 images2") {
 				LButton_lastdown := A_TickCount
-				SetTimer(_LButton_beep, -PAOptions["ClickLock_interval"].setting)
+				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
 				if LButton_ClickLockon {
 					SoundBeep(600, 100)
 					LButton_ClickLockon := false
@@ -505,7 +514,7 @@ LButton Up:: {
 
 	if PA_Active {
 
-		if PAOptions["ClickLock"].setting = "Manual" {
+		if PASettings["ClickLock"].value = "Manual" {
 			if LButton_ClickLockmanual {
 				click("D")					; L mouse button down
 				LButton_ClickLockmanual := false
@@ -517,8 +526,8 @@ LButton Up:: {
 				SoundBeep(600, 100)
 				LButton_ClickLockon := false
 			}
-		} else if PAOptions["ClickLock"].setting = "Auto" {
-			if A_TickCount - LButton_lastdown > PAOptions["ClickLock_interval"].setting {
+		} else if PASettings["ClickLock"].value = "Auto" {
+			if A_TickCount - LButton_lastdown > PASettings["ClickLock_interval"].value {
 				Click("D")					; L mouse button down
 				LButton_ClickLockon := true
 			} else {

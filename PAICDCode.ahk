@@ -13,9 +13,12 @@
  */
 
 
-; Holds the icd-10 lookup table
-global ICDCodeTable := ""
+#Include PAGlobals.ahk
 
+
+
+; Holds the icd-10 lookup table
+ICDCodeTable := ""
 
 
 ; Reads the ICD code table from the file named "icd10codes.txt"
@@ -58,5 +61,4 @@ ICDLookupCode(icdcode) {
     }
 
     return icddescription
-
 }

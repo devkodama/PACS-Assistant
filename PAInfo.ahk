@@ -17,13 +17,13 @@
 
 #include <DateParse>
 
+#Include PAGlobals.ahk
+
 
 
 /*
 ** Globals
 */
-
-INFO_DOB_FORMAT := "M/d/yyyy"
 
 
 
@@ -357,6 +357,13 @@ class Study {
             } else {
                 this._modality := ""
             }
+            if InStr(desc, "LEFT", true) {
+                this._laterality := "LEFT"
+            } else if InStr(desc, "RIGHT", true) { 
+                this._laterality := "RIGHT"
+            } else {
+                this._laterality := ""
+            }
             this.changed := true
         }
     }
@@ -441,12 +448,14 @@ class Study {
         get {
             return this._laterality
         }
-        set {
-            if this._laterality = "" {
-                this._laterality := StrUpper(Trim(value))
-                this.changed := true
-            }
-        }
+
+    }
+
+    ; returns object properties as a string
+    print() {
+        retval := "lastfirst:" this.lastfirst "`n" . "dobraw:" this.dobraw "`n" . "_accession:" this._accession "`n" . "_description:" this._description "`n" . "_facility:" this._facility "`n" . "_patienttype:" this._patienttype "`n" . "_priority:" this._priority "`n" . "_orderingmd:" this._orderingmd "`n" . "_referringmd:" this._referringmd "`n" . "_reason:" this._reason "`n" . "_techcomments:" this._techcomments "`n" . "other:" (this.other?"<obj>":"") "`n" . "_modality:" this._modality "`n" . "_laterality:" this._laterality "`n"
+
+        return retval
     }
 
 }
