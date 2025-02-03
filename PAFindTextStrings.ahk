@@ -11,6 +11,10 @@
 #SingleInstance Force
 
 
+#Include PAGlobals.ahk
+
+
+
 
 ; Dictionary of strings for FindText function
 ;

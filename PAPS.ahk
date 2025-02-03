@@ -1,6 +1,6 @@
 /* PAPS.ahk
 **
-** Utility scripts for working with PowerScribe 360
+** Scripts for working with PowerScribe 360
 **
 **
 */
@@ -16,16 +16,7 @@
 #Include <FindText>
 #Include PAFindTextStrings.ahk
 
-
-/*
-** Global variables and constants used in this module
-*/
-
-WM_SETTEXT := 0x000C
-WM_GETTEXT := 0x000D
-EM_GETSEL := 0x00B0
-EM_SETSEL := 0x00B1
-EM_SETREADONLY := 0x00CF
+#Include PAGlobals.ahk
 
 
 
@@ -255,7 +246,7 @@ PSOpen_PSreport() {
 		}
 	}
 
-	if PAOptions["PS_dictate_autoon"].setting {
+	if PASettings["PS_dictate_autoon"].value {
 		if PA_Dictate_autooff {
 			; mic should already by on, so cancel the autooff timer and don't toggle the mic
 			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
@@ -285,7 +276,7 @@ PSOpen_PSreport() {
 PSClose_PSreport() {
 	global PA_Dictate_autooff
 
-	if PAOptions["PS_dictate_autoon"].setting && PSDictateIsOn(true) {
+	if PASettings["PS_dictate_autoon"].value && PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
 		PA_Dictate_autooff := true
@@ -296,107 +287,107 @@ PSClose_PSreport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["logout"].CenterWindow(_PSParent())
 	}
-	if PAOptions["PSlogout_dismiss"].setting {
+	if PASettings["PSlogout_dismiss"].value {
 		Sleep(1000)			; delay 1s
 		PAToolTip("yes")
-		ControlClick(PAOptions["PSlogout_dismiss_reply"].setting, PAWindows["PS"]["logout"].hwnd)
+		ControlClick(PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSsavespeech() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["savespeech"].CenterWindow(_PSParent())
 	}
-	if PAOptions["PSsavespeech_dismiss"].setting {
+	if PASettings["PSsavespeech_dismiss"].value {
 		Sleep(1000)			; delay 1s
-		ControlClick(PAOptions["PSsavespeech_dismiss_reply"].setting, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSsavereport() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["savereport"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSdeletereport() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["deletereport"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSunfilled() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["unfilled"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSconfirmaddendum() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["confirmaddendum"].CenterWindow(_PSParent())
 	}
-	if PAOptions["PSconfirmaddendum_dismiss"].setting {
+	if PASettings["PSconfirmaddendum_dismiss"].value {
 		Sleep(1000)			; delay 1s
-		ControlClick(PAOptions["PSconfirmaddendum_dismiss_reply"].setting, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSconfirmanotheraddendum() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["confirmanotheraddendum"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSexisting() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["existing"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PScontinue() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["continue"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSownership() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["ownership"].CenterWindow(_PSParent())
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSmicrophone() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["microphone"].CenterWindow(_PSParent())
 	}
-	if PAOptions["PSmicrophone_dismiss"].setting {
+	if PASettings["PSmicrophone_dismiss"].value {
 		Sleep(1000)			; delay 1s
-		ControlClick(PAOptions["PSmicrophone_dismiss_reply"].setting, PAWindows["PS"]["microphone"].hwnd)
+		ControlClick(PASettings["PSmicrophone_dismiss_reply"].value, PAWindows["PS"]["microphone"].hwnd)
 	}
 }
 
 ; Hook function called when PS window appears
 PSOpen_PSfind() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["find"].CenterWindow(_PSParent())
 	}
 }
 
 PSOpen_PSspelling() {
-	if PAOptions["PScenter_dialog"].setting {
+	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["spelling"].CenterWindow(_PSParent())
 	}
 }

@@ -10,6 +10,9 @@
 #SingleInstance Force
 
 
+#Include PAGlobals.ahk
+
+
 
 
 ; Returns the connection status of the Cisco VPN
@@ -46,7 +49,7 @@ VPNIsConnected(forceupdate := false) {
 ; Returns 1 once connection is successful, 0 if unsuccessful (e.g.
 ;  after timeout or if user cancels).
 ; 
-VPNConnect(cred := PACredentials) {
+VPNConnect(cred := CurrentUserCredentials) {
 	global PA_Active
 	static running := false			; true if the VPNConnect is already running
 

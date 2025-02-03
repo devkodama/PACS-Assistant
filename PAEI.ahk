@@ -15,6 +15,9 @@
 
 #Include <FindText>
 #Include "PAFindTextStrings.ahk"
+
+#Include PAGlobals.ahk
+
 #include "PAInfo.ahk"
 
 
@@ -302,7 +305,7 @@ EIClose_EIdesktop() {
 ; Returns 1 if EI startup is successful, 0 if unsuccessful. (e.g.
 ;  after timeout or if user cancels).
 ; 
-EIStart(cred := PACredentials) {
+EIStart(cred := CurrentUserCredentials) {
 	global PA_Active
 	static running := false			; true if the EIStartup is already running
 
@@ -613,7 +616,10 @@ EIRetrievePatientInfo() {
 								}
 								Click(v.x + 2, v.y)
 								SendInput("^a^c")
-								ClipWait(0.05)				; wait until clipboard contains data, with 50 ms timeout
+								if !ClipWait(0.05) {				; wait until clipboard contains data, with 100 ms timeout
+									PAToolTip("ClipWait (1) timed out")
+									SoundBeep(250)
+								}
 								MouseMove(savex, savey)
 								BlockInput false
 								contents := A_Clipboard
@@ -761,7 +767,7 @@ EIRetrieveStudyInfo(patient) {
 							if ok {	
 								for k, v in ok {
 	
-			; FindText().MouseTip(v.x, v.y) ; Show a blinking red box at the center of the result.
+	; FindText().MouseTip(v.x, v.y) ; Show a blinking red box at the center of the result.
 
 									CoordMode("Mouse","Screen")
 									BlockInput true
@@ -772,14 +778,17 @@ EIRetrieveStudyInfo(patient) {
 									if GetKeyState("RButton") {
 										Click("U R")
 									}
-									Click(v.x + 2, v.y)
+									Click(v.x + 2, v.y, 2)
 									SendInput("^a^c")
-									ClipWait(0.1)				; wait until clipboard contains data, with 100 ms timeout
+									if !ClipWait(0.1) {				; wait until clipboard contains data, with 100 ms timeout
+										PAToolTip("ClipWait (2) timed out")
+										SoundBeep(250)
+									}
 									MouseMove(savex, savey)
 									BlockInput false
 									contents := A_Clipboard
 					PAToolTip(contents)
-									foundall := _EIParseStudyInfo(&studyinfo, contents)
+									foundall := _EIParseStudyInfo(&studyinfo, contents, "study")
 									A_Clipboard := ""
 
 									if foundall {
@@ -813,9 +822,12 @@ if n++ > 2 {
 									if GetKeyState("RButton") {
 										Click("U R")
 									}
-									Click(v.x + 2, v.y)
+									Click(v.x + 2, v.y, 2)
 									SendInput("^a^c")
-									ClipWait(0.1)				; wait until clipboard contains data, with 100 ms timeout
+									if !ClipWait(0.1) {				; wait until clipboard contains data, with 100 ms timeout
+										PAToolTip("ClipWait (3) timed out")
+										SoundBeep(250)
+									}
 									MouseMove(savex, savey)
 									BlockInput false
 									contents := A_Clipboard
@@ -827,11 +839,11 @@ if n++ > 2 {
 									}
 								}
 
-								A_Clipboard := saveclip
-								return studyinfo
 							}
 
 							A_Clipboard := saveclip
+
+							return studyinfo
 						}
 					}
 				}
@@ -872,9 +884,9 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 	static foundpatienttype := false
 	static foundpriority := false
 	static foundorderingmd := false
+	static foundreferringmd := false
 	static foundreason := false
 	static foundtechcomments := false
-	static foundreferringmd := false
 	
 	if studyinfo = "" {
 		foundaccession := false
@@ -883,6 +895,7 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 		foundpatienttype := false
 		foundpriority := false
 		foundorderingmd := false
+		foundreferringmd := false
 		foundreason := true
 		foundtechcomments := false
 	
@@ -904,22 +917,23 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 				} else if !foundfacility && SubStr(contents, 1, 6) = "AH UCM" {
 					foundfacility := true
 					studyinfo.facility := contents
-				} else if !foundpriority && RegExMatch(contents, "^Routine|^STAT|^High") {
+				} else if !foundpriority && RegExMatch(contents, "^STAT|^Urgent|^High|^Normal|^Routine") {
 					foundpriority := true
 					studyinfo.priority := contents
 				} else if !foundpatienttype && RegExMatch(contents, "^Ambulatory|^Hospitalized|^Emergency") {
 					foundpatienttype := true
 					studyinfo.patienttype := contents
-				} else if !founddescription RegExMatch(contents, "^BI |^CT |^DR |^MR |^NM |^US |^XR ") {
+				} else if !studyinfo.description && RegExMatch(contents, "^BI |^CT |^DR |^MR |^NM |^US |^XR ") {
 					founddescription := true
 					studyinfo.description := contents
+					PAToolTip(contents)
 				} else if RegExMatch(contents, "^[A-Z ]+,[A-Z ]+") {
 					if !foundorderingmd {
-						foundorderingmd := true
 						studyinfo.orderingmd := contents
+						foundorderingmd := true
 					} else if !foundreferringmd {
-						foundreferringmd := true
 						studyinfo.referringmd := contents
+						foundreferringmd := true
 					}
 				} else if RegExMatch(contents, "^\.?(BOL|GLE|HIN|LAG.*)") {
 					; found a location code
@@ -931,7 +945,6 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 					}
 				} else {
 					; let's assume this goes into reason for study
-					PAToolTip(contents)
 					foundreason := true
 					studyinfo.reason .= (studyinfo.reason?" | ":"") . contents
 				}
@@ -939,7 +952,7 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 				return foundaccession && founddescription && foundfacility && foundpatienttype && foundpriority && foundorderingmd && foundreason
 
 			case "tech":
-				foundtechcomments := true
+				; foundtechcomments := trueS
 				studyinfo.techcomments .= (studyinfo.techcomments ? " // " : "") . contents
 
 				return foundtechcomments 		
