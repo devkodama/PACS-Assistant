@@ -301,9 +301,7 @@ PSOpen_PSlogout() {
 		PAWindows["PS"]["logout"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSlogout_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		PAToolTip("yes")
-		ControlClick(PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
+		ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
 	}
 }
 
@@ -313,8 +311,7 @@ PSOpen_PSsavespeech() {
 		PAWindows["PS"]["savespeech"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSsavespeech_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlSend("{Enter}", PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
 	}
 }
 
@@ -345,8 +342,7 @@ PSOpen_PSconfirmaddendum() {
 		PAWindows["PS"]["confirmaddendum"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSconfirmaddendum_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlSend("{Enter}", PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
 	}
 }
 
@@ -384,8 +380,7 @@ PSOpen_PSmicrophone() {
 		PAWindows["PS"]["microphone"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSmicrophone_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		ControlClick(PASettings["PSmicrophone_dismiss_reply"].value, PAWindows["PS"]["microphone"].hwnd)
+		ControlSend("{Enter}", PASettings["PSmicrophone_dismiss_reply"].value, PAWindows["PS"]["microphone"].hwnd)
 	}
 }
 
