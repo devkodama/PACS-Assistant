@@ -23,8 +23,6 @@
 
 
 
-
-
 ; PASettingsPage is an ordered array of keys that determines which settings
 ; are shown and the order in which they are shown on the GUI Settings page. 
 ;
@@ -44,13 +42,15 @@ class Credential {
 }
 
 
-; Class to hold for an individual setting that can be performed by PACS Assistant
-; possible values for settingtype:
+; Class to hold for an individual setting that within PACS Assistant
+;
+; Possible values for settingtype:
 ;   "bool"      - possiblevalues is ignored, as it assumed to be [true, false]
 ;   "num"       - possiblevalues is an array of [lowerbound, upperbound], or empty if no limits
 ;   "text"      - possiblevalues is an integer defining maximum length of text
 ;   "select"    - possiblevalues is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
 ;   "special"   - possiblevalues is a string defining what type of special value this is
+;
 class Setting {
     name := ""              ; Name of this setting. Should match the key used in 
 	type := ""              ; Type of this setting.
@@ -62,26 +62,29 @@ class Setting {
     _key := ""              ; For "select" type only. Stores the key (e.g. "Yes")
 
 
-    ; For "select" type, reading the value actually returns the key, not the mapped value. To always get the mapped value, use the
-    ; mappedvalue property
+    ; For "select" type, reading the value property returns the mapped
+    ; value. To retrieve the key, use the key property.
     ;
-    ; However, assigning the value interprets the passed new value as a key, a mapped value.
+    ; For "select" type, assigning the value property actually assigns
+    ; the key, and the mapped value is assigned based on lookup in the 
+    ; possible map.
+    ;
     ; For example:
-    ;   s := Setting("""select", "Yes", Map("Yes", "&YES", "No", "&NO", "Description")
-    ;   MsgBox(s.value)     ; => "Yes"
-    ;   MsgBox(s.mappedvalue)     ; => "&YES"
+    ;   s := Setting("Keyname", "select", "Yes", Map("Yes", "&YES", "No", "&NO", "Description")
+    ;   MsgBox(s.value)         ; => "&YES"
+    ;   MsgBox(s.key)           ; => "Yes"
     ;   s.value := "No"
-    ;   MsgBox(s.value)     ; => "No"
-    ;   MsgBox(s.mappedvalue)     ; => "&NO"
+    ;   MsgBox(s.value)         ; => "&NO"
+    ;   MsgBox(s.mappedvalue)   ; => "No"
     ;
     value {
         get {
-            switch this.type {
-                case "select":
-                    return this._key
-                default:
+            ; switch this.type {
+            ;     case "select":
+            ;         return this._key
+            ;     default:
                     return this._value
-            }
+            ; }
         }
         set { 
             global PASettings
@@ -150,11 +153,12 @@ class Setting {
         }
     }
 
-    mappedvalue {
+    key {
         get {
-            return this._value
+            return this._key
         }
     }
+
     ; Call to save the current Setting object to the current settings.ini file(s).
     ;
     ; There is a master settings.ini file used by PACS Assistant. Each user also
@@ -286,7 +290,7 @@ PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [
 
 PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
 
-PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message")
+PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages")
 PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
@@ -525,8 +529,8 @@ PASettings_HTMLForm(show := true) {
                     ; create options for the select list from the map of possible values
                     ; displayed options are the keys from the possible map
                     for k, v in PASettings[optname].possible {
-                        ; if v matches the current value PASettings[optname].value, then add the selected attribute
-                        form .= '<option' ((v == PASettings[optname].value) ? ' selected>' : '>') k '</option>'
+                        ; if k matches the current value PASettings[optname].key, then add the selected attribute
+                        form .= '<option' ((k == PASettings[optname].key) ? ' selected>' : '>') k '</option>'
                     }
 
                     form .= '</select>'
@@ -633,7 +637,5 @@ HandleFormInput(WebView, id, newval) {
                 PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
         }
     }
-
-;    PAToolTip("handleforminput: " optname " / " newval "=>" sett.value " / " sett.isValid(newval))
 
 }
