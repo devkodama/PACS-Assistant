@@ -279,7 +279,7 @@ PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mo
 PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1, "Mark", 2), "Which synthesized voice to use")
 
 PASettings["ClickLock"] := Setting("ClickLock", "select", "Manual", Map("Off", "Off", "Manual", "Manual"), "Enable Click Lock for left mouse button")
-PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in milliseconds) the left mouse button needs to be held down before click lock activates.")
+PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
 
