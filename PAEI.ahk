@@ -306,7 +306,6 @@ EIClose_EIdesktop() {
 ;  after timeout or if user cancels).
 ; 
 EIStart(cred := CurrentUserCredentials) {
-	global PAActive
 	static running := false			; true if the EIStartup is already running
 
 	; if EIStart() is already running, don't run another instance
@@ -335,10 +334,6 @@ EIStart(cred := CurrentUserCredentials) {
 		running := false
 		return 0
 	}
-
-	; don't want automatic activation of window under mouse while trying to start EI
-	; savePAActive := PAActive
-	; PAActive := false
 	
 	tick0 := A_TickCount
 	PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -435,9 +430,6 @@ EIStart(cred := CurrentUserCredentials) {
 		PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
-	; restore previous PAActive status
-	; PAActive := savePAActive
-
 	; if no desktop window after timeout, return failure
 	if !hwnddesktop {
 		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -468,7 +460,6 @@ EIStart(cred := CurrentUserCredentials) {
 ;  after timeout or if user cancels).
 ;
 EIStop() {
-	global PAActive
 	static running := false			; true if the EIStop is already running
 
 	; if EIStop() is already running, don't run another instance
@@ -484,9 +475,6 @@ EIStop() {
 		return 1
 	}
 
-	; don't want automatic activation of window under mouse while trying to stop EI
-	; savePAActive := PAActive
-	; PAActive := false
 
 	tick0 := A_TickCount
 	PAStatus("Shutting down EI...")
@@ -501,9 +489,6 @@ EIStop() {
 		PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		PAWindows.Update("EI")
 	}
-
-	; restore previous PAActive status
-	; PAActive := savePAActive
 
 	if PAWindows["EI"]["desktop"].hwnd {
 		; EI desktop window is still not closed

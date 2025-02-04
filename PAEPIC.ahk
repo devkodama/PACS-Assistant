@@ -183,7 +183,6 @@ EPICIsChart() {
 ; Returns 1 if successful at starting Epic, 0 if not
 ; 
 EPICStart() {
-	global PAActive
 	static running := false
 	
 	; if EPICStart() is already running, don't run another instance
@@ -199,10 +198,6 @@ EPICStart() {
 		return 1
 	}
 
-	; don't want automatic activation of window under mouse while trying to stop Epic
-	savePAActive := PAActive
-	PAActive := false
-
 	tick0 := A_TickCount
 	PAStatus("Starting Epic...")
 	
@@ -211,9 +206,6 @@ EPICStart() {
 ; start Epic here
 
 
-
-	; restore previous PAActive status
-	PAActive := savePAActive
 
 	if !PAWindows["EPIC"]["main"].hwnd {
 		; Epic desktop window is still not opened
@@ -240,7 +232,6 @@ EPICStart() {
 ; Returns 1 if successful, 0 if not
 ; 
 EPICStop() {
-	global PAActive
 	static running := false
 	
 	; if EPICStop() is already running, don't run another instance
@@ -255,10 +246,6 @@ EPICStop() {
 		running := false
 		return 1
 	}
-
-	; don't want automatic activation of window under mouse while trying to stop Epic
-	savePAActive := PAActive
-	PAActive := false
 
 	tick0 := A_TickCount
 	PAStatus("Shutting down Epic...")
@@ -276,9 +263,6 @@ EPICStop() {
 		PAStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		PAWindows.Update("EPIC")
 	} until !PAWindows["EPIC"]["main"].hwnd || (A_TickCount-tick0 > EPIC_SHUTDOWN_TIMEOUT * 1000) 
-
-	; restore previous PAActive status
-	PAActive := savePAActive
 
 	if PAWindows["EPIC"]["main"].hwnd {
 		; Epic desktop window is still not closed
