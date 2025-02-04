@@ -93,6 +93,9 @@ PSPaste(text := "") {
 ; Dictate status is cached, only checked every WATCHDICTATE_UPDATE_INTERVAL, unless
 ; forceupdate is true.
 ;
+; This function also turns off the microphone after an idle timeout, if
+; enabled by PASettings["PS_dictate_idleoff"]. It does so by tracking the
+; time since the last microphone activation
 ;
 PSDictateIsOn(forceupdate := false) {
 	static dictatestatus := false
@@ -115,6 +118,15 @@ PSDictateIsOn(forceupdate := false) {
 			dictatestatus := false
 		}
 		lastcheck := A_TickCount
+	}
+
+	if PASettings["PS_dictate_idleoff"].value {
+		; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
+		; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
+		if dictatestatus && A_TimeIdlePhysical > (PASettings["PS_dictate_idletimeout"].value * 60000) {
+			; microphone is currently on and we have idled for greater than timeout, so turn off the mic
+			PSSend("{F4}")		; Stop Dictation
+		}
 	}
 
 	return dictatestatus
@@ -149,7 +161,8 @@ PSOpen_PSlogin() {
 	; Restore PS window positions
 	PAWindows.RestoreWindows("PS")
 
-	PASound("Powerscribe started")
+	; [todo] determine if PS was just opened or just closed
+
 }
 
 
@@ -182,15 +195,19 @@ PSClose_PSmain() {
 }
 
 
+; This is used internally to determine whether to turn off the mic
+_Dictate_autooff := false
+
+
 ; helper function called by PSOpen_PSreport() and PSClose_PSreport()
 _PSStopDictate() {
-	global PA_Dictate_autooff
+	global _Dictate_autooff
 
 	; only turn off mic if user is report window is not reopened within timeout
-	if PA_Dictate_autooff {
+	if _Dictate_autooff {
 		PSSend("{F4}")						; Stop Dictation
 ;		PASound("toggle dictate")
-		PA_Dictate_autooff := false
+		_Dictate_autooff := false
 	}
 }
 
@@ -199,9 +216,24 @@ _PSStopDictate() {
 PSOpen_PSreport() {
 	global PACurrentPatient
 	global PACurrentStudy
-	global PA_Dictate_autooff
+	global _Dictate_autooff
 
 	PAStatus("Report opened")
+
+	; Automatically turn on microphone when opening a report (and off when closing a report)
+	if PASettings["PS_dictate_autoon"].value {
+		if _Dictate_autooff {
+			; mic should already by on, so cancel the autooff timer and don't toggle the mic
+			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
+			_Dictate_autooff := false
+		} else if !PSDictateIsOn(true) {
+			; mic is not on so turn it on
+			PSSend("{F4}")						; Start Dictation
+			PASound("toggle dictate")
+		}
+	}	
+
+
 
 	; When the PS report window appears, refresh the current patient in PA
 	
@@ -246,40 +278,17 @@ PSOpen_PSreport() {
 		}
 	}
 
-	if PASettings["PS_dictate_autoon"].value {
-		if PA_Dictate_autooff {
-			; mic should already by on, so cancel the autooff timer and don't toggle the mic
-			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
-			PA_Dictate_autooff := false
-		} else if !PSDictateIsOn(true) {
-			; mic is not on so start dication
-			PSSend("{F4}")						; Start Dictation
-			PASound("toggle dictate")
-		}
-	}	
-
-	; if PA_Dictate_autooff {
-	; 	; mic should already by on, so don't do anything
-	; 	PA_Dictate_autooff := false
-	; 	SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action
-	; } else {
-	; 	if PAOptions["PS_dictate_autoon"] && !PSDictateIsOn(true) {
-	; 		PSSend("{F4}")						; Start Dictation
-	; 		PASound("toggle dictate")
-	; 	}
-	; }
-
 }
 
 
 ; Hook function called when PS report window goes away
 PSClose_PSreport() {
-	global PA_Dictate_autooff
+	global _Dictate_autooff
 
 	if PASettings["PS_dictate_autoon"].value && PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
-		PA_Dictate_autooff := true
+		_Dictate_autooff := true
 		SetTimer(_PSStopDictate, -PS_DICTATEAUTOOFF_DELAY)		; turn off mic after delay
 	}
 }

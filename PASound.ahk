@@ -93,7 +93,7 @@ PASound(message) {
             voices := _SoundObj.GetVoices()
             
             ; set voice to use
-            _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+            _SoundObj.Voice := voices.Item(PASettings["Voice"].mappedvalue)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
             ; speak phrase
             _SoundObj.Speak(sound.voice, 0x01)
@@ -118,7 +118,7 @@ PASound(message) {
         voices := _SoundObj.GetVoices()
 
         ; set voice to use
-        _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+        _SoundObj.Voice := voices.Item(PASettings["Voice"].mappedvalue)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
         ; speak phrase
         _SoundObj.Speak(message, 0x01)

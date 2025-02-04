@@ -16,7 +16,7 @@
 
 ; This is the top level on/off switch for PACS Assistant.
 ; If false, many PACS Assistant functions are disabled.
-global PA_Active := false
+global PA_Active := true
 
 ; This is set to false after the first time PAWindows.Update() is called
 global _PAUpdate_Initial := true
@@ -40,9 +40,6 @@ global PAStatusBarText := ""
 ; Power button status
 global PAStatus_PowerButton := ""
 
-
-; This is used internally by PS to determine whether to turn off the mic
-global PA_Dictate_autooff := false
 
 ; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
 global PA_DoubleClickSetting := 400
@@ -158,7 +155,7 @@ EI_SERVER := "mivcsp.adventhealth.com"
 
 
 ; time delay (ms) for turing off microphone after a report is closed
-PS_DICTATEAUTOOFF_DELAY := 7000
+PS_DICTATEAUTOOFF_DELAY := 5000
 
 
 ; timeout (seconds) for shutting down EPIC

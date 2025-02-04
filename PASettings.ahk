@@ -62,13 +62,17 @@ class Setting {
     _key := ""              ; For "select" type only. Stores the key (e.g. "Yes")
 
 
-    ; For "select" type, reading the value actually returns the mapped value, not the key.
+    ; For "select" type, reading the value actually returns the key, not the mapped value. To always get the mapped value, use the
+    ; mappedvalue property
+    ;
     ; However, assigning the value interprets the passed new value as a key, a mapped value.
     ; For example:
-    ;   s := Setting("select", "Yes", Map("Yes", "&YES", "No", "&NO", "Description")
-    ;   MsgBox(s.value)     ; => "&YES"
+    ;   s := Setting("""select", "Yes", Map("Yes", "&YES", "No", "&NO", "Description")
+    ;   MsgBox(s.value)     ; => "Yes"
+    ;   MsgBox(s.mappedvalue)     ; => "&YES"
     ;   s.value := "No"
-    ;   MsgBox(s.value)     ; => "&NO"
+    ;   MsgBox(s.value)     ; => "No"
+    ;   MsgBox(s.mappedvalue)     ; => "&NO"
     ;
     value {
         get {
@@ -146,6 +150,11 @@ class Setting {
         }
     }
 
+    mappedvalue {
+        get {
+            return this._value
+        }
+    }
     ; Call to save the current Setting object to the current settings.ini file(s).
     ;
     ; There is a master settings.ini file used by PACS Assistant. Each user also
@@ -265,12 +274,12 @@ PASettings["username"] := Setting("username", "special", "", 20, "Username")
 PASettings["password"] := Setting("password", "special", "", 20, "Password")
 PASettings["inifile"] := Setting("inifile", "special", "", 0, "Current user-specific .ini file")
 
-PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to keep the screen from going to sleep")
+PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
 
 PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1, "Mark", 2), "Which synthesized voice to use")
 
-PASettings["ClickLock"] := Setting("ClickLock", "select", "Manual", Map("Off", "Off", "Manual", "Manual", "Auto", "Auto"), "Enable Click Lock for left mouse button")
-PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
+PASettings["ClickLock"] := Setting("ClickLock", "select", "Manual", Map("Off", "Off", "Manual", "Manual"), "Enable Click Lock for left mouse button")
+PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in milliseconds) the left mouse button needs to be held down before click lock activates.")
 
 PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
 
@@ -311,7 +320,7 @@ PASettingsPage.Push("Voice")
 PASettingsPage.Push("#EI")
 PASettingsPage.Push("EIcollaborator_show")
 PASettingsPage.Push("ClickLock")
-PASettingsPage.Push(">ClickLock_interval")
+; PASettingsPage.Push(">ClickLock_interval")
 
 PASettingsPage.Push("#PowerScribe")
 PASettingsPage.Push("PS_dictate_autoon")
