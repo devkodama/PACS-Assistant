@@ -95,8 +95,6 @@ ClickId(WebView, id) {
             DispatchQueue.Push(PAGui_RestoreWindowPositions)
         case "button-savewindows":
             DispatchQueue.Push(PAGui_SaveWindowPositions)
-        case "button-togglePA":
-            DispatchQueue.Push(PAToggle)
         default:
             PAToolTip("id='" . id . "' was clicked")
     }
@@ -104,7 +102,8 @@ ClickId(WebView, id) {
 
 
 HoverEvent(WebView, msg) {
-    PAToolTip(msg, 1000)
+    ; display tooltip for 3 seconds
+    PAToolTip(msg, 3000)
 }
 
 

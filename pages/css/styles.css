@@ -200,6 +200,30 @@ body.ahk-maximized .ahk-title-btn-maximize {
   background-image: url('../images/settings.png');
 }
 
+/* these styles are for the PAActive On/Off switch */
+#tab-active-wrapper {
+  position: fixed;
+  left: 5px;
+  bottom: 48px;
+  text-align: center;
+}
+#tab-active-wrapper > label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.5rem;
+  color: #a0a0a0;
+}
+#tab-active {
+  display: block;
+}
+#taberr-active {
+  display: none;
+}
+/* background color when the switch is on */
+#tab-active:checked {
+  background-color: #110080;
+}
+
 
 /***********************************************/
 

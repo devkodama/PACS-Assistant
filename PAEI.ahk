@@ -306,7 +306,7 @@ EIClose_EIdesktop() {
 ;  after timeout or if user cancels).
 ; 
 EIStart(cred := CurrentUserCredentials) {
-	global PA_Active
+	global PAActive
 	static running := false			; true if the EIStartup is already running
 
 	; if EIStart() is already running, don't run another instance
@@ -337,8 +337,8 @@ EIStart(cred := CurrentUserCredentials) {
 	}
 
 	; don't want automatic activation of window under mouse while trying to start EI
-	; savePA_Active := PA_Active
-	; PA_Active := false
+	; savePAActive := PAActive
+	; PAActive := false
 	
 	tick0 := A_TickCount
 	PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -435,8 +435,8 @@ EIStart(cred := CurrentUserCredentials) {
 		PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
-	; restore previous PA_Active status
-	; PA_Active := savePA_Active
+	; restore previous PAActive status
+	; PAActive := savePAActive
 
 	; if no desktop window after timeout, return failure
 	if !hwnddesktop {
@@ -468,7 +468,7 @@ EIStart(cred := CurrentUserCredentials) {
 ;  after timeout or if user cancels).
 ;
 EIStop() {
-	global PA_Active
+	global PAActive
 	static running := false			; true if the EIStop is already running
 
 	; if EIStop() is already running, don't run another instance
@@ -485,8 +485,8 @@ EIStop() {
 	}
 
 	; don't want automatic activation of window under mouse while trying to stop EI
-	; savePA_Active := PA_Active
-	; PA_Active := false
+	; savePAActive := PAActive
+	; PAActive := false
 
 	tick0 := A_TickCount
 	PAStatus("Shutting down EI...")
@@ -502,8 +502,8 @@ EIStop() {
 		PAWindows.Update("EI")
 	}
 
-	; restore previous PA_Active status
-	; PA_Active := savePA_Active
+	; restore previous PAActive status
+	; PAActive := savePAActive
 
 	if PAWindows["EI"]["desktop"].hwnd {
 		; EI desktop window is still not closed
@@ -527,13 +527,13 @@ EIStop() {
 	; 	;wait for dialog to confirm logoff from powerscribe
 	; 	hwndPS := WinWait("PowerScribe", "Are you sure you wish to log off the application?", 30)			; 30 second timeout
 	; 	if (hwndPS) {
-	; 		ControlClick("Yes", hwndPS)
+	; 		ControlSend("{Enter}", "Yes", hwndPS)
 	; 	}
 
 	; 	;wait for dialog to confirm save speech files
 	; 	hwndPS := WinWait("PowerScribe", "Your speech files have changed. Do you wish to save the changes?", 5)			; 5 second timeout
 	; 	if (hwndPS) {
-	; 		ControlClick("Yes", hwndPS)
+	; 		ControlSend("{Enter}", "Yes", hwndPS)
 	; 	}
 
 	; 	; wait for the powerscribe login screen, then shut down powerscribe

@@ -201,7 +201,7 @@ class WindowItem {
 			_WindowKeys[newhwnd] := [this.appkey, this.winkey, this.visible]
 
 			; call hook_open if the window is visible and not minimized
-			if !_PAUpdate_Initial && PA_Active && this.hook_open && (this.visible && !this.minimized) {
+			if !_PAUpdate_Initial && PAActive && this.hook_open && (this.visible && !this.minimized) {
 				this.hook_open.Call()
 			}
 
@@ -230,12 +230,12 @@ class WindowItem {
 				_WindowKeys[gethwnd] := [this.appkey, this.winkey, this.visible]
 						
 				; call hook_open if window transitions from not visible or minimzed to visible and not minimized
-				if !_PAUpdate_Initial && PA_Active && this.hook_open && (!this.visible || this.minimized) && (newvisible && !newminimized) {
+				if !_PAUpdate_Initial && PAActive && this.hook_open && (!this.visible || this.minimized) && (newvisible && !newminimized) {
 					this.hook_open.Call()
 				}
 
 				; call hook_close if window transitions from visible and not minimized to not visible or minimzed
-				if PA_Active && this.hook_close && (this.visible && !this.minimized) && (!newvisible || newminimized) {
+				if PAActive && this.hook_close && (this.visible && !this.minimized) && (!newvisible || newminimized) {
 					this.hook_close.Call()
 				}
 
@@ -248,7 +248,7 @@ class WindowItem {
 				; window no longer exists
 
 				; call hook_close if window was last visible and not minimized
-				if PA_Active && this.hook_close && (this.visible && !this.minimized) {
+				if PAActive && this.hook_close && (this.visible && !this.minimized) {
 					this.hook_close.Call()
 				}
 
@@ -282,7 +282,7 @@ class WindowItem {
 				_WindowKeys[this.hwnd] := [this.appkey, this.winkey, this.visible]
 		
 				; call hook_open if the window is visible and not minimized
-				if !_PAUpdate_Initial && PA_Active && this.hook_open && (this.visible && !this.minimized) {
+				if !_PAUpdate_Initial && PAActive && this.hook_open && (this.visible && !this.minimized) {
 					this.hook_open.Call()
 				}
 
@@ -915,21 +915,21 @@ PAToolTip(message, duration := 5000) {
 
 ; Enables/disables PACS Assistant
 PAEnable(state) {
-	global PA_Active
+	global PAActive
 
-	PA_Active := state
+	PAActive := state
 	InitDaemons(state)
 	
-	; PAToolTip(PA_Active . " [" . !PA_Active . "]")
+	; PAToolTip(PAActive . " [" . !PAActive . "]")
 
 }
 
 
 ; Toggles (enables/disables) PACS Assistant
 PAToggle() {
-	global PA_Active
+	global PAActive
 
-	PAEnable(!PA_Active)
+	PAEnable(!PAActive)
 }
 
 
@@ -983,7 +983,7 @@ PA_Main() {
 	PAGui_Init()
 
     ; Start daemons
-    InitDaemons(PA_Active)
+    InitDaemons(true)
 	
 }
 

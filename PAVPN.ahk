@@ -50,7 +50,7 @@ VPNIsConnected(forceupdate := false) {
 ;  after timeout or if user cancels).
 ; 
 VPNConnect(cred := CurrentUserCredentials) {
-	global PA_Active
+	global PAActive
 	static running := false			; true if the VPNConnect is already running
 
 	; if VPNConnect() is already running, don't run another instance
@@ -84,8 +84,8 @@ VPNConnect(cred := CurrentUserCredentials) {
 
 	; don't want automatic activation of window under mouse while
 	; trying to make a VPN connection
-	savePA_Active := PA_Active
-	PA_Active := false
+	savePAActive := PAActive
+	PAActive := false
 
 	; loop until connected or timed out
 	connected := false
@@ -238,8 +238,8 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 
 ;	MsgBox(trace)
 
-	; restore previous PA_Active status
-	PA_Active := savePA_Active
+	; restore previous PAActive status
+	PAActive := savePAActive
 
 	; done
 	running := false

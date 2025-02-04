@@ -254,7 +254,7 @@ PSOpen_PSreport() {
 	PACurrentStudy.reason := ""
 	PACurrentStudy.techcomments := ""
 
-	Sleep(1000)		; try to improve reliability of EI data scraping
+;	Sleep(1000)		; try to improve reliability of EI data scraping
 
 	pt := EIRetrievePatientInfo()
 	if pt { 
@@ -300,10 +300,9 @@ PSOpen_PSlogout() {
 	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["logout"].CenterWindow(_PSParent())
 	}
+PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].value " / " PASettings["PSlogout_dismiss_reply"].mappedvalue)
 	if PASettings["PSlogout_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		PAToolTip("yes")
-		ControlClick(PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
+		ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].mappedvalue, PAWindows["PS"]["logout"].hwnd)
 	}
 }
 
@@ -313,8 +312,7 @@ PSOpen_PSsavespeech() {
 		PAWindows["PS"]["savespeech"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSsavespeech_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlSend("{Enter}", PASettings["PSsavespeech_dismiss_reply"].mappedvalue, PAWindows["PS"]["savespeech"].hwnd)
 	}
 }
 
@@ -345,8 +343,7 @@ PSOpen_PSconfirmaddendum() {
 		PAWindows["PS"]["confirmaddendum"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSconfirmaddendum_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlSend("{Enter}", PASettings["PSconfirmaddendum_dismiss_reply"].mappedvalue, PAWindows["PS"]["confirmaddendum"].hwnd)
 	}
 }
 
@@ -384,8 +381,8 @@ PSOpen_PSmicrophone() {
 		PAWindows["PS"]["microphone"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSmicrophone_dismiss"].value {
-		Sleep(1000)			; delay 1s
-		ControlClick(PASettings["PSmicrophone_dismiss_reply"].value, PAWindows["PS"]["microphone"].hwnd)
+		Sleep(500)
+		ControlSend("{Enter}", PASettings["PSmicrophone_dismiss_reply"].mappedvalue, PAWindows["PS"]["microphone"].hwnd)
 	}
 }
 
