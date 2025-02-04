@@ -46,6 +46,12 @@
   <div class="tabbar">
     <div id="tab-home" class="tab-icon default" onclick="openTab(this.id, 'home')"></div>
     <div id="tab-settings" class="tab-icon" onclick="openTab(this.id, 'settings')"></div>
+    <div id="tab-active-wrapper">
+      <label for="active">ON/OFF</label>
+      <input id="tab-active" name="active" class="" role="switch" type="checkbox" oninput="handleCheckbox(this)">
+      <!-- onmouseenter="ahk.Hover(this.alt)" alt="On/Off (F2)" -->
+      <span id="taberr-active"></span>
+    </div>
   </div>
 
   <!-- Application bar -->
@@ -147,8 +153,6 @@
         class="btn btn-block btn-outline-primary">Save window positions</button>
       <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
         class="btn btn-block btn-outline-primary">Restore window positions</button>
-      <button type="button" id="button-togglePA" onclick="ahk.ClickId(this.id)"
-        class="btn btn-block btn-outline-primary">Disable PACS Assistant</button>
 
     </div>
     <!-- End Settings page -->

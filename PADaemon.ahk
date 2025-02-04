@@ -30,21 +30,13 @@
 ; Start or stop daemons
 
 InitDaemons(start := true) {
-	global PA_Active
 
-	; These always run, regardless of PA_Active
-	SetTimer(_Dispatcher, DISPATCH_INTERVAL)
-	SetTimer(_RefreshGUI, GUIREFRESH_INTERVAL)
+	SetTimer(_Dispatcher, (start ? DISPATCH_INTERVAL : 0))
+	SetTimer(_RefreshGUI, (start ? GUIREFRESH_INTERVAL : 0))
 
-	; These run depending on the state of PA_Active and the parameter start
-	; If either one is false, don't activate these daemons
-	if !PA_Active {
-		start := false
-	}
 	SetTimer(_WatchWindows, (start ? WATCHWINDOWS_UPDATE_INTERVAL : 0))
 	SetTimer(_WatchMouse, (start ? WATCHMOUSE_UPDATE_INTERVAL : 0))
 	SetTimer(_JiggleMouse, (start ? JIGGLEMOUSE_UPDATE_INTERVAL : 0))
-
 }
 
 
@@ -57,6 +49,8 @@ InitDaemons(start := true) {
 ;
 _Dispatcher() {
 	global DispatchQueue
+
+	; runs regardless of PAActive
 
 	if DispatchQueue.Length > 0 {
 		fn := DispatchQueue.RemoveAt(1)
@@ -73,7 +67,7 @@ _Dispatcher() {
 ;
 _RefreshGUI() {
 	global PAGui
-	global PA_Active
+	global PAActive
 	global PAStatusBarText
 	global PAStatus_PowerButton
 	global PACurrentPatient
@@ -92,6 +86,8 @@ _RefreshGUI() {
 		"EPIC", "",
 		"power", ""
 	)
+
+	; runs regardless of PAActive
 
 	; don't allow reentry
 	if running {
@@ -208,8 +204,18 @@ _RefreshGUI() {
 		curstate["microphone"] := "false"
 	}
 
-
-
+	; Update top level on/off switch status
+	; Also update the global PAActive as a shadow copy of PASettings["active"].value
+	onoff := PASettings["active"].value
+	if onoff && !PAActive {
+		PAActive := true
+		PAGui.PostWebMessageAsString("document.getElementById('tab-active').setAttribute('checked', '');")
+	} else if !onoff && PAActive {
+		PAActive := false
+		PAGui.PostWebMessageAsString("document.getElementById('tab-active').removeAttribute('checked');")
+	}
+;PAGui_Post("log", "innerHTML", PAActive " / " PASettings["active"].value)
+		
 	; Update app icon indicators
 	status := 0x00
 
@@ -315,12 +321,6 @@ _RefreshGUI() {
 			}
 	}
 
-	; update buttons if necessary
-	if  curstate["PA"] != PA_Active {
-		curstate["PA"] := PA_Active
-		PAGui.PostWebMessageAsString("document.getElementById('button-togglePA').innerHTML = `"" . (PA_Active?"Disable PACS Assistant":"Enable PACS Assistant") . "`"")
-	}
-
 	; done
 	running := false
 	return
@@ -328,17 +328,40 @@ _RefreshGUI() {
 
 
 
-; Jiggle the mouse to keep screen awake
-_JiggleMouse() {
-	if PASettings["MouseJiggler"].value {
-		MouseMove(1, 1, , "R")
-		MouseMove(-1, -1, , "R")
+
+/***********************************************/
+
+
+
+; Update the status of all PAWindows
+;
+; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
+;
+_WatchWindows() {
+	global PAActive
+	global PAWindows
+	global PAWindowInfo
+	
+	if !PAActive {
+		return
 	}
+
+	; update the open/visibility status of all windows
+	PAWindows.Update()
+
+	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
+	
+
+	; [todo] if PS spelling window is open for more than 1 second while mouse is not
+	; over a PS window, then close it
+
+	; update window info for GUI
+	PAWindowInfo := PAWindows.Print() . "#" . EIGetStudyMode() . "#"
+
 }
 
 
 
-/***********************************************/
 
 ; Update the hwnd of the window under the mouse cursor
 ;
@@ -347,17 +370,16 @@ _JiggleMouse() {
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchMouse, UPDATE_INTERVAL)
 ;
-; PA_Active must be true for this function to be active
+; PAActive must be true for this function to be active
 ;
 _WatchMouse() {
-	global PA_Active
+	global PAActive
 	global PA_WindowUnderMouse
 	global PA_WindowBusy
 	static running := false
 	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
 
-	; PA_Active must be true for this function to be active
-	if !PA_Active {
+	if !PAActive {
 		return
 	}
 
@@ -465,27 +487,17 @@ _WatchMouse() {
 
 
 
-; Update the status of all PAWindows
-;
-; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
-;
-_WatchWindows() {
-	global PA_Active
-	global PAWindows
-	global PAWindowInfo
-	
-	; update the open/visibility status of all windows
-	PAWindows.Update()
-
-	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
-	
 
 
-	; [todo] if PS spelling window is open for more than 1 second while mouse is not
-	; over a PS window, then close it
+; Jiggle the mouse to keep screen awake
+_JiggleMouse() {
+	if !PAActive {
+		return
+	}
 
-	; update window info for GUI
-	PAWindowInfo := PAWindows.Print() . "#" . EIGetStudyMode() . "#"
-
-
+	if PASettings["MouseJiggler"].value {
+		MouseMove(1, 1, , "R")
+		MouseMove(-1, -1, , "R")
+	}
 }
+

@@ -16,7 +16,9 @@
 
 ; This is the top level on/off switch for PACS Assistant.
 ; If false, many PACS Assistant functions are disabled.
-global PA_Active := true
+; This is a shadow copy of PA_Settings["active"].value, kept
+; current by PADaemon GUI refresh.
+global PAActive := false
 
 ; This is set to false after the first time PAWindows.Update() is called
 global _PAUpdate_Initial := true
@@ -85,7 +87,7 @@ DISPATCH_INTERVAL := 100
 
 
 ; interval (ms) for updating GUI display
-GUIREFRESH_INTERVAL := 250
+GUIREFRESH_INTERVAL := 200
 
 ; timeout (ms) for clearing status bar text
 GUISTATUSBAR_TIMEOUT := 60000	; 60 sec
