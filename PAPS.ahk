@@ -197,7 +197,7 @@ PSClose_PSmain() {
 
 
 ; This is used internally to determine whether to turn off the mic
-_Dictate_autooff := false
+global _Dictate_autooff := false
 
 
 ; helper function called by PSOpen_PSreport() and PSClose_PSreport()
