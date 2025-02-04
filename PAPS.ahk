@@ -95,7 +95,8 @@ PSPaste(text := "") {
 ;
 ; This function also turns off the microphone after an idle timeout, if
 ; enabled by PASettings["PS_dictate_idleoff"]. It does so by tracking the
-; time since the last microphone activation
+; time since the last physical keyboard or mouse activity. This functionality
+; depends upon this function being called frequently (as it typically is by PADaemon()).
 ;
 PSDictateIsOn(forceupdate := false) {
 	static dictatestatus := false
