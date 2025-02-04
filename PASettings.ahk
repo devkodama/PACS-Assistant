@@ -75,7 +75,7 @@ class Setting {
     ;   MsgBox(s.key)           ; => "Yes"
     ;   s.value := "No"
     ;   MsgBox(s.value)         ; => "&NO"
-    ;   MsgBox(s.mappedvalue)   ; => "No"
+    ;   MsgBox(s.key)           ; => "No"
     ;
     value {
         get {
