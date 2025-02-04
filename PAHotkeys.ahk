@@ -31,7 +31,16 @@
 ; The F2 hotkey toggles the top level on/off switch for PACS Assistant.
 ;
 F2:: {
-    PAToggle()
+;	global PASettings
+;    PASettings["active"].value := !PAActive
+
+	hwndPA := PAWindows["PA"]["main"].hwnd
+	if hwndPA {
+		WinActivate(hwndPA)
+		MouseGetPos(&savex, &savey)
+		Send "{Click 25 275}" 
+		MouseMove(savex, savey)
+	}
 }
 
 +F2:: {
@@ -128,7 +137,7 @@ F3:: {
 ;	In effect for EI (images, 4dm, desktop text area), PS (main or report) windows
 ;
 $Tab:: {
-	if PA_Active && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
+	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
 		PSSend("{Tab}")
 		SoundBeep(440, 10)
 	} else {
@@ -136,7 +145,7 @@ $Tab:: {
 	}
 }
 $+Tab:: {
-	if PA_Active && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
+	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
 		PSSend("{Blind}+{Tab}")
 		SoundBeep(440, 10)
 	} else {
@@ -144,7 +153,7 @@ $+Tab:: {
 	}
 }
 $^Tab:: {
-	if PA_Active && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
+	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
 		if A_PriorHotkey = "$^Tab" {
 			PSSend("{Down}{End}")
 		} else {
@@ -156,7 +165,7 @@ $^Tab:: {
 	}
 }
 $^+Tab:: {
-	if PA_Active && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
+	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
 		PSSend("{Up}{End}")
 		SoundBeep(440, 10)
 	} else {
@@ -176,7 +185,7 @@ $^+Tab:: {
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
 $CapsLock:: {
-	if PA_Active && PACheckContext( , , "EI", "PS") {
+	if PAActive && PACheckContext( , , "EI", "PS") {
 		PSSend("{F4}")							; Start/Stop Dictation
 		PASound("toggle dictate")
 		; PSDictateIsOn(true)						; force update of status
@@ -185,7 +194,7 @@ $CapsLock:: {
 	}
 }
 $+CapsLock:: {
-	if PA_Active && PACheckContext( , , "EI", "PS") {
+	if PAActive && PACheckContext( , , "EI", "PS") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSSend("{F12}")							; Sign report
@@ -200,7 +209,7 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if PA_Active && PACheckContext( , , "EI", "PS") {
+	if PAActive && PACheckContext( , , "EI", "PS") {
 		PSSend("{F9}")							; save as Draft
 		PASound("draft report")
 	} else {
@@ -208,7 +217,7 @@ $^CapsLock:: {
 	}
 }
 $^+CapsLock:: {
-	if PA_Active && PACheckContext( , , "EI", "PS") {
+	if PAActive && PACheckContext( , , "EI", "PS") {
 		PSSend("{Alt down}fm{Alt up}")			; save as Prelim
 		PASound("prelim report")
 	} else {
@@ -228,7 +237,7 @@ $^+CapsLock:: {
 ; In effect for EI image windows
 ;
 $q:: {
-	if PA_Active && PACheckContext( , , "EI images1 images2") {
+	if PAActive && PACheckContext( , , "EI images1 images2") {
 		; search images2 window first
 		EIhwnd := PAWindows["EI"]["images2"].hwnd
 		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
@@ -267,7 +276,7 @@ $q:: {
 ; In effect for EI and PS windows.
 ;
 $`:: {
-	if PA_Active && PACheckContext( , , "EI", "PS") {
+	if PAActive && PACheckContext( , , "EI", "PS") {
 		if EIIsList() {
 			EIClickDesktop("EIText")
 		} else {
@@ -278,7 +287,7 @@ $`:: {
 	}
 }
 $+`:: {
-	if PA_Active && PACheckContext( , , "EI", "PS") {
+	if PAActive && PACheckContext( , , "EI", "PS") {
 		if A_PriorHotkey = "$+``" {
 			if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
 				WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
@@ -307,7 +316,7 @@ $+`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $Esc:: {
-	if PA_Active && PACheckContext( , , "EI images1 images2") {
+	if PAActive && PACheckContext( , , "EI images1 images2") {
 		EIClickImages("EI_RemoveFromList")
 	} else {
 		Send("{Esc}")
@@ -324,14 +333,14 @@ $Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if PA_Active && PACheckContext( , , "PS", "EI images1 images2 desktop/text 4dm") {
+	if PAActive && PACheckContext( , , "PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if PA_Active && PACheckContext( , , "PS", "EI images1 images2 desktop/text 4dm") {
+	if PAActive && PACheckContext( , , "PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -344,7 +353,7 @@ $^z:: {
 ;	Augment Ctrl-S to give audio feedback when used in EI
 ; (~ prefix preserves the native function of the key)
 ~^s:: {
-	if PA_Active && PACheckContext( , , "EI") {
+	if PAActive && PACheckContext( , , "EI") {
 		SoundBeep(200,200)
 		SoundBeep(200,200)
 	}
@@ -391,7 +400,7 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLockmanual
 	
-	if PA_Active {
+	if PAActive {
 		PAWindows.GetAppWin("", &app, &win)
 		if PACheckContext(app, win, "EI images1 images2") {
 			if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
@@ -466,7 +475,7 @@ global LButton_ClickLockmanual := false
 	global LButton_ClickLockon
 
 	; PAToolTip("RButton down - last:" Button_lastdown)
-	if PA_Active && LButton_ClickLockon {
+	if PAActive && LButton_ClickLockon {
 		Click("U")							; L mouse button up
 		SoundBeep(600, 100)
 		LButton_ClickLockon := false
@@ -479,7 +488,7 @@ global LButton_ClickLockmanual := false
 
 	; PAToolTip("LButton down - last:" Button_lastdown)
 
-	if PA_Active {
+	if PAActive {
 		if PASettings["ClickLock"].value = "Manual" {
 ;	 		if LButton_ClickLockon {
 ;				Click("U")
@@ -512,7 +521,7 @@ LButton Up:: {
 	global LButton_ClickLockon
 	global LButton_ClickLockmanual
 
-	if PA_Active {
+	if PAActive {
 
 		if PASettings["ClickLock"].value = "Manual" {
 			if LButton_ClickLockmanual {
@@ -584,7 +593,7 @@ PA_MapEIKeys() {
 _PA_MapEIKeysCallback(key) {
 	global PA_DoubleClickSetting
 
-	if PA_Active && PACheckContext( , , "EI images1 images2") {
+	if PAActive && PACheckContext( , , "EI images1 images2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 ; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything

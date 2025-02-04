@@ -272,15 +272,18 @@ class Setting {
 ; by functions that handle changes to the settings (e.g. HandleFormInput(), and 
 ; by the value property setter and getter).
 ;
-; PASettings["username"] must be set up first, before password
+; PASettings["active"] is the top level on/off--it defines whether many
+; PACS Assistant functions are active.
 ;
+PASettings["active"] := Setting("active", "bool", true, , "Top level switch for many PACS Assistant functions")
+
 PASettings["username"] := Setting("username", "special", "", 20, "Username")
 PASettings["password"] := Setting("password", "special", "", 20, "Password")
 PASettings["inifile"] := Setting("inifile", "special", "", 0, "Current user-specific .ini file")
 
 PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
 
-PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1, "Mark", 2), "Which synthesized voice to use")
+PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which synthesized voice to use")
 
 PASettings["ClickLock"] := Setting("ClickLock", "select", "Manual", Map("Off", "Off", "Manual", "Manual"), "Enable Click Lock for left mouse button")
 PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
@@ -299,7 +302,7 @@ PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("PSconfirmaddendum_dism
 PASettings["PS_dictate_autoon"] := Setting("PS_dictate_autoon", "bool", true, , "Automatically turn on microphone when opening a report and off when closing a report")
 
 PASettings["PS_dictate_idleoff"] := Setting("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone after a period of inactivity")
-PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num", 1, [1, 720], "After how many minutes?")
+PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
 
 PASettings["PSmicrophone_dismiss"] := Setting("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
 PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
@@ -467,7 +470,7 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="seterr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
                     form .= '<input id="setval-' optname '" role="switch" oninput="handleCheckbox(this);" type="checkbox"' (PASettings[optname].value ? ' checked>' : '>')
@@ -484,7 +487,7 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="seterr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
                     form .= '<input id="setval-' optname '" type="text" onchange="handleNum(this);" value="' PASettings[optname].value '">'
@@ -501,7 +504,7 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="seterr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
                     form .= '<input id="setval-' optname '" type="text" onchange="handleText(this);" value="' PASettings[optname].value '">'
@@ -518,7 +521,7 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="seterr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
                     form .= '<select id="setval-' optname '" oninput="handleSelect(this);">'
@@ -544,7 +547,7 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="seterr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
                     if PASettings[optname].name == "password" {
@@ -591,9 +594,16 @@ PASettings_HTMLForm(show := true) {
 ;
 HandleFormInput(WebView, id, newval) {
 
-    ; strip the prefix "setval-" (7 chars) from the id name to get the key 
-    ; to PASettings[] map
-    optname := SubStr(id, 8)
+    ; strip the prefix (e.g. "setval-", or "tab-") from the id name to get the key 
+    ; if there is no hyphen, then assume no prefix and use the id as is
+    ; as the key to PASettings[] map
+    h := InStr(id,"-")
+    optname := SubStr(id, 1 + h)
+    if h {
+        errid := SubStr(id, 1, h - 1) . "err-" . optname
+    } else {
+        errid := "err-" . optname
+    }
 
     sett := PASettings[optname]
     
@@ -602,7 +612,7 @@ HandleFormInput(WebView, id, newval) {
         ; validation succeeded, change the setting's value
         sett.value := newval
         ; clear any previous error
-        PAGui_Post("seterr-" . optname, "innerHTML", "")
+        PAGui_Post(errid, "innerHTML", "")
 
     } else {
 
@@ -611,20 +621,20 @@ HandleFormInput(WebView, id, newval) {
         switch sett.type {
             case "num":
                 if IsObject(sett.possible) {
-                    PAGui_Post("seterr-" . optname, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
+                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
                 } else {
-                    PAGui_Post("seterr-" . optname, "innerHTML", "<br />⚠️ Invalid number")
+                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid number")
                 }
             case "text", "special":
                 if sett.possible > 0 {
-                    PAGui_Post("seterr-" . optname, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
+                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
                 } else {
-                    PAGui_Post("seterr-" . optname, "innerHTML", "<br />⚠️ Invalid entry")
+                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid entry")
                 }
             case "select":
-                PAGui_Post("seterr-" . optname, "innerHTML", "<br />⚠️ Invalid choice")
+                PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid choice")
             default:
-                PAGui_Post("seterr-" . optname, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
+                PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
         }
     }
 
