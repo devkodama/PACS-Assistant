@@ -11,6 +11,7 @@
 DetectHiddenWindows true		; look also for hidden windows by default
 DetectHiddenText true			; don't search hidden text by default
 
+SetDefaultMouseSpeed 0			; 0 = fastest
 
 
 /**

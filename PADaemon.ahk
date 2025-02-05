@@ -209,9 +209,11 @@ _RefreshGUI() {
 	onoff := PASettings["active"].value
 	if onoff && !PAActive {
 		PAActive := true
+		PAStatus("PACS Assistant enabled")
 		PAGui.PostWebMessageAsString("document.getElementById('tab-active').setAttribute('checked', '');")
 	} else if !onoff && PAActive {
 		PAActive := false
+		PAStatus("PACS Assistant disabled")
 		PAGui.PostWebMessageAsString("document.getElementById('tab-active').removeAttribute('checked');")
 	}
 ;PAGui_Post("log", "innerHTML", PAActive " / " PASettings["active"].value)
@@ -371,6 +373,8 @@ _WatchWindows() {
 ; Typically used with a timer, e.g. SetTimer(_WatchMouse, UPDATE_INTERVAL)
 ;
 ; PAActive must be true for this function to be active
+;
+; PA_WindowBusy must be false for focus following to be allowed
 ;
 _WatchMouse() {
 	global PAActive

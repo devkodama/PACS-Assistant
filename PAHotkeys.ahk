@@ -29,17 +29,16 @@
 
 
 ; The F2 hotkey toggles the top level on/off switch for PACS Assistant.
+; It does so by sending a mouse click. Directly changing
+; PASettings["active"].value does not work (it does not update the toggle
+; switch on screen).
 ;
 F2:: {
 ;	global PASettings
 ;    PASettings["active"].value := !PAActive
-
-	hwndPA := PAWindows["PA"]["main"].hwnd
-	if hwndPA {
-		WinActivate(hwndPA)
-		MouseGetPos(&savex, &savey)
-		Send "{Click 25 275}" 
-		MouseMove(savex, savey)
+	
+	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
+		ControlClick "X25 Y275", hwndPA
 	}
 }
 

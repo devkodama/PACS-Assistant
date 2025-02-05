@@ -247,8 +247,10 @@ EIOpen_EIdesktop() {
 
 	PASound("EI desktop opened")
 
-	; Restore EI window positions
-	PAWindows.RestoreWindows("EI")
+	if PASettings["EI_restoreatopen"].value {
+		; Restore EI window positions
+		PAWindows.RestoreWindows("EI")
+	}
 	
 	; this doesn't work for unclear reasons
 	; Show collaborator window if requested
@@ -306,6 +308,7 @@ EIClose_EIdesktop() {
 ;  after timeout or if user cancels).
 ; 
 EIStart(cred := CurrentUserCredentials) {
+	global PA_WindowBusy
 	static running := false			; true if the EIStartup is already running
 
 	; if EIStart() is already running, don't run another instance
@@ -381,6 +384,9 @@ EIStart(cred := CurrentUserCredentials) {
 		WinRestore(hwndlogin)
 	}
 
+	; prevent focus following
+	PA_WindowBusy := true
+
 	; wait for EI login window to be visible
 	while !PAWindows["EI"]["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 		Sleep(500)
@@ -438,6 +444,9 @@ EIStart(cred := CurrentUserCredentials) {
 	} else {
 		PAStatus("EI started (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
+
+	; restore focus following
+	PA_WindowBusy := false
 
 	; done
 	running := false
@@ -810,7 +819,7 @@ if n++ > 2 {
 									Click(v.x + 2, v.y, 2)
 									SendInput("^a^c")
 									if !ClipWait(0.1) {				; wait until clipboard contains data, with 100 ms timeout
-										PAToolTip("ClipWait (3) timed out")
+;										PAToolTip("ClipWait (3) timed out")
 										SoundBeep(250)
 									}
 									MouseMove(savex, savey)

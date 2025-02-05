@@ -283,14 +283,18 @@ PASettings["inifile"] := Setting("inifile", "special", "", 0, "Current user-spec
 
 PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
 
-PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which synthesized voice to use")
+PASettings["UseVoice"] := Setting("UseVoice", "bool", true, , "Enable synthesized voice feedback")
+PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
-PASettings["ClickLock"] := Setting("ClickLock", "select", "Manual", Map("Off", "Off", "Manual", "Manual"), "Enable Click Lock for left mouse button")
+PASettings["ClickLock"] := Setting("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
 PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
+PASettings["EI_restoreatopen"] := Setting("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
 PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
 
-PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages")
+PASettings["PS_restoreatopen"] := Setting("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+
+PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages (for draft or unsigned reports)")
 PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
@@ -299,9 +303,9 @@ PASettings["PSsavespeech_dismiss_reply"] := Setting("PSsavespeech_dismiss_reply"
 PASettings["PSconfirmaddendum_dismiss"] := Setting("PSconfirmaddendum_dismiss", "bool", true, , "Automatically answer Yes to 'Create addendum?' message")
 PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("PSconfirmaddendum_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PS_dictate_autoon"] := Setting("PS_dictate_autoon", "bool", true, , "Automatically turn on microphone when opening a report and off when closing a report")
+PASettings["PS_dictate_autoon"] := Setting("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
 
-PASettings["PS_dictate_idleoff"] := Setting("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone after a period of inactivity")
+PASettings["PS_dictate_idleoff"] := Setting("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
 PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
 
 PASettings["PSmicrophone_dismiss"] := Setting("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
@@ -310,6 +314,8 @@ PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply"
 PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center message boxes over the main window")
 
 PASettings["PSspelling_autoclose"] := Setting("PSspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
+
+PASettings["EPIC_restoreatopen"] := Setting("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
 
 
 
@@ -322,14 +328,16 @@ PASettingsPage.Push("password")
 
 PASettingsPage.Push("#General")
 PASettingsPage.Push("MouseJiggler")
-PASettingsPage.Push("Voice")
+PASettingsPage.Push("UseVoice")
+PASettingsPage.Push(">Voice")
 
 PASettingsPage.Push("#EI")
-PASettingsPage.Push("EIcollaborator_show")
+PASettingsPage.Push("EI_restoreatopen")
 PASettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
 
 PASettingsPage.Push("#PowerScribe")
+PASettingsPage.Push("PS_restoreatopen")
 PASettingsPage.Push("PS_dictate_autoon")
 PASettingsPage.Push("PS_dictate_idleoff")
 PASettingsPage.Push(">PS_dictate_idletimeout")
@@ -338,9 +346,14 @@ PASettingsPage.Push("PSlogout_dismiss")
 PASettingsPage.Push("PSsavespeech_dismiss")
 PASettingsPage.Push(">PSsavespeech_dismiss_reply")
 PASettingsPage.Push("PSmicrophone_dismiss")
-
-PASettingsPage.Push("PScenter_dialog")
 PASettingsPage.Push("PSspelling_autoclose")
+PASettingsPage.Push("PScenter_dialog")
+
+PASettingsPage.Push("#Epic")
+PASettingsPage.Push("EPIC_restoreatopen")
+
+PASettingsPage.Push("#Beta - Experimental, may not work")
+PASettingsPage.Push("EIcollaborator_show")
 
 
 

@@ -50,7 +50,7 @@ VPNIsConnected(forceupdate := false) {
 ;  after timeout or if user cancels).
 ; 
 VPNConnect(cred := CurrentUserCredentials) {
-	; global PAActive
+	global PA_WindowBusy
 	static running := false			; true if the VPNConnect is already running
 
 	; if VPNConnect() is already running, don't run another instance
@@ -82,20 +82,19 @@ VPNConnect(cred := CurrentUserCredentials) {
 		PAWindows.Update("VPN")
 	}
 
-	; don't want automatic activation of window under mouse while
-	; trying to make a VPN connection
-	; savePAActive := PAActive
-	; PAActive := false
+	; don't want focus following while trying to make a VPN connection
+	PA_WindowBusy := true
 
-	; loop until connected or timed out
+	; loop until connected, timed out, cancelled, or failed too many times
 	connected := false
 	tick0 := A_TickCount
 	lastdialog := ""
+	failedlogins := 0
 	runflag := false
 	cancelled := false
 	trace := ""			;for debugging
 
-	while !connected && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
+	while !connected && !cancelled && failedlogins < VPN_FAILEDLOGINS_MAX && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 
 ;PAToolTip("trace=" . trace)
 		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -124,7 +123,7 @@ trace .= "2"
 			; wait for user to enter otp and/or close window
 			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
 			while (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) && (WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)) {
-				WinActivate(hwndotp)
+				WinActivate(hwndotp) 		; keep OTP window focused
 				Sleep(500)
 				PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			}
@@ -143,6 +142,7 @@ trace .= "3"
 			hwndmain := WinExist(PAWindows["VPN"]["main"].criteria, PAWindows["VPN"]["main"].wintext)
 			if hwndmain && ControlGetText("Static2", hwndmain) = "Login failed." {
 trace .= "a"
+				failedlogins++
 				ControlClick("Cancel", hwndlogin, , , , "NA")
 				WinWaitClose(hwndlogin)
 				PAWindows.Update("VPN")
@@ -174,7 +174,7 @@ trace .= "4"
 				; infer the user clicked the Cancel button so we abort the entire login process
 				if lastdialog = "otp" {
 					cancelled := true
-					break
+					break		; exit while
 				}
 				BlockInput true
 				ControlSetText("", "Edit1", hwndmain)
@@ -228,18 +228,20 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 
 	}	; while
 
-	if cancelled {
-		PAStatus("VPN startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-	} else if connected {
+	if connected {
 		PAStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+	} else if cancelled {
+		PAStatus("VPN startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+	} else if failedlogins >= VPN_FAILEDLOGINS_MAX {
+		PAStatus("Invalid username/password - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else {
 		PAStatus("Timeout - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
 ;	MsgBox(trace)
 
-	; restore previous PAActive status
-	; PAActive := savePAActive
+	; restore focus following
+	PA_WindowBusy := false
 
 	; done
 	running := false

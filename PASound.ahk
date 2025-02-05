@@ -87,7 +87,8 @@ PASound(message) {
         if sound.statusmessage {
             PAStatus(sound.statusmessage)
         }
-        if sound.voice {
+
+        if PASettings["UseVoice"].value && sound.voice {
 
             ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
             voices := _SoundObj.GetVoices()
@@ -99,11 +100,13 @@ PASound(message) {
             _SoundObj.Speak(sound.voice, 0x01)
         
         }
+
         if sound.audio {
 
             SoundPlay(sound.audio)
 
         }
+        
         if sound.beepfreq {
 
             SoundBeep(sound.beepfreq, 150)
@@ -112,16 +115,18 @@ PASound(message) {
 
     } else {
 
-        ; key not found in sound array, just speak the passed message string
+        ; key not found in Sounds[], just speak the passed message string
 
-        ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
-        voices := _SoundObj.GetVoices()
+        if PASettings["UseVoice"].value {
+            ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
+            voices := _SoundObj.GetVoices()
 
-        ; set voice to use
-        _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+            ; set voice to use
+            _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
-        ; speak phrase
-        _SoundObj.Speak(message, 0x01)
+            ; speak phrase
+            _SoundObj.Speak(message, 0x01)
+        }
 
     }
 

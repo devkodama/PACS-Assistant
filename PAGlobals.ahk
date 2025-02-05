@@ -26,6 +26,11 @@ global _PAUpdate_Initial := true
 ; This is set to true after the GUI is up and running.
 global _PAGUI_Running := false
 
+; WindowBusy is a semaphore which if true prevents activation of a
+; different window by PACS Assistant (blocks follow focus)
+global PA_WindowBusy := false
+
+
 
 ; Current Patient
 global PACurrentPatient := Patient()
@@ -49,9 +54,6 @@ global PA_DoubleClickSetting := 400
 ; This holds the Windows mouse speed setting (1-20) - value is updated by 
 global PA_MouseSpeedSetting := 10
 
-; WindowBusy is a semaphore which if true prevents activation of a
-; different window by PACS Assistant
-global PA_WindowBusy := false
 
 ; updated with the handle of the window under the mouse cursor every time
 ; _UpdateMouseWindow() is called
@@ -140,6 +142,8 @@ VPN_DISCONNECT_TIMEOUT := 10
 ; timeout (seconds) for starting up VPN UI (main window)
 ; or for waiting for initial login window to appear
 VPN_DIALOG_TIMEOUT := 10
+; number of failed login attempts (username/password failures) allowed
+VPN_FAILEDLOGINS_MAX := 3
 ; VPN URL string
 VPN_URL := "vpn.adventhealth.com/SecureAuth"
 

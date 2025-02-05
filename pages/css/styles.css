@@ -214,6 +214,7 @@ body.ahk-maximized .ahk-title-btn-maximize {
   color: #a0a0a0;
 }
 #tab-active {
+  font-size: 1rem;
   display: block;
 }
 #taberr-active {
@@ -256,6 +257,10 @@ body.ahk-maximized .ahk-title-btn-maximize {
 #app-VPN {
   background-image: url('../images/VPN-off.png');
   transition: background-image 0.5s;
+}
+#app-VPN:hover {
+  background-image: url('../images/VPN.png');
+  transition: background-image 0.2s;
 }
 #app-EI {
   background-image: url('../images/EI-off.png');
@@ -376,7 +381,7 @@ body {
 
 /* Settings page */
 
-#PASettings {
+#settingsform {
   width: 50%;
   font-size: 0.9rem;
 }
@@ -413,12 +418,13 @@ body {
 
 .set-val {
   flex: 1;
-  text-align: center;
   align-content: center;
+  text-align: center;
+  font-size: 0.8rem;
 }
 
 .set-val [type=checkbox] {
-
+  font-size: 1rem;
 }
 
 .set-val [type=text], .set-val [type=password] {

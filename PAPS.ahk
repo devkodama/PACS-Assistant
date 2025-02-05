@@ -159,17 +159,19 @@ PSIsReport() {
 ; Hook function called when PS login window appears
 ;
 PSOpen_PSlogin() {
-	; Restore PS window positions
-	PAWindows.RestoreWindows("PS")
 
 	; [todo] determine if PS was just opened or just closed
+
+	if PASettings["PS_restoreatopen"].value {
+		; Restore PS window positions
+		PAWindows.RestoreWindows("PS")
+	}
 
 }
 
 
 ; Hook function called when PS main window appears
 ;
-
 PSOpen_PSmain() {
 	; remove the current patient
 	PACurrentPatient.lastfirst := ""
@@ -198,7 +200,6 @@ PSClose_PSmain() {
 
 ; This is used internally to determine whether to turn off the mic
 global _Dictate_autooff := false
-
 
 ; helper function called by PSOpen_PSreport() and PSClose_PSreport()
 _PSStopDictate() {
@@ -300,9 +301,9 @@ PSOpen_PSlogout() {
 	if PASettings["PScenter_dialog"].value {
 		PAWindows["PS"]["logout"].CenterWindow(_PSParent())
 	}
-PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].value " / " PASettings["PSlogout_dismiss_reply"].mappedvalue)
+PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].key " / " PASettings["PSlogout_dismiss_reply"].value)
 	if PASettings["PSlogout_dismiss"].value {
-		ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].mappedvalue, PAWindows["PS"]["logout"].hwnd)
+		ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
 	}
 }
 
@@ -312,7 +313,8 @@ PSOpen_PSsavespeech() {
 		PAWindows["PS"]["savespeech"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSsavespeech_dismiss"].value {
-		ControlSend("{Enter}", PASettings["PSsavespeech_dismiss_reply"].mappedvalue, PAWindows["PS"]["savespeech"].hwnd)
+		Sleep(2000)
+		ControlSend("{Enter}", PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["savespeech"].hwnd)
 	}
 }
 
@@ -343,7 +345,7 @@ PSOpen_PSconfirmaddendum() {
 		PAWindows["PS"]["confirmaddendum"].CenterWindow(_PSParent())
 	}
 	if PASettings["PSconfirmaddendum_dismiss"].value {
-		ControlSend("{Enter}", PASettings["PSconfirmaddendum_dismiss_reply"].mappedvalue, PAWindows["PS"]["confirmaddendum"].hwnd)
+		ControlSend("{Enter}", PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
 	}
 }
 
@@ -382,7 +384,7 @@ PSOpen_PSmicrophone() {
 	}
 	if PASettings["PSmicrophone_dismiss"].value {
 		Sleep(500)
-		ControlSend("{Enter}", PASettings["PSmicrophone_dismiss_reply"].mappedvalue, PAWindows["PS"]["microphone"].hwnd)
+		ControlSend("{Enter}", PASettings["PSmicrophone_dismiss_reply"].value, PAWindows["PS"]["microphone"].hwnd)
 	}
 }
 

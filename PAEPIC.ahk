@@ -96,6 +96,11 @@ EPICOpened_EPICmain() {
 
 	PASound("Epic opened")
 
+	if PASettings["EPIC_restoreatopen"].value {
+		; Restore EPIC window positions
+		PAWindows.RestoreWindows("EPIC")
+	}
+
 	; launch daemon to monitor for login window and timezone window
 
 
