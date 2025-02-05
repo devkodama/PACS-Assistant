@@ -287,7 +287,7 @@ PASettings["UseVoice"] := Setting("UseVoice", "bool", true, , "Enable synthesize
 PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
 PASettings["ClickLock"] := Setting("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
-PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto click lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
+PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 PASettings["EI_restoreatopen"] := Setting("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
 PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
