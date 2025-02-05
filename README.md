@@ -8,21 +8,29 @@ PACS Assistant is intended to make the combination of Agfa Enterprise Imaging (E
 
 PACS Assistant has multiple functions which are described below. PACS Assistant is highly customizable--most functions can be selectively enabled or disabled.
 
-## Simple sign on
+## Single sign on
 
 PACS Assistant streamlines PACS start up especially when reading remotely.
 
-At home, clicking the **Power** button and entering a one time passcode will complete the sequence of connecting to the VPN and starting EI, Powerscribe, and Epic. Your username and password are stored securely so you don't have to reenter them every time.
+At home, clicking the **Power** button and entering a one time passcode will complete the entire sequence of connecting to the VPN and starting EI, Powerscribe, and Epic. Your username and password are stored securely so you don't have to reenter them every time.
 
-At the hospital, clicking the **Power** button will start EI, Powerscribe, and Epic. On shared workstations, only your username is stored. You will have to provide your password at start up.
+At the hospital, clicking the **Power** button will start EI, Powerscribe, and Epic. On shared workstations, only your username is stored. You will have to provide your password once when you first start.
 
-At startup, PACS Assistant can reposition EI, Powerscribe, and Epic windows to previously saved positions so you are ready to begin dictating.
+At startup, PACS Assistant can reposition EI, Powerscribe, and Epic windows to your customized positions so you are ready to begin dictating.
 
-## EI, PowerScribe, and Epic window focusing
+## EI, PowerScribe, and Epic focus following
 
-PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were integrated instead of being three separate applications. By following your mouse on the screen, PACS Assistant keeps the proper application window in focus. No mouse click is necessary.
+PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were integrated instead of being three separate applications. PACS Assistant follows your mouse pointer on the screen and keeps the proper application window in focus. Mouse clicks are unnecessary to switch window focus.
 
-PACS Assistant treats keyboard input differently according to which window is in focus. For example, if the `C` key is mapped to the EI Caliper tool, then when the mouse is over the EI image windows, pressing `C` will activate the Caliper tool, but when the mouse is over the PowerScribe report window, pressing `C` will type the letter *c*.
+PACS Assistant treats keypresses differently depending on which window is in focus. 
+
+> For exmaple, if the mouse pointer is within the EI image window, pressing the `C` key will trigger the EI Shortcut that has been assigned to `C`. However, if the mouse pointer is within the PowerScribe window, pressing the `C` key will type the letter *c* in the PowerScribe report.
+
+In most cases, keypresses will be sent to the currently focused application. However, in some cases, keypresses may be sent to a different application.
+
+> For example, if the Tab key is mapped to the PowerScribe command "Next Field", pressing Tab will send a "Next Field" command to PowerScribe regardless of whether the mouse pointer is within the PowerScribe window or an EI image window.
+
+
 
 Within EI, PACS Assistant helps to keep the correct viewport active. For example, if the `1` key is mapped to window/level preset #1, pressing `1` will change the window/level of the viewport under the mouse, rather than of the last viewport that was active. No additional mouse click is necessary.
 
