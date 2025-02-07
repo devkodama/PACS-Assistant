@@ -49,6 +49,7 @@ ClickId(WebView, id) {
 ;    PAToolTip("id='" . id . "' was clicked")
 
     switch id {
+
         case "app-power":
             if PAStatus_PowerButton="off" {
                 DispatchQueue.Push(PAGui_PACSStartup)
@@ -57,6 +58,7 @@ ClickId(WebView, id) {
             DispatchQueue.Push(PAGui_PACSStartup)
         case "app-power-shutdown":
             DispatchQueue.Push(PAGui_PACSShutdown)
+        
         case "app-VPN":
             if !VPNIsConnected() {
                 DispatchQueue.Push(VPNConnect)
@@ -73,6 +75,7 @@ ClickId(WebView, id) {
             DispatchQueue.Push(EIStart)
         case "app-EI-shutdown":
             DispatchQueue.Push(EIStop)
+
         case "app-PS":
             PAToolTip("id='" . id . "' was clicked")
 ;           DispatchQueue.Push(PAGui_ForceClosePS)
@@ -101,9 +104,31 @@ ClickId(WebView, id) {
 }
 
 
-HoverEvent(WebView, msg) {
-    ; display tooltip for 3 seconds
-    PAToolTip(msg, 3000)
+
+
+HoverMessages := Map()
+HoverMessages["app-power"] := Map("off", "Press to start PACS",
+        "yellow", "",
+        "green", "Right click to shut down PACS")
+HoverMessages["app-VPN"] := Map("false", "Press to connect VPN",
+        "true", "Right click to disconnect VPN")
+HoverMessages["app-EI"] := Map("false", "Press to start EI",
+        "true", "Right click to shut down EI")
+HoverMessages["app-PS"] := Map("false", "",
+        "true", "Right click to shut down PowerScribe")
+HoverMessages["app-EPIC"] := Map("false", "",
+        "true", "Right click to shut down Epic")
+
+
+HoverEvent(WebView, id) {
+
+    ; strip "app-" prefix to get app name
+    app := SubStr(id,5)
+    msg := HoverMessages[id][PACurState[app]]
+    if msg {
+        ; display tooltip
+        PAToolTip(msg, 1500)
+    }
 }
 
 

@@ -55,6 +55,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+h1 {
+  font-size: 1.4rem;
+}
 
 /* Clear floats after the columns */
 .row:after {
@@ -372,7 +375,7 @@ body {
 
 #windowinfo {
   font-size: small;
-   
+  color: #a0a0a0;
 }
 
 
@@ -381,9 +384,26 @@ body {
 
 /* Settings page */
 
-#settingsform {
+#settings .col-left {
+  display: block;
+  float: left;
   width: 50%;
+  padding: 5px;
+
   font-size: 0.9rem;
+}
+
+#settings .col-right {
+  display: block;
+  float: right;
+  width: 50%;
+  padding: 5px;
+
+  font-size: 0.9rem;
+}
+
+#settingsform {
+
 }
 
 .set-cat {

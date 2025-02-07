@@ -781,7 +781,7 @@ EIRetrieveStudyInfo(patient) {
 									MouseMove(savex, savey)
 									BlockInput false
 									contents := A_Clipboard
-					PAToolTip(contents)
+;					PAToolTip(contents)
 									foundall := _EIParseStudyInfo(&studyinfo, contents, "study")
 									A_Clipboard := ""
 
@@ -920,7 +920,7 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 				} else if !studyinfo.description && RegExMatch(contents, "^BI |^CT |^DR |^MR |^NM |^US |^XR ") {
 					founddescription := true
 					studyinfo.description := contents
-					PAToolTip(contents)
+;					PAToolTip(contents)
 				} else if RegExMatch(contents, "^[A-Z ]+,[A-Z ]+") {
 					if !foundorderingmd {
 						studyinfo.orderingmd := contents

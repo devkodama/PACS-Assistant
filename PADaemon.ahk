@@ -73,20 +73,12 @@ _RefreshGUI() {
 	global PACurrentPatient
 	global PACurrentStudy
 	global PAWindowInfo
+	global PACurState
 
 	static running := false
 	static statusbartext := ""
 	static statusbarlastupdate := A_TickCount
-	static curstate := Map(
-		"microphone", "",
-		"PA", 0,
-		"VPN", "",
-		"EI", "",
-		"PS", "",
-		"EPIC", "",
-		"power", ""
-	)
-
+	
 	; runs regardless of PAActive
 
 	; don't allow reentry
@@ -190,18 +182,18 @@ _RefreshGUI() {
 
 	; update dictate button (microphone) status
 	dictateon := PSDictateIsOn()
-	if  dictateon && curstate["microphone"] != "true" {
+	if  dictateon && PACurState["microphone"] != "true" {
 		statustext := MICROPHONETEXT_ON
 		statuscolor := MICROPHONECOLOR_ON
 		PAGui.PostWebMessageAsString("document.getElementById('microphonestatus').innerHTML = `"" . statustext . "`"")
 		PAGui.PostWebMessageAsString("document.getElementById('microphonestatus').style = `"background-color: " . statuscolor . ";`"")
-		curstate["microphone"] := "true"
-	} else if !dictateon && curstate["microphone"] != "false" {
+		PACurState["microphone"] := "true"
+	} else if !dictateon && PACurState["microphone"] != "false" {
 		statustext := MICROPHONETEXT_OFF
 		statuscolor := MICROPHONECOLOR_OFF
 		PAGui.PostWebMessageAsString("document.getElementById('microphonestatus').innerHTML = `"" . statustext . "`"")
 		PAGui.PostWebMessageAsString("document.getElementById('microphonestatus').style = `"background-color: " . statuscolor . ";`"")
-		curstate["microphone"] := "false"
+		PACurState["microphone"] := "false"
 	}
 
 	; Update top level on/off switch status
@@ -225,100 +217,100 @@ _RefreshGUI() {
 	connected := VPNIsConnected()
 	if connected {
 		status |= 0x01
-		if curstate["VPN"] != "true" {
+		if PACurState["VPN"] != "true" {
 			PAGui.PostWebMessageAsString("document.getElementById('app-VPN').style = `"background-image: url('images/VPN-connected.png');`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-VPN-connect').style = `"display: none;`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-VPN-disconnect').style = `"display: block;`"")
-			curstate["VPN"] := "true"
+			PACurState["VPN"] := "true"
 		}
-	} else if !connected && curstate["VPN"] != "false" {
+	} else if !connected && PACurState["VPN"] != "false" {
 		PAGui.PostWebMessageAsString("document.getElementById('app-VPN').style = `"background-image: url('images/VPN-off.png');`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-VPN-connect').style = `"display: block;`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-VPN-disconnect').style = `"display: none;`"")
-		curstate["VPN"] := "false"
+		PACurState["VPN"] := "false"
 	}
 
 	; update EI desktop status on GUI
 	visible := PAWindows["EI"]["desktop"].visible
 	if visible {
 		status |= 0x02
-		if curstate["EI"] != "true" {
+		if PACurState["EI"] != "true" {
 			PAGui.PostWebMessageAsString("document.getElementById('app-EI').style = `"background-image: url('images/EI.png');`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-EI-startup').style = `"display: none;`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-EI-shutdown').style = `"display: block;`"")
-			curstate["EI"] := "true"
+			PACurState["EI"] := "true"
 		}
-	} else if !visible && curstate["EI"] != "false" {
+	} else if !visible && PACurState["EI"] != "false" {
 		PAGui.PostWebMessageAsString("document.getElementById('app-EI').style = `"background-image: url('images/EI-off.png');`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-EI-startup').style = `"display: block;`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-EI-shutdown').style = `"display: none;`"")
-		curstate["EI"] := "false"
+		PACurState["EI"] := "false"
 	}
 
 	; update PS status on GUI
 	visible := PAWindows["PS"]["main"].visible || PAWindows["PS"]["report"].visible
 	if visible {
 		status |= 0x04
-		if curstate["PS"] != "true" {
+		if PACurState["PS"] != "true" {
 			PAGui.PostWebMessageAsString("document.getElementById('app-PS').style = `"background-image: url('images/PS.png');`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-PS-startup').style = `"display: none;`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-PS-shutdown').style = `"display: block;`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-PS-forceclose').style = `"display: block;`"")
-			curstate["PS"] := "true"
+			PACurState["PS"] := "true"
 		}
-	} else if !visible && curstate["PS"] != "false" {
+	} else if !visible && PACurState["PS"] != "false" {
 		PAGui.PostWebMessageAsString("document.getElementById('app-PS').style = `"background-image: url('images/PS-off.png');`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-PS-startup').style = `"display: block;`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-PS-shutdown').style = `"display: none;`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-PS-forceclose').style = `"display: none;`"")
-		curstate["PS"] := "false"
+		PACurState["PS"] := "false"
 	}
 
 	; update EPIC status on GUI
 	visible := PAWindows["EPIC"]["main"].visible
 	if visible {
 		status |= 0x08
-		if curstate["EPIC"] != "true" {
+		if PACurState["EPIC"] != "true" {
 			PAGui.PostWebMessageAsString("document.getElementById('app-EPIC').style = `"background-image: url('images/EPIC.png');`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-EPIC-startup').style = `"display: none;`"")
 			PAGui.PostWebMessageAsString("document.getElementById('app-EPIC-shutdown').style = `"display: block;`"")
-			curstate["EPIC"] := "true"
+			PACurState["EPIC"] := "true"
 		}
-	} else if !visible && curstate["EPIC"] != "false" {
+	} else if !visible && PACurState["EPIC"] != "false" {
 		PAGui.PostWebMessageAsString("document.getElementById('app-EPIC').style = `"background-image: url('images/EPIC-off.png');`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-EPIC-startup').style = `"display: block;`"")
 		PAGui.PostWebMessageAsString("document.getElementById('app-EPIC-shutdown').style = `"display: none;`"")
-		curstate["EPIC"] := "false"
+		PACurState["EPIC"] := "false"
 	}
 
 	; update power button status on GUI
 	; also update global PAStatus_PowerButon with the same status
 	switch status {
 		case 0x00:
-			if curstate["power"] != "off" {
+			if PACurState["power"] != "off" {
 				PAGui.PostWebMessageAsString("document.getElementById('app-power').style = `"background-image: url('images/power-off.png');`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power').alt = `"Press to start PACS`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power-startup').style = `"display: block;`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power-shutdown').style = `"display: none;`"")
-				curstate["power"] := "off"
+				PACurState["power"] := "off"
 				PAStatus_PowerButton := "off"
 			}
 		case 0x0f:
-			if curstate["power"] != "green" {
+			if PACurState["power"] != "green" {
 				PAGui.PostWebMessageAsString("document.getElementById('app-power').style = `"background-image: url('images/power-green.png');`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power').alt = `"PACS is running`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power-startup').style = `"display: none;`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power-shutdown').style = `"display: block;`"")
-				curstate["power"] := "green"
+				PACurState["power"] := "green"
 				PAStatus_PowerButton := "green"
 			}
 		default:
-			if curstate["power"] != "yellow" {
+			if PACurState["power"] != "yellow" {
 				PAGui.PostWebMessageAsString("document.getElementById('app-power').style = `"background-image: url('images/power-yellow.png');`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power').alt = `"PACS is starting up...`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power-startup').style = `"display: block;`"")
 				PAGui.PostWebMessageAsString("document.getElementById('app-power-shutdown').style = `"display: block;`"")
-				curstate["power"] := "yellow"
+				PACurState["power"] := "yellow"
 				PAStatus_PowerButton := "yellow"
 			}
 	}

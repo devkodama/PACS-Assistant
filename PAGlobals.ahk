@@ -74,6 +74,29 @@ global PASettings := Map()
 global CurrentUserCredentials := Credential()
 
 
+; PACurState holds the current state of apps and other things across PACS Assistant
+; Valid values are unique to each entry:
+;   "PA"    ->  
+;   "power" -> "off", "yellow", "green"
+;   "VPN"   -> "false", "true"
+;   "EI"   -> "false", "true"
+;   "PS"   -> "false", "true"
+;   "EPIC"   -> "false", "true"
+;   "microphone"   -> "false", "true"
+;
+global PACurState := Map(
+    "PA", "",
+    "VPN", "",
+    "EI", "",
+    "PS", "",
+    "EPIC", "",
+    "power", "",
+    "microphone", ""
+)
+
+
+
+
 
 
 

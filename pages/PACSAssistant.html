@@ -56,20 +56,23 @@
 
   <!-- Application bar -->
   <div class="appbar">
-    <div class="app-icon context-menu-target" id="app-power" onmouseenter="ahk.Hover(this.alt)"
+    <div class="app-icon context-menu-target" id="app-power" onmouseenter="ahk.Hover(this.id)"
       onclick="ahk.ClickId(this.id)"></div>
     <div class="app-group">
-      <div class="app-icon context-menu-target" id="app-VPN" onclick="ahk.ClickId(this.id)"></div>
-      <div class="app-icon context-menu-target" id="app-EI" onclick="ahk.ClickId(this.id)"></div>
-      <div class="app-icon context-menu-target" id="app-PS" onclick="ahk.ClickId(this.id)"></div>
-      <div class="app-icon context-menu-target" id="app-EPIC" onclick="ahk.ClickId(this.id)"></div>
+      <div class="app-icon context-menu-target" id="app-VPN" onmouseenter="ahk.Hover(this.id)"
+        onclick="ahk.ClickId(this.id)"></div>
+      <div class="app-icon context-menu-target" id="app-EI" onmouseenter="ahk.Hover(this.id)"
+        onclick="ahk.ClickId(this.id)"></div>
+      <div class="app-icon context-menu-target" id="app-PS" onmouseenter="ahk.Hover(this.id)"
+        onclick="ahk.ClickId(this.id)"></div>
+      <div class="app-icon context-menu-target" id="app-EPIC" onmouseenter="ahk.Hover(this.id)"
+        onclick="ahk.ClickId(this.id)"></div>
     </div>
   </div>
 
 
   <!-- Primary display area -->
   <div id="main">
-
 
     <!-- Home page -->
     <div id="home" class="tabpage">
@@ -98,18 +101,29 @@
     <!-- Settings page -->
     <div id="settings" class="tabpage">
 
-      <div id="log">log area</div>
+      <div class="col-left">
 
-      <div id="settingsform"></div>
+        <h1>Settings</h1>
 
-      <br />
+        <div id="log"></div>
 
-      <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)"
-        class="btn btn-block btn-outline-primary">Save window positions</button>
-      <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
-        class="btn btn-block btn-outline-primary">Restore window positions</button>
+        <div id="settingsform"></div>
 
-      <div id="windowinfo"></div>
+      </div>
+
+      <div class="col-right">
+
+        <br />
+        <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Save window positions</button>
+        <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Restore window positions</button>
+
+          <br />
+          <br />
+        <div id="windowinfo"></div>
+
+      </div>
 
     </div>
     <!-- End Settings page -->

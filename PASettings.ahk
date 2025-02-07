@@ -294,7 +294,7 @@ PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", fals
 
 PASettings["PS_restoreatopen"] := Setting("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
 
-PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages (for draft or unsigned reports)")
+PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages when you have draft or unsigned reports")
 PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
