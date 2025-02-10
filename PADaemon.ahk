@@ -55,10 +55,12 @@ _Dispatcher() {
 	if DispatchQueue.Length > 0 {
 		fn := DispatchQueue.RemoveAt(1)
 
-		; ToolTip(fn.Name . " started")
-		fn()
+		 ToolTip(fn.Name . " started")
+		; call fn() via SetTimer to simulate multithreading
+		SetTimer(fn, -1)
+;		fn()
 
-		;		ToolTip(fn.Name . " finished")
+			ToolTip(fn.Name . " finished")
 	}
 }
 
@@ -371,7 +373,7 @@ _WatchWindows() {
 _WatchMouse() {
 	global PAActive
 	global PA_WindowUnderMouse
-	global PA_WindowBusy
+	global PAWindowBusy
 	static running := false
 	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
 
@@ -422,7 +424,7 @@ _WatchMouse() {
 	; only activate window if another window is not busy
 	; and if not already active
 	; and Lshift is not being held down
-	if !PA_WindowBusy && !GetKeyState("LShift", "P") && !WinActive(hwnd) && PAWindows.GetAppWin(hwnd, &app, &win) {
+	if !PAWindowBusy && !GetKeyState("LShift", "P") && !WinActive(hwnd) && PAWindows.GetAppWin(hwnd, &app, &win) {
 		switch app {
 			case "EI":
 				; close PS Spelling window

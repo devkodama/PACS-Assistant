@@ -110,6 +110,16 @@ F3:: {
 ; }
 
 
+F8:: {
+	PAGui_ShowCancelButton()
+}
++F8:: {
+	PAGui_HideCancelButton()
+}
+
+
+
+
 
 
 

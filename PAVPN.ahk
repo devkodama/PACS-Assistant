@@ -24,7 +24,7 @@
 ;
 VPNIsConnected(forceupdate := false) {
 	static vpnstatus := false
-	static lastcheck := 0		; setting lastcheck to 0 initially should force an update on the first call
+	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
 
 	if forceupdate || ((A_TickCount - lastcheck) > WATCHVPN_UPDATE_INTERVAL) {
 		vpnstatus := InStr(StdoutToVar('"' . EXE_VPNCLI . '" state').Output, "state: Connected") ? true : false
@@ -46,11 +46,15 @@ VPNIsConnected(forceupdate := false) {
 ; If not connected, uses cred to establish a VPN connection.
 ; The parameter cred is an object with username and password properties.
 ;
+; Periodically checks PACancelRequest to see if it should cancel the 
+; connection attempt and quit.
+;
 ; Returns 1 once connection is successful, 0 if unsuccessful (e.g.
 ;  after timeout or if user cancels).
 ; 
 VPNConnect(cred := CurrentUserCredentials) {
-	global PA_WindowBusy
+	global PAWindowBusy
+	global PACancelRequest
 	static running := false			; true if the VPNConnect is already running
 
 	; if VPNConnect() is already running, don't run another instance
@@ -63,7 +67,7 @@ VPNConnect(cred := CurrentUserCredentials) {
 	if VPNIsConnected(true) {
 		PAStatus("VPN already connected")
 		running := false
-		return true
+		return 1
 	}
 
 	; close OTP window if open, to get back to main vpn window
@@ -82,8 +86,10 @@ VPNConnect(cred := CurrentUserCredentials) {
 		PAWindows.Update("VPN")
 	}
 
-	; don't want focus following while trying to make a VPN connection
-	PA_WindowBusy := true
+	; don't allow focus following while trying to make a VPN connection
+	PAWindowBusy := true
+
+	PAGui_ShowCancelButton()
 
 	; loop until connected, timed out, cancelled, or failed too many times
 	connected := false
@@ -96,13 +102,11 @@ VPNConnect(cred := CurrentUserCredentials) {
 
 	while !connected && !cancelled && failedlogins < VPN_FAILEDLOGINS_MAX && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 
-;PAToolTip("trace=" . trace)
 		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 		; look for connected info dialog box
 		hwndconnected := WinExist(PAWindows["VPN"]["connected"].criteria, PAWindows["VPN"]["connected"].wintext)
 		if hwndconnected {
-trace .= "1"
 			; close connection info window
 			WinClose(hwndconnected)
 			PAWindows.Update("VPN")
@@ -119,35 +123,39 @@ trace .= "1"
 		; look for one time password dialog box
 		hwndotp := WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)
 		if hwndotp {
-trace .= "2" 
 			; wait for user to enter otp and/or close window
 			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
 			while (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) && (WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)) {
 				WinActivate(hwndotp) 		; keep OTP window focused
 				Sleep(500)
 				PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				if PACancelRequest {
+					cancelled := true
+					break			; inner while
+				}
 			}
 			PAWindows.Update("VPN")
 			lastdialog := "otp"
-			continue
+			continue		; while
+		}
+
+		if PACancelRequest {
+			cancelled := true
 		}
 
 		; look for login dialog box
 		hwndlogin := WinExist(PAWindows["VPN"]["login"].criteria, PAWindows["VPN"]["login"].wintext)
 		if hwndlogin {
-trace .= "3"
 			; before entering username and password, see if the last login failed
 			; if it failed, we might be on the wrong server, so cancel the login window
 			; and return to the main UI so the correct server can be populated
 			hwndmain := WinExist(PAWindows["VPN"]["main"].criteria, PAWindows["VPN"]["main"].wintext)
 			if hwndmain && ControlGetText("Static2", hwndmain) = "Login failed." {
-trace .= "a"
 				failedlogins++
 				ControlClick("Cancel", hwndlogin, , , , "NA")
 				WinWaitClose(hwndlogin)
 				PAWindows.Update("VPN")
 			} else {
-trace .= "b"
 				; enter username and password and press OK
 				BlockInput true
 				ControlSetText(cred.username, "Edit1", hwndlogin)
@@ -164,10 +172,7 @@ trace .= "b"
 		; look for VPN UI main window
 		hwndmain := WinExist(PAWindows["VPN"]["main"].criteria, PAWindows["VPN"]["main"].wintext)
 		if hwndmain {
-trace .= "4"
 			; In the VPN UI main window, enter the VPN URL and press connect
-;			WinRestore(hwndmain)
-;			WinActivate(hwndmain)
 			statustext := ControlGetText("Static2", hwndmain)
 			if statustext = "Ready to connect." {
 				; at this point, if the last dialog box was "otp", then we
@@ -191,19 +196,22 @@ trace .= "4"
 			continue
 
 		} else {
-trace .= "5"
+
 			; if VPN UI main window does not already exist, try to start it
 			; if startup fails after timeout, quit and return failure
 			;
-			; When the VPN connection is made, the main window self closes to the system tray, which causes it to no longer exist. There can be a brief window after it closes and before the connection successful dialog opens when it will look like the VPN client is not running, and this code branch will be taken. We do not want to run the EXE_VPN again in this scenario. Just wait briefly then continue.
-trace .= "a"
+			; When the VPN connection is made, the main window self closes 
+			; to the system tray, which causes it to no longer exist. 
+			; There can be a brief window after it closes and before the
+			; connection successful dialog opens when it will look like 
+			; the VPN client is not running, and this code branch will be
+			; taken. We do not want to run the EXE_VPN again in this scenario,
+			; so we wait briefly then continue.
 
-			; only do this once
 			if runflag {
-trace .= "e"
 				Sleep(300)
 			} else {
-trace .= "b"	
+				; only want to do this once, we set runflag to true
 				runflag := true		
 				Run(EXE_VPN)
 				PAWindows.Update("VPN")
@@ -215,6 +223,10 @@ trace .= "b"
 					Sleep(500)
 					PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 trace .= "(w:" . A_TickCount-tick1 . ")"
+					if PACancelRequest {
+						cancelled := true
+						break			; inner while
+					}
 				}
 				if !hwndmain {
 					; failed to open main window
@@ -227,6 +239,8 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 		}
 
 	}	; while
+
+	PAGui_HideCancelButton()
 
 	if connected {
 		PAStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -241,7 +255,7 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 ;	MsgBox(trace)
 
 	; restore focus following
-	PA_WindowBusy := false
+	PAWindowBusy := false
 
 	; done
 	running := false
@@ -258,9 +272,13 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 ; If already disconnected, returns immediately (without using credentials)
 ; with return value 1.
 ;
+; Periodically checks PACancelRequest to see if it should cancel the 
+; connection attempt and quit.
+;
 ; Returns 1 if disconnected, 0 if disconnection fails
 ; 
 VPNDisconnect() {
+	global PACancelRequest
 	static running := false			; true if the VPNDisconnect is already running
 	static tick0 := A_TickCount
 
@@ -279,19 +297,27 @@ VPNDisconnect() {
 	}
 
 	PAStatus("Disconnecting VPN...")
+	PAGui_ShowCancelButton()
 
 	; run CLI command to disconnect the VPN
 	vpnstate := StdoutToVar('"' . EXE_VPNCLI . '" disconnect').Output
 	connected := VPNIsConnected(true)
 	
 	tick0 := A_TickCount
-	while connected && A_TickCount - tick0 < VPN_DISCONNECT_TIMEOUT * 1000 {
+	while connected && !cancelled && A_TickCount - tick0 < VPN_DISCONNECT_TIMEOUT * 1000 {
 		Sleep(500)
 		connected := VPNIsConnected(true)
+		if PACancelRequest {
+			cancelled := true
+		}
 	}
+
+	PAGui_HideCancelButton()
 
 	if !connected {
 		PAStatus("VPN disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+	} else if cancelled {
+		PAStatus("VPN disconnection cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else {
 		PAStatus("Timeout-  VPN could not be disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}

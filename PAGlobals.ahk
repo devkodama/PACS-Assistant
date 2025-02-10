@@ -28,8 +28,10 @@ global _PAGUI_Running := false
 
 ; WindowBusy is a semaphore which if true prevents activation of a
 ; different window by PACS Assistant (blocks follow focus)
-global PA_WindowBusy := false
+global PAWindowBusy := false
 
+; Cancel flag, can be set to signal that long running operations should quit
+global PACancelRequest := false
 
 
 ; Current Patient

@@ -36,9 +36,10 @@
     <div class="ahk-title-btn ahk-title-btn-close" onclick="ahk.Close()">r</div>
   </div>
 
-  <!-- Status bar, with microphone on/off indicator -->
+  <!-- Status bar, with cancel button, with microphone on/off indicator -->
   <div id="statusbar">
-    <span id="statusbartext">Status Bar Text</span>
+    <div id="statusbartext">Status Bar Text</div>
+    <button id="cancelbutton" onclick="ahk.ClickId(this.id)">Cancel</button>
     <div id="microphonestatus">Microphone</div>
   </div>
 

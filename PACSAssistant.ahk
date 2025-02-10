@@ -8,6 +8,8 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
+#MaxThreads 64
+
 DetectHiddenWindows true		; look also for hidden windows by default
 DetectHiddenText true			; don't search hidden text by default
 
@@ -335,14 +337,14 @@ class WindowItem {
 	
 	; Send a string of keystrokes to a specific window
 	Send(cmdstring := "") {
-		global PA_WindowBusy
+		global PAWindowBusy
 
 		if (cmdstring) {
 			if (this.hwnd) {
-				PA_WindowBusy := true
+				PAWindowBusy := true
 				WinActivate(this.hwnd)
 				Send(cmdstring)
-				PA_WindowBusy := false
+				PAWindowBusy := false
 			}
 		}	
 	}
@@ -972,7 +974,7 @@ PA_Init() {
 	PAWindows.ReadSettings()
 
 	; Set up special EI key mappings
-	PA_MapEIKeys()
+	PA_MapActivateEIKeys()
 
 	; Read ICD code file
 	ICDReadCodeFile()

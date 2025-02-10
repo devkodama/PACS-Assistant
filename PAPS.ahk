@@ -93,7 +93,7 @@ PSCmdPreliminary() {
 ; Ensures either the PS report window or PS addendum window will be receiving the keystrokes.
 ;
 PSSend(cmdstring := "") {
-    global PA_WindowBusy
+    global PAWindowBusy
 
 	if (cmdstring) {
 		if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) && !(hwndPS := PAWindows["PS"]["addendum"].hwnd) {
@@ -101,10 +101,10 @@ PSSend(cmdstring := "") {
 		}
 
 		; at this point hwndPS is non-null and points to the current PS window
-		PA_WindowBusy := true
+		PAWindowBusy := true
 		WinActivate(hwndPS)
 		Send(cmdstring)
-		PA_WindowBusy := false
+		PAWindowBusy := false
 	}
 }
 
@@ -116,7 +116,7 @@ PSSend(cmdstring := "") {
 ; Uses the clipboard, restoring the previous clipboard contents when finished.
 ;
 PSPaste(text := "") {
-    global PA_WindowBusy
+    global PAWindowBusy
 
 	if (text) {
 		if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) && !(hwndPS := PAWindows["PS"]["addendum"].hwnd) {
@@ -124,14 +124,14 @@ PSPaste(text := "") {
 		}
 
 		; at this point hwndPS is non-null and points to the current PS window
-		PA_WindowBusy := true
+		PAWindowBusy := true
 		saveclipboard := A_Clipboard
 		A_Clipboard := text
 		WinActivate(hwndPS)
 		SendInput("^v")					; paste the text
 		Sleep(100)					; requires a delay before restoring keyboard, or else the ^v paste will send the wrong contents (the saved clipboard)
 		A_Clipboard := saveclipboard
-		PA_WindowBusy := false
+		PAWindowBusy := false
 	}
 }
 
@@ -491,6 +491,11 @@ _PSParent() {
  */
 
 
+; PSStart() {
+; }
+
+; PSStop() {
+; }
 
 
 

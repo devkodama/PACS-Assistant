@@ -50,11 +50,11 @@ class SoundItem {
         this.phrase := spokenphrase
         if IsNumber(soundarg) {
             ; this is a frequency value without a duration, use a default duration of 150ms
-            this.beepfreq = soundarg[1]
+            this.beepfreq := soundarg
             this.beepdur := 150
         } else if IsObject(soundarg) {
             ; this must be a beep array [freq, duration]
-            this.beepfreq = soundarg[1]
+            this.beepfreq := soundarg[1]
             if soundarg.Length > 1 {
                 this.beepdur := soundarg[2]
             } else {

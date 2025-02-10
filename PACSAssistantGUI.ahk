@@ -87,8 +87,9 @@ ClickId(WebView, id) {
         case "app-PS-forceclose":
             ; DispatchQueue.Push(PAGui_ForceClosePS)
 
-            case "app-EPIC":
+        case "app-EPIC":
             PASound("EPIC")
+            DispatchQueue.Push(EPICtest)
         case "app-EPIC-startup":
             PAToolTip("id='" . id . "' was clicked")
         case "app-EPIC-shutdown":
@@ -98,10 +99,16 @@ ClickId(WebView, id) {
             DispatchQueue.Push(PAGui_RestoreWindowPositions)
         case "button-savewindows":
             DispatchQueue.Push(PAGui_SaveWindowPositions)
+
+        case "cancelbutton":
+            PAToolTip("id='" . id . "' was clicked")
+            DispatchQueue.Push(PAGui_CancelButton)
+
         default:
             PAToolTip("id='" . id . "' was clicked")
     }
 }
+
 
 
 
@@ -147,7 +154,7 @@ HoverEvent(WebView, id) {
 ; will replace the innerHTML property of the DOM element having id="patientname" with "John Smith"
 PAGui_Post(id, propname, propval) {
     if _PAGUI_Running {
-	    PAGui.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "'")
+	    PAGui.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "';")
     }
 }
 
@@ -155,6 +162,10 @@ PAGui_Post(id, propname, propval) {
 
 /***************************************/
 
+
+EPICtest() {
+    PAToolTip("EPIC test called")
+}
 
 
 ; Set Status Bar text
@@ -172,6 +183,29 @@ PAStatus(message := "", duration := 0) {
 }
 
 
+; Call this to show the Cancel button on the status bar
+PAGui_ShowCancelButton() {
+    global PACancelRequest
+
+    PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').removeAttribute('disabled', '');")
+    PAGui_Post("cancelbutton", "style.display", "flex")
+    PACancelRequest := false
+PAToolTip("PACancelRequest = " PACancelRequest)
+}
+
+; Call this to hide the Cancel button on the status bar
+PAGui_HideCancelButton() {
+    PAGui_Post("cancelbutton", "style.display", "none")
+}
+
+; This gets called to handle a click on the Cancel button
+PAGui_CancelButton() {
+    global PACancelRequest
+
+    PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').setAttribute('disabled', '');")
+    PACancelRequest := true
+PAToolTip("PACancelRequest = " PACancelRequest)
+}
 
 ; Restore saved window positions from settings file
 PAGui_RestoreWindowPositions(*) {

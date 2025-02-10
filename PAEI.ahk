@@ -135,7 +135,7 @@ EICmdRemoveFromList() {
 ; Commands are sent to the images1 window by default.
 ;
 EISend(cmdstring := "", targetwindow := "images1") {
-	global PA_WindowBusy
+	global PAWindowBusy
 	if (cmdstring) {
 		switch targetwindow {
 			case "images1":
@@ -148,10 +148,10 @@ EISend(cmdstring := "", targetwindow := "images1") {
 				hwndEI := PAWindows["EI"]["images1"].hwnd
 		}
 		if (hwndEI) {
-			PA_WindowBusy := true
+			PAWindowBusy := true
 			WinActivate(hwndEI)
 			Send(cmdstring)
-			PA_WindowBusy := false
+			PAWindowBusy := false
 		}
 	}
 }
@@ -396,11 +396,15 @@ EIClose_EIdesktop() {
 ; If EI is not already running and VPN is connected, starts up EI and uses cred to log in.
 ; The parameter cred is an object with username and password properties.
 ;
+; Periodically checks PACancelRequest to see if it the startup attempt
+; should be cancelled
+;
 ; Returns 1 if EI startup is successful, 0 if unsuccessful. (e.g.
 ;  after timeout or if user cancels).
 ; 
 EIStart(cred := CurrentUserCredentials) {
-	global PA_WindowBusy
+	global PAWindowBusy
+	global PACancelRequest
 	static running := false			; true if the EIStartup is already running
 
 	; if EIStart() is already running, don't run another instance
@@ -433,6 +437,8 @@ EIStart(cred := CurrentUserCredentials) {
 	tick0 := A_TickCount
 	PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
+	PAGui_ShowCancelButton()
+
 	; if EI login window does not exist, then EI has not been run, so run EI
 	; or if EI login window does exist but is hidden, then need to kill EI process then rerun EI
 	hwndlogin := WinExist(PAWindows["EI"]["login"].searchtitle, PAWindows["EI"]["login"].wintext)
@@ -461,11 +467,23 @@ EIStart(cred := CurrentUserCredentials) {
 			PAWindows.Update("EI")
 			Sleep(500)
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			if PACancelRequest {
+				break		; while
+			}
 		}
+	}
+
+	; quit if user cancelled
+	if PACancelRequest {
+		PAGui_HideCancelButton()
+		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		running := false
+		return 0
 	}
 
 	; if couldn't get a login window, return failure
 	if !hwndlogin {
+		PAGui_HideCancelButton()
 		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		running := false
 		return 0
@@ -477,17 +495,31 @@ EIStart(cred := CurrentUserCredentials) {
 	}
 
 	; prevent focus following
-	PA_WindowBusy := true
+	PAWindowBusy := true
 
 	; wait for EI login window to be visible
 	while !PAWindows["EI"]["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 		Sleep(500)
 		PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		if PACancelRequest {
+			break		; while
+		}
+	}
+
+	; quit if user cancelled
+	if PACancelRequest {
+		PAGui_HideCancelButton()
+		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAWindowBusy := false	; restore focus following
+		running := false
+		return 0
 	}
 
 	; if EI Login window still not visible after time out, return failure
 	if !PAWindows["EI"]["login"].visible {
+		PAGui_HideCancelButton()
 		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAWindowBusy := false	; restore focus following
 		running := false
 		return 0
 	}
@@ -496,15 +528,22 @@ EIStart(cred := CurrentUserCredentials) {
 	WinActivate(hwndlogin)
 
 	; delay to allow display of the username and password edit fields
-	sleep(500)
-	
+	sleep(750)
+
+	if PACancelRequest {
+		PAGui_HideCancelButton()
+		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAWindowBusy := false	; restore focus following
+		running := false
+		return 0
+	}
+
 	; locate the username and password fields
 	WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
 	ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EILoginField"])
 	if ok {
 		; enter the credentials and press OK to start login
 		CoordMode("Mouse", "Screen")
-		PA_WindowBusy := true
 		BlockInput true
 		MouseGetPos(&savex, &savey)
 		Click(ok[1].x, ok[1].y + 8)
@@ -514,11 +553,18 @@ EIStart(cred := CurrentUserCredentials) {
 		Send("!o")					; Presses OK key (Alt-O) to start login
 		MouseMove(savex, savey)
 		BlockInput false
-		PA_WindowBusy := false
 	}
 
 	Sleep(500)
 	PAWindows.Update("EI")
+
+	if PACancelRequest {
+		PAGui_HideCancelButton()
+		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAWindowBusy := false	; restore focus following
+		running := false
+		return 0
+	}
 
 	; waits for EI desktop window to appear
 	tick1 := A_TickCount
@@ -526,19 +572,35 @@ EIStart(cred := CurrentUserCredentials) {
 		PAWindows.Update("EI")
 		Sleep(500)
 		PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		if PACancelRequest {
+			break
+		}
+	}
+
+	; quit if user cancelled
+	if PACancelRequest {
+		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAGui_HideCancelButton()
+		PAWindowBusy := false	; restore focus following
+		running := false
+		return 0
 	}
 
 	; if no desktop window after timeout, return failure
 	if !hwnddesktop {
+		PAGui_HideCancelButton()
 		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAWindowBusy := false	; restore focus following
 		running := false
 		return 0
-	} else {
-		PAStatus("EI started (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
+	PAStatus("EI started (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+
+	PAGui_HideCancelButton()
+
 	; restore focus following
-	PA_WindowBusy := false
+	PAWindowBusy := false
 
 	; done
 	running := false
@@ -557,10 +619,14 @@ EIStart(cred := CurrentUserCredentials) {
 ;
 ; Shutting down EI has the side effects of closing PowerScribe and Epic.
 ;
+; Periodically checks PACancelRequest to see if it the startup attempt
+; should be cancelled
+;
 ; Returns 1 if EI shut down is successful, 0 if unsuccessful. (e.g.
 ;  after timeout or if user cancels).
 ;
 EIStop() {
+	global PACancelRequest
 	static running := false			; true if the EIStop is already running
 
 	; if EIStop() is already running, don't run another instance
@@ -576,10 +642,11 @@ EIStop() {
 		return 1
 	}
 
-
 	tick0 := A_TickCount
 	PAStatus("Shutting down EI...")
 	
+	PAGui_ShowCancelButton()
+
 	; Close EI desktop
 	EISend("!{F4}", "desktop")
 
@@ -600,6 +667,10 @@ EIStop() {
 		PAStatus("EI shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 	
+
+
+	PAGui_HideCancelButton()
+
 	; done
 	running := false
 	return 1
@@ -751,6 +822,8 @@ EIRetrievePatientInfo() {
 ;
 ; To reset and search for a new set of data, call with no parameters.
 ; Function will return false again.
+;
+; [todo] Allow apostrophe, hyphen, period in patient names
 ;
 _EIParsePatientInfo(&patientinfo := "", contents := "") {
 	static index :=0
