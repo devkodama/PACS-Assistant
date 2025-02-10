@@ -10,38 +10,24 @@
 
 
 
-#Include <FindText>
-#Include "PAFindTextStrings.ahk"
+/**
+ * Includes
+ */
 
 #Include PAGlobals.ahk
 
-
-/*
-** Global variables and constants
-*/
+#Include <FindText>
+#Include "PAFindTextStrings.ahk"
 
 
 
+/**
+ * Hotkey definitions
+ */
 
 
-/***********************************************/
 
-
-
-; The F2 hotkey toggles the top level on/off switch for PACS Assistant.
-; It does so by sending a mouse click. Directly changing
-; PASettings["active"].value does not work (it does not update the toggle
-; switch on screen).
-;
-F2:: {
-;	global PASettings
-;    PASettings["active"].value := !PAActive
-	
-	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
-		ControlClick "X25 Y275", hwndPA
-	}
-}
-
+; this one is for testing
 +F2:: {
 	global PAGui
 
@@ -52,8 +38,7 @@ F2:: {
 }
 
 
-
-
+; this one is for testing
 F3:: {
 	global PACurrentPatient
 	global PACurrentStudy
@@ -89,7 +74,7 @@ F3:: {
 }
 
 
-
+; this one is for testing
 +F3:: {
 ; Insert Dr. _ was notified on ____ at ...
 	If PACurrentStudy.accession {
@@ -126,6 +111,23 @@ F3:: {
 
 
 
+
+
+; The F2 hotkey toggles the top level on/off switch for PACS Assistant.
+; It does so by sending a mouse click. Directly changing
+; PASettings["active"].value does not work (it does not update the toggle
+; switch on screen).
+;
+F2:: {
+	;	global PASettings
+	;   PASettings["active"].value := !PAActive
+	
+	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
+		ControlClick "X25 Y275", hwndPA
+	}
+}
+	
+
 ; Tab key mapping:
 ;	Tab -> PowerScribe Next field
 ;	Shift-Tab -> PowerScribe Previous field
@@ -133,45 +135,40 @@ F3:: {
 ;			move down one line and go to end of line.
 ;	Ctrl-Shift-Tab -> PowerScribe Move up one line and go to end of line.
 ;
-;	In effect for EI (images, 4dm, desktop text area), PS (main or report) windows
+;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
 ;
 $Tab:: {
-	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
-		PSSend("{Tab}")
-		SoundBeep(440, 10)
+	if PACheckContext(["PS main report", "EI images1 images2 4dm desktop/text desktop/list"]) {
+		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
-		PSSend("{Blind}+{Tab}")
-		SoundBeep(440, 10)
+	if PACheckContext(["PS main report", "EI images1 images2 4dm desktop/text desktop/list"]) {
+		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
-		if A_PriorHotkey = "$^Tab" {
-			PSSend("{Down}{End}")
+	if PACheckContext(["PS main report", "EI images1 images2 4dm desktop/text desktop/list"]) {
+		if A_PriorHotkey = ThisHotkey {
+			PSCmdNextEOL()
 		} else {
-			PSSend("{End}")
+			PSCmdEOL()
 		}
-		SoundBeep(440, 10)
 	} else {
-		Send("^{Tab}")
+		Send("^Tab")
 	}
 }
 $^+Tab:: {
-	if PAActive && PACheckContext( , , "PS main report", "EI images1 images2 desktop/text desktop/list 4dm") {
-		PSSend("{Up}{End}")
-		SoundBeep(440, 10)
+	if PACheckContext(["PS main report", "EI images1 images2 4dm desktop/text desktop/list"]) {
+		PSCmdPrevEOL()
 	} else {
-		Send("^+{Tab}")
+		Send("^+Tab")
 	}
 }
-
 
 
 ; CapsLock mapping
@@ -184,127 +181,76 @@ $^+Tab:: {
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
 $CapsLock:: {
-	if PAActive && PACheckContext( , , "EI", "PS") {
-		PSSend("{F4}")							; Start/Stop Dictation
-		PASound("toggle dictate")
-		; PSDictateIsOn(true)						; force update of status
+	if PACheckContext(["EI", "PS"]) {
+		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if PAActive && PACheckContext( , , "EI", "PS") {
+	if PACheckContext("EI", "PS") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
-			PSSend("{F12}")							; Sign report
-			PASound("sign report")
+			PSCmdSignReport()
 		} else {
 			; PS does not have an open report, so try to start reading the next case
-			EISend("^{Enter}")					; Start reading
-			PASound("Start dictation")
+			EICmdStartReading()
 		}
 	} else {
 		SetCapsLockState true
 	}
 }
 $^CapsLock:: {
-	if PAActive && PACheckContext( , , "EI", "PS") {
-		PSSend("{F9}")							; save as Draft
-		PASound("draft report")
+	if PACheckContext("EI", "PS") {
+		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if PAActive && PACheckContext( , , "EI", "PS") {
-		PSSend("{Alt down}fm{Alt up}")			; save as Prelim
-		PASound("prelim report")
+	if PACheckContext("EI", "PS") {
+		PSCmdPreliminary() 
 	} else {
-				; do nothing
-	}
-}
-
-
-
-; q key mapping
-;	q -> Display Study Details, by clicking the first Study Details icon
-;			that is in off state, found on either EI image window. This
-;			effectively toggles between active and comparison study details
-;			in the most common scenarios.
-; 		 If necessary, switches to the EI Text area.
-;
-; In effect for EI image windows
-;
-$q:: {
-	if PAActive && PACheckContext( , , "EI images1 images2") {
-		; search images2 window first
-		EIhwnd := PAWindows["EI"]["images2"].hwnd
-		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
-		result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
-		if !result {
-			; if no match on images2 window, then search images1 window
-			EIhwnd := PAWindows["EI"]["images1"].hwnd
-			WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
-			result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
-		}
-		if result {
-			WinActivate(EIhwnd)
-			CoordMode("Mouse", "Screen")
-			MouseGetPos(&savex, &savey)
-			FindText().Click(x, y)
-			MouseMove(savex, savey)
-			if !EIIsText() {
-				EIClickDesktop("EIText")
-			}
-		}
-	} else {
-		Send("q")
+		; do nothing
 	}
 }
 
 
 
 ; ` key mapping
-;	` -> Toggle between EI List and Text views
+;	` -> Display Study Details
+;	Shift-` -> Toggle between EI List and Text views
 ;			If List view is currently selected, then click the EI Text button
 ;			Otherwise, click the EI List button
-;	Shift-` -> Switch to EI Search area. If pressed a second time, 
+;	Ctrl-` -> Switch to EI Search area. If pressed a second time, 
 ;			clear search fields and place cursor in patient last name
 ;			search field
 ;
 ; In effect for EI and PS windows.
 ;
 $`:: {
-	if PAActive && PACheckContext( , , "EI", "PS") {
-		if EIIsList() {
-			EIClickDesktop("EIText")
-		} else {
-			EIClickDesktop("EIList")
-		}
+	if PACheckContext("EI", "PS") {
+		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if PAActive && PACheckContext( , , "EI", "PS") {
-		if A_PriorHotkey = "$+``" {
-			if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
-				WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
-				if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_Clear"], , 0, , , , 1) {
-					WinActivate(EIhwnd)
-					CoordMode("Mouse", "Screen")
-					Click(x, y)					; clear search fields
-					if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_LastName"], , 0, , , , 1) {
-						Click(x, y)				; click in patient last name search field
-						MouseMove(x, y + 16)	; move the mouse away from the edit field
-					}
-				}
-			}
-		} else {
-			EIClickDesktop("EISearch")
-		}
+	if PACheckContext("EI", "PS") {
+		EICmdToggleListText()
 	} else {
 		Send("+``")
+	}
+}
+$^`:: {
+	if PACheckContext("EI", "PS") {
+		if A_PriorHotkey = ThisHotkey {
+			EICmdResetSearch()
+		} else {
+			EICmdShowSearch()
+		}
+	} else {
+		Send("^``")
 	}
 }
 
@@ -315,8 +261,8 @@ $+`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $Esc:: {
-	if PAActive && PACheckContext( , , "EI images1 images2") {
-		EIClickImages("EI_RemoveFromList")
+	if PACheckContext("EI images1 images2") {
+		EICmdRemoveFromList()
 	} else {
 		Send("{Esc}")
 	}
@@ -332,14 +278,14 @@ $Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if PAActive && PACheckContext( , , "PS", "EI images1 images2 desktop/text 4dm") {
+	if PACheckContext("PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if PAActive && PACheckContext( , , "PS", "EI images1 images2 desktop/text 4dm") {
+	if PACheckContext("PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -351,12 +297,12 @@ $^z:: {
 ; Ctrl-S mapping
 ;	Augment Ctrl-S to give audio feedback when used in EI
 ; (~ prefix preserves the native function of the key)
-~^s:: {
-	if PAActive && PACheckContext( , , "EI") {
-		SoundBeep(200,200)
-		SoundBeep(200,200)
-	}
-}
+; ~^s:: {
+; 	if PAActive && PACheckContext( , , "EI") {
+; 		SoundBeep(200,200)
+; 		SoundBeep(200,200)
+; 	}
+; }
 
 
 
@@ -384,76 +330,64 @@ $^z:: {
 ;
 ; If pressed while the mouse cursor is on an EI image window,
 ; a doubleclick (Click 2) is sent to double click at the current mouse position.
-;
-; [todo] If pressed while the mouse cursor is on the PS report window and
-; a text selection exists, sends Delete keystroke
-;
 ; Blocks user mouse movement or input while sending doubleclick, for reliability
 ;
 ; In effect for EI image windows, EI desktop if list area showing
 ;
-; If ClickLock is set to manual, then pressing space bar while L mouse button is down
+; If ClickLock is set to Manual, then pressing space bar while L mouse button is down
 ; will engage click lock. A second press will disengage. In effect for EI image windows
+;
+; [todo] If pressed while the mouse cursor is on the PS report window and
+; a text selection exists, sends Delete keystroke
 ;
 $Space:: {
 	global LButton_ClickLockon
-	global LButton_ClickLockmanual
+	global LButton_ClickLocktrigger
 	
-	if PAActive {
-		PAWindows.GetAppWin("", &app, &win)
-		if PACheckContext(app, win, "EI images1 images2") {
-			if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
-				; space was pressed while L mouse button is logically down, inside an EI images window
-				if !LButton_ClickLockmanual {
-					; check whether L mouse button is physically down
-					if GetKeyState("LButton", "P") {
-						; if so activate click lock, for when L mouse button is released (see LButton hotkey)
-						SoundBeep(1000, 100)
-						LButton_ClickLockmanual := true	
-					} else {
-						; if not, logically release the L mouse button
-						if LButton_ClickLockon {
-							Click("U")
-							SoundBeep(600, 100)
-							LButton_ClickLockon := false
-						}
-					}
+	if PACheckContext("EI images1 images2") {
+		if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
+			; space was pressed while L mouse button is logically down, inside an EI images window
+			if !LButton_ClickLocktrigger {
+				; check whether L mouse button is physically down
+				if GetKeyState("LButton", "P") {
+					; if L mouse being pressed, activate click lock, for when L mouse button is released (see LButton hotkey)
+					PASound("EIClickLockOn")
+					LButton_ClickLocktrigger := true	
 				} else {
-					SoundBeep(600, 100)
-					LButton_ClickLockmanual := false
+					; if L mouse not being pressed, logically release the L mouse button
+					if LButton_ClickLockon {
+						Click("U")
+						PASound("EIClickLockOff")
+						LButton_ClickLockon := false
+					}
 				}
 			} else {
-				; if LButton_ClickLockon {
-				; 	Click("U")
-				; 	PAToolTip("release")
-				; 	SoundBeep(600, 100)
-				; 	LButton_ClickLockon := false
-				; }
-				; avoid double clicking on a window by checking system double click timeout
-				if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
-					BlockInput true
-					Click 2
-					BlockInput false
-				}
+				; ClickLock already triggered, so untrigger it
+				PASound("EIClickLockOff")
+				LButton_ClickLocktrigger := false
 			}
-		} else if PACheckContext(app, win, "EI desktop/list") {
+		} else {
 			; avoid double clicking on a window by checking system double click timeout
 			if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 				BlockInput true
 				Click 2
 				BlockInput false
 			}
-		} else {
-			Send("{Space}")
 		}
-	}  else {
+	} else if PACheckContext("EI desktop/list") {
+		; avoid double clicking on a window by checking system double click timeout
+		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+			BlockInput true
+			Click 2
+			BlockInput false
+		}
+	} else if PACheckContext("PS report") {
+		; Check to see if there is a text selection in the PS report area
+		; If so, smart delete it
+
+	} else {
 		Send("{Space}")
 	}
-	
-	/*else if PAWindows.GetAppWin("", &app, &win) && (app = "PS" && win = "report") {
-		; check to see if there is a text selection in the PS report area 
-	}*/
-
 }
 
 
@@ -465,25 +399,27 @@ $Space:: {
 ;
 ; [todo] Auto doesn't work properly
 ;
+global LButton_ClickLockon := false		; true when ClickLock is engaged
+global LButton_ClickLocktrigger := false	; true when Clicklock enaged by spacebar but before Lbutton is released
 global LButton_lastdown := 0			; tick count of last L button down
-global LButton_ClickLockon := false
-global LButton_ClickLockmanual := false
 
 ~RButton:: {
-	global LButton_lastdown
 	global LButton_ClickLockon
+	global LButton_lastdown
 
 	; PAToolTip("RButton down - last:" Button_lastdown)
-	if PAActive && LButton_ClickLockon {
-		Click("U")							; L mouse button up
-		SoundBeep(600, 100)
-		LButton_ClickLockon := false
+	if PAActive {
+		if LButton_ClickLockon {
+			Click("U")							; L mouse button up
+			PASound("EIClickLockOff")
+			LButton_ClickLockon := false
+		}
 	}
 }
 
 ~LButton:: {
-	global LButton_lastdown
 	global LButton_ClickLockon
+	global LButton_lastdown
 
 	; PAToolTip("LButton down - last:" Button_lastdown)
 
@@ -502,7 +438,7 @@ global LButton_ClickLockmanual := false
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
 				if LButton_ClickLockon {
-					SoundBeep(600, 100)
+					PASound("EIClickLockOff")
 					LButton_ClickLockon := false
 				}
 			}
@@ -516,22 +452,22 @@ global LButton_ClickLockmanual := false
 }
 
 LButton Up:: {
-	global LButton_lastdown
 	global LButton_ClickLockon
-	global LButton_ClickLockmanual
+	global LButton_ClickLocktrigger
+	global LButton_lastdown
 
 	if PAActive {
 
 		if PASettings["ClickLock"].value = "Manual" {
-			if LButton_ClickLockmanual {
-				click("D")					; L mouse button down
-				LButton_ClickLockmanual := false
+			if LButton_ClickLocktrigger {
+				; engage Click Lock
+				click("D")					; keep L mouse button down
+				LButton_ClickLocktrigger := false
 				LButton_ClickLockon := true
 			} else if LButton_ClickLockon {
-			; 	Click("D")					; L mouse button down
-			; } else {
-				Click("U")
-				SoundBeep(600, 100)
+				; disengage Click Lock
+				Click("U")					; release logically held L mouse button
+				PASound("EIClickLockOff")
 				LButton_ClickLockon := false
 			}
 		} else if PASettings["ClickLock"].value = "Auto" {
@@ -558,7 +494,7 @@ LButton Up:: {
 
 ; callback
 _LButton_beep() {
-	SoundBeep(1000,100)
+	PASound("EIClickLockOn")
 }
 
 
@@ -579,23 +515,48 @@ _LButton_beep() {
 ;
 ; In effect for EI image windows
 ;
+; Pass an array of hotkey strings, without the $ modifier.
+; Each time this function is called, any hotkeys previously defined by this function are 
+; disabled (no way to actually delete them) prior to defining the new list of hotkeys.
+;
 
-_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", 
-		"d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
+PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
 
-PA_MapEIKeys() {
-	for key in _EIKeyList {
-		Hotkey("$" . key, _PA_MapEIKeysCallback)
+
+PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
+	static definedlist := Array()		; remembers all hotkeys which have been defined through this function
+
+	if keylist {
+		for k in definedlist {
+			Hotkey(k, "Off")	; disable previously defined hotkeys
+		}
+
+		for key in keylist {
+			hkey := "$" . GetKeyName(key)
+			Hotkey(hkey, _PA_EIKeysCallback, "On")
+			
+			found := 0
+			for k in definedlist {
+				if k = hkey {
+					found := true
+					break
+				}
+			}
+			if !found {
+				definedlist.Push(hkey)	; remember the new hotkey
+			}
+		}
 	}
 }
 
-_PA_MapEIKeysCallback(key) {
+_PA_EIKeysCallback(key) {
 	global PA_DoubleClickSetting
 
-	if PAActive && PACheckContext( , , "EI images1 images2") {
+	if PACheckContext("EI images1 images2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
-; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
+			
+			; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
 			if !GetKeyState("LButton") && !GetKeyState("RButton") {
 				Click("XButton2")
 				Sleep(100)	; allows time (ms) for viewport to become active before sending the shortcut key

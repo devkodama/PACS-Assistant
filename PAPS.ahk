@@ -22,7 +22,68 @@
 
 
 /**
- * Functions for sending keystrokes and mouse clicks to EI
+ * Functions for sending commands to PS
+ * 
+ */
+
+
+; Sends the Next field command (Tab) to PS
+;
+PSCmdNextField() {
+	PSSend("{Tab}")
+	PASound("PSTab")
+}
+
+; Sends the Prev field command (Shift-Tab) to PS
+;
+PSCmdPrevField() {
+	PSSend("{Blind}+{Tab}")
+	PASound("PSTab")
+}
+
+; Move the cursor to the End of Line in PS
+;
+PSCmdEOL() {
+	PSSend("{End}")
+	PASound("PSTab")
+}
+
+; Move the cursor down one line then to the End of Line in PS
+;
+PSCmdNextEOL() {
+	PSSend("{Down}{End}")
+	PASound("PSTab")
+}
+
+; Move the cursor up one line then to the End of Line in PS
+;
+PSCmdPrevEOL() {
+	PSSend("{Up}{End}")
+	PASound("PSTab")
+}
+
+; Start/Stop Toggle Microphone (F4)) in PS
+;
+PSCmdToggleMic() {
+	PSSend("{F4}")							; Start/Stop Dictation
+	PASound("PSToggleMic")
+}
+PSCmdSignReport() {
+	PSSend("{F12}")							; Sign report
+	PASound("PSSignReport")
+}
+PSCmdDraftReport() {
+	PSSend("{F9}")							; save as Draft
+	PASound("PSDraftReport")
+}
+PSCmdPreliminary() {
+	PSSend("{Alt down}fm{Alt up}")			; save as Prelim
+	PASound("PSSPreliminary")
+}
+
+
+/**
+ * Functions for sending keystrokes and mouse clicks to PS
  * 
  */
 

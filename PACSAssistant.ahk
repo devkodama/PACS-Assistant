@@ -757,7 +757,8 @@ PAWindows_Print(this) {
 /******************************/
 
 
-; checks app and win to see if they match one of the passed contexts
+; Checks that PAActive is true, and
+; checks app and win of the currently active window to see if they match one of the passed contexts
 ;
 ; app is a string parameter. If app is empty "", then calls
 ; PAWindows.GetAppWin("", &app, &win) is called to get the application
@@ -775,6 +776,8 @@ PAWindows_Print(this) {
 ;	...
 ;
 ; Multiple context strings may be passed.
+; 
+; An array of strings may also be passed for context, instead of one or more strings
 ;
 ; Returns true if it matches any of the context strings.
 ;
@@ -782,8 +785,14 @@ PAWindows_Print(this) {
 ;
 ; Case sensitive
 ;
-PACheckContext(app := "", win := "", contexts*) {
-	
+PACheckContext(contexts*) {
+	app := ""
+	win := ""
+
+	if !PAActive {
+		return false
+	}
+
 	if app != "" || PAWindows.GetAppWin("", &app, &win) {
 	
 		; check app, win again each context string

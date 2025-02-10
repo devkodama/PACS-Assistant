@@ -19,10 +19,19 @@
 
 
 ; A sound/sounds to be played.
-; Can be a spoken voice phrase, audio file (.wav), and/or a beep.
 ;
-; To produce standard system sounds, specify an asterisk followed by a 
-; number as shown below:
+; Can be a a spoken voice phrase and/or a beep or an audio file (.wav)
+;
+; To specify a voice phrase, pass a string
+;
+; To specify a beep, pass an array of [frequency, duration_in_ms]
+;
+; To specify an audio file, pass a filename ending in .wav
+;
+; Displays the status message if specified
+;
+; To produce standard system sounds, pass a voice phrase with the format
+; below:
 ;
 ; "*-1" = Simple beep. If the sound card is not available, the sound is generated using the speaker.
 ; "*16" = Hand (stop/error)
@@ -30,37 +39,54 @@
 ; "*48" = Exclamation
 ; "*64" = Asterisk (info)
 ;
-;
 class SoundItem {
-    voice := ""
-    audio := ""
     beepfreq := 0
+    beepdur := 0
+    phrase := ""
+    audiofile := ""
+    statusmessage := ""
 
-    __New(argvoi := "", argaud := "", argbeep := 0, statusmsg := "") {
-        this.voice := argvoi
-        this.audio := argaud
-        this.beepfreq := argbeep
+    __New(spokenphrase := "", soundarg := "", statusmsg := "") {
+        this.phrase := spokenphrase
+        if IsNumber(soundarg) {
+            ; this is a frequency value without a duration, use a default duration of 150ms
+            this.beepfreq = soundarg[1]
+            this.beepdur := 150
+        } else if IsObject(soundarg) {
+            ; this must be a beep array [freq, duration]
+            this.beepfreq = soundarg[1]
+            if soundarg.Length > 1 {
+                this.beepdur := soundarg[2]
+            } else {
+                this.beepdur := 150
+            }
+    } else if SubStr(soundarg, -4) = ".wav" {
+            ; found a .wav file
+           this.audiofile := soundarg
+        } else {
+            ; not sure what this is??
+        }
         this.statusmessage := statusmsg
-
-        ; if SubStr(arg,-4) = ".wav" {
-        ;     this.audio := arg
-        ; } else if IsInteger(arg) {
-        ;     this.beepfreq := Number(arg)
-        ; } else {
-        ;     this.voice := arg
-        ; }
     }
 }
 
 
 ; Sounds maps PA events to voice or audio feedback
 Sounds := Map()
-Sounds["sign report"] := SoundItem("Signed", , , "Report signed")
+
+Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
 ;Sounds["sign report"] := SoundItem(, A_WinDir "\Media\tada.wav")
-Sounds["draft report"] := SoundItem("Save as draft", , , "Report saved as draft")
-Sounds["prelim report"] := SoundItem("Preliminary report", , , "Report save as preliminary")
+Sounds["PSTab"] := SoundItem( , [440, 10])
+Sounds["PSToggleMic"] := SoundItem( , 392)
+Sounds["PSDraftReport"] := SoundItem("Save as draft", , "Report saved as draft")
+
+Sounds["EIStartReading"] := SoundItem( , 480)
+Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])
+Sounds["EIClickLockOff"] := SoundItem(, [600, 100])
+
 Sounds["EPIC"] := SoundItem("EPIC was clicked")
-Sounds["toggle dictate"] := SoundItem(, , 392)
+
+
 
 
 ; Global sound object
@@ -88,7 +114,7 @@ PASound(message) {
             PAStatus(sound.statusmessage)
         }
 
-        if PASettings["UseVoice"].value && sound.voice {
+        if PASettings["UseVoice"].value && sound.phrase {
 
             ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
             voices := _SoundObj.GetVoices()
@@ -97,19 +123,19 @@ PASound(message) {
             _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
             ; speak phrase
-            _SoundObj.Speak(sound.voice, 0x01)
+            _SoundObj.Speak(sound.phrase, 0x01)
         
         }
 
-        if sound.audio {
+        if sound.audiofile {
 
-            SoundPlay(sound.audio)
+            SoundPlay(sound.audiofile)
 
         }
 
         if sound.beepfreq {
 
-            SoundBeep(sound.beepfreq, 150)
+            SoundBeep(sound.beepfreq, sound.beepdur)
 
         }
 
