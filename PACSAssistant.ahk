@@ -900,10 +900,12 @@ _PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
 
 		; ToolTip "Window closed: " app "/" win " [" hwnd "]" 
 		; SetTimer ToolTip, -5000
-
-		PAWindows[app][win].Close(false)
+		try {
+			PAWindows[app][win].Close(false)
+		} catch {
+		}
 	}
-
+	
 }
 
 

@@ -474,8 +474,8 @@ PAGui_Exit(*) {
     ; stop daemons
     InitDaemons(false)
 
-    ; stop windows "Close" event callbacks
-    WinEvent.Stop("Close")
+    ; stop all WinEvent windows event callbacks
+;    WinEvent.Stop()    ; this causes crashes on exiting - ???
 
     Sleep(1000)
     
