@@ -27,6 +27,98 @@
 
 
 
+
+
+
+/**
+ * Functions for sending commands to PS
+ * 
+ */
+
+
+; Send Start Reading/Resume Reading command (Shift-Enter) to EI
+;
+EICmdStartReading() {
+	EISend("^{Enter}")					; Start reading
+	PASound("EIStartReading")
+}
+
+; Display Study Details, by clicking the first Study Details icon
+;	that is in off state, found on either EI image window. This
+;	effectively toggles between active and comparison study details
+;	in the most common scenarios.
+; If not already showing, shows the EI Text area.
+;
+EICmdDisplayStudyDetails() {
+	; search images2 window first
+	EIhwnd := PAWindows["EI"]["images2"].hwnd
+	WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
+	result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
+	if !result {
+		; if no match on images2 window, then search images1 window
+		EIhwnd := PAWindows["EI"]["images1"].hwnd
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
+		result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
+	}
+	if result {
+		; found an icon to click
+		WinActivate(EIhwnd)
+		CoordMode("Mouse", "Screen")
+		MouseGetPos(&savex, &savey)
+		FindText().Click(x, y)
+		MouseMove(savex, savey)
+		if !EIIsText() {
+			; switch EI Desktop to Text page
+			EIClickDesktop("EIText")
+		}
+		return true
+	} else {
+		; didn't find an icon to click
+		return false
+	}
+}
+
+; Toggles between the EI desktop Text and List pages
+;
+EICmdToggleListText() {
+	if EIIsList() {
+		EIClickDesktop("EIText")
+	} else {
+		EIClickDesktop("EIList")
+	}
+}
+
+; Shows the Search page on the EI desktop
+;
+EICmdShowSearch() {
+	EIClickDesktop("EISearch")
+}
+
+; Resets the Search page on the EI desktop, places cursor in the patient last name field
+; Assumes the Search page is already showing
+;
+EICmdResetSearch() {
+	if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
+		if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_Clear"], , 0, , , , 1) {
+			WinActivate(EIhwnd)
+			CoordMode("Mouse", "Screen")
+			Click(x, y)					; clear search fields
+			if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_LastName"], , 0, , , , 1) {
+				Click(x, y)				; click in patient last name search field
+				MouseMove(x, y + 16)	; move the mouse away from the edit field
+			}
+		}
+	}	
+}
+
+; Sends the Remove from list command (click on close icon)
+;
+EICmdRemoveFromList() {
+	EIClickImages("EI_RemoveFromList")
+}
+
+
 /**
  * Functions for sending keystrokes and mouse clicks to EI
  * 
