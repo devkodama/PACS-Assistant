@@ -104,11 +104,26 @@ function openTab(tabid, pageid) {
     document.getElementById(tabid).classList.add("active");
 }
 
-
-
 // Get the first tab-icon element with class="default" and click on it
 document.getElementsByClassName("tab-icon default")[0].click();
 
+
+
+/** Alert functions
+ * 
+ * Close button for alert boxes
+ * 
+ */
+
+var close = document.getElementsByClassName("closebtn");
+var i;
+for (i = 0; i < close.length; i++) {
+  close[i].onclick = function(){
+    var div = this.parentElement;
+    div.style.opacity = "0";
+    setTimeout(function(){ div.style.display = "none"; div.classList.add("dismissed");}, 400);
+  }
+}
 
 
 
