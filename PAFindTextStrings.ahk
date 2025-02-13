@@ -125,13 +125,35 @@ PAText["EI_SD"] := PAText["EI_SD_LOn"] . PAText["EI_SD_LOff"] . PAText["EI_SD_MO
 
 ; EI Images Remove from list button
 PAText["EI_RemoveFromList"] := "|<EI_RemoveFromList>*160$24.zzzzzzzzzzzzzzzzzzzzzzwzz7UTz30Tz00TzU0Tzk0Tzs0Tzs0zzk3zzU1zz1Uzz3kTz7sTzzwzzzzzzzzzzzzzzzzzU"
+; EI Images Start reading button (same as Resume reading button)
+PAText["EI_StartReading"] := "|<EI_StartReading>*139$23.yTwzkDUQC0S0y0y9ynwnxbtbnbnb7DDUT0zrzzs"
+
+; EI Images IMPAX Volume Viewing button
+PAText["EI_VolumeViewing"] := "|<EI_VolumeViewing>*90$26.zzU7zy00zy00Dz001z000TU007k000k000A0001Ts00Hz006zk00by00Bzk03Dw00vzU0TTs0Drz07yzk1zjy0zxzUTzDwDzs3Xy"
 
 
 
 ; PS toolbar Dictate button: On
-PAText["PSDictateOn"]:="|<PSDictateOn>*200$8.zk000000000wTgzTzzxyD8"
+PAText["PSDictateOn"] := "|<PSDictateOn>*200$8.zk000000000wTgzTzzxyD8"
 ; PS toolbar Dictate button: Off
-PAText["PSDictateOff"]:="|<PSDictateOff>*200$8.00000000000wTgzDzzxyD8"
+PAText["PSDictateOff"] := "|<PSDictateOff>*200$8.00000000000wTgzDzzxyD8"
 
 
 
+
+; Epic login page - first string for light theme, second string for dark theme
+PAText["EPICIsLogin"] := "|<EPICIsLogin>*150$47.M00001U0k0000301U000060307UxUAr60TVz0NzA1laC0nbM33AA1aCk66MM3ARUAAkk6Mv0QNXUAlryTVz0NXjwS3a0n7000CQ0000DzTk000000T0004"
+PAText["EPICIsLogin"] .= "|<EPICIsLogin>*99$47.7zzzzwTyDzzzzszwTzzzzlzszsD0TX0FzUA0z603yA8lyAM7wQHXwMkDss77slUTlkCDlX0zX2ATX601UA0z6A03Uw1yAMzzzlXzzzzk0U7zzzzzzUTzzw"
+
+; Epic login user field
+PAText["EPICLoginUser"] := "|<EPICLoginUser>*193$52.M00000lzVU000037z600000AMCMS3sL0lUNXARlk360aMF160AM3NkA6E0lUBXszt0360q3n040AM2M1g0E0lUNa6MN0363gAlr40ATwUS3sE0lzW"
+
+; Epic login password field
+PAText["EPICLoginPassword"] := "|<EPICLoginPassword>*191$70.U0000000000/00000000000a00000000002My3kS8MFw/bdbQNXAlXCssvgEn2MH7AUX26k1C1k4wa38M80QT3sHGMAVUUTkS3ldNUm62310A1aZa38M8AAkq6CQ8AUVUtlaAktkvW3i1xXkS331w87e"
+
+; Epic timezone page - first string for light theme, second string for dark theme
+PAText["EPICIsTimezone"] := "|<EPICIsTimezone>*120$69.zw0000zU0007y00007w000064qQC033ki7Ukbzns0kz7tw64laFUC6An8kka8nw1UVYNy64l6TUM4AXDkka8m060lYN064l6TUzrsXDkka8ls7yS4MwU"
+PAText["EPICIsTimezone"] .= "|<EPICIsTimezone>*124$69.01zzzz0Dzzzs1zzzzs3zzzzsl0XkzwQC0sT680A3z70E61sl4N6TltWAnD68X83wSCFY0sl4N0DXlmAU768X8zszAFaTsl4NUS082AkD68XC7k1Vlb3U"
+
+; Epic main chart page
+PAText["EPICIsChart"] := "|<EPICIsChart>*57$65.zzzzzzzzVzzzzzs03zy7zy03zU07zwDzw07z00Dzzz7zzzy7z20kk0zzzwDy00W01U0zs041047101zU08T00T603z00Ey01zzzzy7z3w03zs0DwDy3k07kk0Ts0000063U0zU0004807zzz0000MM0zzzzzz3rzzTzzzzzy7zzzzzzzzzwDzzzzzzzzzszzzzzU"

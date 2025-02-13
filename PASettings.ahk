@@ -1,10 +1,10 @@
-/* PASettings.ahk
-**
-** Settings functions for PACS Assistant
-**
-**
-*/
-
+/**
+ * PASettings.ahk
+ *
+ * Settings functions for PACS Assistant
+ *
+ *
+ */
 
 
 #Requires AutoHotkey v2.0
@@ -12,9 +12,11 @@
 
 
 
-/*
+
+/**********************************************************
 ** Includes
 */
+
 
 #Include <Cred>
 
@@ -23,28 +25,138 @@
 
 
 
+
+/**********************************************************
+** Global variables and constants used or defined in this module
+*/
+
+
+; Program-wide modifiable settings are defined here in the PASettings[] Map
+; object. Not all of these settings have to be exposed to the user on the
+; GUI Settings page.
+;
+; Note that username, password, and inifile are special cases, even
+; though they are stored in the PASettings[] map. They are treated differently 
+; by functions that handle changes to the settings (e.g. HandleFormInput(), and 
+; by the value property setter and getter).
+;
+PASettings := Map()
+
+; PASettings["active"] is the top level on/off--it defines whether many
+; PACS Assistant functions are active.
+PASettings["active"] := Setting("active", "bool", true, , "Top level switch for many PACS Assistant functions")
+
+; Special settings
+PASettings["username"] := Setting("username", "special", "", 20, "Username")
+PASettings["password"] := Setting("password", "special", "", 20, "Password")
+PASettings["inifile"] := Setting("inifile", "special", "", 0, "Current user-specific .ini file")
+
+; General settings
+PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
+PASettings["MouseJiggler_timeout"] := Setting("MouseJiggler_timeout", "num", 240, [0, 1440], "Disable mouse jiggler after this many minutes of inactivity (0 = never disable)")
+
+PASettings["UseVoice"] := Setting("UseVoice", "bool", true, , "Enable synthesized voice feedback")
+PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
+
+PASettings["ClickLock"] := Setting("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
+PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
+
+; VPN settings
+
+; EI settings
+PASettings["EI_restoreatopen"] := Setting("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
+PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
+
+; PS settings
+PASettings["PS_restoreatopen"] := Setting("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+
+PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages when you have draft or unsigned reports")
+PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+
+PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
+PASettings["PSsavespeech_dismiss_reply"] := Setting("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+
+PASettings["PSconfirmaddendum_dismiss"] := Setting("PSconfirmaddendum_dismiss", "bool", true, , "Automatically answer Yes to 'Create addendum?' message")
+PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("PSconfirmaddendum_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+
+PASettings["PS_dictate_autoon"] := Setting("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
+
+PASettings["PS_dictate_idleoff"] := Setting("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
+PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
+
+PASettings["PSmicrophone_dismiss"] := Setting("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
+PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
+
+PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center message boxes over the main window")
+
+PASettings["PSspelling_autoclose"] := Setting("PSspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
+
+; EPIC settings
+PASettings["EPIC_restoreatopen"] := Setting("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
+PASettings["EPICtimezone_dismiss"] := Setting("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
+
+
+
 ; PASettingsPage is an ordered array of keys that determines which settings
 ; are shown and the order in which they are shown on the GUI Settings page. 
 ;
-; Settings can be grouped into categories. When the special key of the
-; format ":CategoryName" appears, it defines the start of a new category with
-; name CategoryName.
+; Settings can be grouped into categories. When a key begins with a colon,
+; as in ":CategoryName", then CategoryName is used as the grouping title
+;
+; When a key is prefixed with ">", as in ">MouseJiggler_timeout", then
+; the key is indented when displayed. A double indent ">>" can also be used.
+;
 PASettingsPage := Array()
 
+; The settings to be displayed on the GUI Settings page are defined here in 
+; the PASettingsPage[] Array object.
 
-; Credential class
-;
-; Stores a set of credentials for PACS Assistant
-;
-class Credential {
-    username := ""      ; username
-    password := ""      ; password
-}
+PASettingsPage.Push("#Account")
+PASettingsPage.Push("username")
+PASettingsPage.Push("password")
+
+PASettingsPage.Push("#General")
+PASettingsPage.Push("MouseJiggler")
+PASettingsPage.Push(">MouseJiggler_timeout")
+PASettingsPage.Push("UseVoice")
+PASettingsPage.Push(">Voice")
+
+PASettingsPage.Push("#EI")
+PASettingsPage.Push("EI_restoreatopen")
+PASettingsPage.Push("ClickLock")
+; PASettingsPage.Push(">ClickLock_interval")
+
+PASettingsPage.Push("#PowerScribe")
+PASettingsPage.Push("PS_restoreatopen")
+PASettingsPage.Push("PS_dictate_autoon")
+PASettingsPage.Push("PS_dictate_idleoff")
+PASettingsPage.Push(">PS_dictate_idletimeout")
+PASettingsPage.Push("PSconfirmaddendum_dismiss")
+PASettingsPage.Push("PSlogout_dismiss")
+PASettingsPage.Push("PSsavespeech_dismiss")
+PASettingsPage.Push(">PSsavespeech_dismiss_reply")
+PASettingsPage.Push("PSmicrophone_dismiss")
+PASettingsPage.Push("PSspelling_autoclose")
+PASettingsPage.Push("PScenter_dialog")
+
+PASettingsPage.Push("#Epic")
+PASettingsPage.Push("EPIC_restoreatopen")
+PASettingsPage.Push("EPICtimezone_dismiss")
+
+PASettingsPage.Push("#Beta - Experimental, may not work")
+PASettingsPage.Push("EIcollaborator_show")
 
 
-; Class to hold for an individual setting that within PACS Assistant
+
+
+/**********************************************************
+** Classes defined by this module
+*/
+
+
+; Class to hold an individual setting within PACS Assistant
 ;
-; Possible values for settingtype:
+; Possible values for type:
 ;   "bool"      - possiblevalues is ignored, as it assumed to be [true, false]
 ;   "num"       - possiblevalues is an array of [lowerbound, upperbound], or empty if no limits
 ;   "text"      - possiblevalues is an integer defining maximum length of text
@@ -109,11 +221,12 @@ class Setting {
                         case "username":
                             newval := Trim(Value)
                             if this._value != newval {
+
                                 ; username has changed, so update the user and his settings
                                 this._value := newval
                                 this._key := ""
                                 CurrentUserCredentials.username := newval
-                                ; update GUI to show current user
+                                ; update GUI to show the new user
                                 if newval {
                                     PAGui_Post("curuser", "innerHTML", " - " . newval)
                                 } else {
@@ -124,20 +237,34 @@ class Setting {
                                     PASettings["inifile"].value := ""
                                 } else {
                                     PASettings["inifile"].value := FILE_SETTINGSBASE "." newval ".ini"
+                                    if FileExist(PASettings["inifile"].value) {
+                                        ; Read the new user's saved settings
+                                        PASettings_ReadSettings()
+                                    } else {
+                                        ; No ini file, let's create a new one
+                                        PASettings_WriteSettings()
+                                    }
                                 }
-                                ; Read the new user's saved settings
-                                PASettings_ReadSettings()
-
+                                ; try to get the password from local storage
+                                cred := CredRead("PA_cred_" . newval)
+                                if cred {
+                                    PASettings["password"].value := cred.password
+                                } else {
+                                    PASettings["password"].value := ""
+                                }
                                 ; Update the displayed form
                                 PASettings_HTMLForm()
+
                             } else {
                                 ; username was not changed, don't do anything
                             }
+
                         case "password":
                             newval := Trim(Value)
                             this._value := newval
                             this._key := ""
                             CurrentUserCredentials.password := newval
+                            
                         default:
                             newval := Trim(Value)
                             this._value := newval
@@ -149,7 +276,7 @@ class Setting {
                     this._key := ""
             }
             ; Save the update setting to the user-specific .ini file
-            this._SaveSetting()
+            this.SaveSetting()
         }
     }
 
@@ -166,7 +293,7 @@ class Setting {
     ; the actual username. The username must have a value stored in 
     ; PASettings["username"].
     ;
-    _SaveSetting() {
+    SaveSetting() {
 ;        PAToolTip(this.name " / " this._value " / " )
         switch this.type {
             case "special":
@@ -218,9 +345,9 @@ class Setting {
         } 
     }
 
-    ; called when a new Setting object is created
-    ; no bounds checking on the passed defaultvalue
-    ; current value of the Settting is set to the same as the default value
+    ; Called when a new Setting object is created.
+    ; No bounds checking on the passed defaultvalue.
+    ; Current value of the Settting is set to the same as the default value for new objects.
 	__New(settingname, settingtype := "", defaultvalue := "", possiblevalues:= 0, desc := "") {
         this.name := settingname
         this.type := settingtype
@@ -239,8 +366,10 @@ class Setting {
                 return true
             case "num":
                 if !this.possible {
+                    ; no restrictions
                     return true
                 } else {
+                    ; check value against lower and upper bounds
                     if newval >= this.possible[1] && newval <= this.possible[2] {
                         return true
                     } else {
@@ -248,12 +377,14 @@ class Setting {
                     }
                 }
             case "text", "special":
+                ; check string length against limit
                 if StrLen(newval) <=  this.possible {
                     return true
                 } else {
                     return false
                 }
             case "select":
+                ; check that the value is valid key in the Map of possibles
                 return this.possible.Has(newval)
             default:
                 return false
@@ -263,114 +394,29 @@ class Setting {
 
 
 
-; Program-wide modifiable settings are defined here in the PASettings[] Map
-; object. Not all settings have to be exposed to the user on the GUI 
-; Settings page.
-;
-; Note that username, password, and inifile are special cases, even
-; though they are stored in the PASettings[] map. They are treated differently 
-; by functions that handle changes to the settings (e.g. HandleFormInput(), and 
-; by the value property setter and getter).
-;
-; PASettings["active"] is the top level on/off--it defines whether many
-; PACS Assistant functions are active.
-;
-PASettings["active"] := Setting("active", "bool", true, , "Top level switch for many PACS Assistant functions")
 
-PASettings["username"] := Setting("username", "special", "", 20, "Username")
-PASettings["password"] := Setting("password", "special", "", 20, "Password")
-PASettings["inifile"] := Setting("inifile", "special", "", 0, "Current user-specific .ini file")
-
-PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
-
-PASettings["UseVoice"] := Setting("UseVoice", "bool", true, , "Enable synthesized voice feedback")
-PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
-
-PASettings["ClickLock"] := Setting("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
-PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
-
-PASettings["EI_restoreatopen"] := Setting("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
-PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
-
-PASettings["PS_restoreatopen"] := Setting("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
-
-PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages when you have draft or unsigned reports")
-PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
-
-PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
-PASettings["PSsavespeech_dismiss_reply"] := Setting("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
-
-PASettings["PSconfirmaddendum_dismiss"] := Setting("PSconfirmaddendum_dismiss", "bool", true, , "Automatically answer Yes to 'Create addendum?' message")
-PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("PSconfirmaddendum_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
-
-PASettings["PS_dictate_autoon"] := Setting("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
-
-PASettings["PS_dictate_idleoff"] := Setting("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
-PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
-
-PASettings["PSmicrophone_dismiss"] := Setting("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
-PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
-
-PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center message boxes over the main window")
-
-PASettings["PSspelling_autoclose"] := Setting("PSspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
-
-PASettings["EPIC_restoreatopen"] := Setting("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
+/**********************************************************
+** Functions defined by this module
+*/
 
 
-
-; The settings to be displayed on the GUI Settings page are defined here in 
-; the PASettingsPage[] Array object.
-;
-PASettingsPage.Push("#Account")
-PASettingsPage.Push("username")
-PASettingsPage.Push("password")
-
-PASettingsPage.Push("#General")
-PASettingsPage.Push("MouseJiggler")
-PASettingsPage.Push("UseVoice")
-PASettingsPage.Push(">Voice")
-
-PASettingsPage.Push("#EI")
-PASettingsPage.Push("EI_restoreatopen")
-PASettingsPage.Push("ClickLock")
-; PASettingsPage.Push(">ClickLock_interval")
-
-PASettingsPage.Push("#PowerScribe")
-PASettingsPage.Push("PS_restoreatopen")
-PASettingsPage.Push("PS_dictate_autoon")
-PASettingsPage.Push("PS_dictate_idleoff")
-PASettingsPage.Push(">PS_dictate_idletimeout")
-PASettingsPage.Push("PSconfirmaddendum_dismiss")
-PASettingsPage.Push("PSlogout_dismiss")
-PASettingsPage.Push("PSsavespeech_dismiss")
-PASettingsPage.Push(">PSsavespeech_dismiss_reply")
-PASettingsPage.Push("PSmicrophone_dismiss")
-PASettingsPage.Push("PSspelling_autoclose")
-PASettingsPage.Push("PScenter_dialog")
-
-PASettingsPage.Push("#Epic")
-PASettingsPage.Push("EPIC_restoreatopen")
-
-PASettingsPage.Push("#Beta - Experimental, may not work")
-PASettingsPage.Push("EIcollaborator_show")
-
-
-
-; Call this to initially set the current user from the settings.ini file.
-; Updates PASettings[] and CurrentUserCredentials
+; Call this to initially determine the current user from the
+; settings.ini file. Updates PASettings[] and CurrentUserCredentials
 PASettings_Init() {
     inifile := FILE_SETTINGSBASE . ".ini"
-                            
+
     curuser := IniRead(inifile, "Users", "curuser", "")
     if curuser !="" {
         PASettings["username"].value := curuser
-    }                       
+    }
+
+    ; Now read the current user's settings
+    PASettings_ReadSettings()           
 }
 
 
 ; Reads all the settings from the user-specific .ini file for the current user.
-; Settings not previously saved are set to the default setting.
+; Settings not found in the .ini file are set to their default values.
 ;
 ; The current user is specified by PASettings["username"].
 ; The current user-specific .ini file is specified by PASettings["inifile"].
@@ -419,10 +465,30 @@ PASettings_ReadSettings() {
 }
 
 
+; Writes a new user-specific .ini file for the current user.
+;
+; All current settings values are written, excluding "special" settings
+; such as username, password, or inifile.
+;
+; The current user is specified by PASettings["username"].
+; The current user-specific .ini file is specified by PASettings["inifile"].
+;
+PASettings_WriteSettings() {
+    global PASettings
+    global CurrentUserCredentials
 
-
-
-
+    ; ensure username has a value
+    if PASettings["username"].value {
+        for key, sett in PASettings {
+            switch sett.type {
+                case "special":
+                    ; skip, don't write special settings
+                default:
+                    sett.SaveSetting()
+            }
+        }
+    }
+}
 
 
 
@@ -431,11 +497,59 @@ PASettings_ReadSettings() {
 ;
 ; The generated form is inserted into div.#settingsform on the GUI
 ; (replacing any previous contents of innerHTML), unless the show parameter
-; is false, in which case the HTML form is only returned as a string.
+; is set to false, in which case the HTML form is only returned as a string.
 ;
 ; Sample form output:
 ;
-;
+; <div id="settingsform">
+;     <form id="PASettings">
+;         <details class="set-cat" id="setcat-Account" open="">
+;             <summary>Account</summary>
+;             <div class="set-opt" id="setopt-username">
+;                 <div id="setdesc-username" class="set-desc">Username<span id="setvalerr-username"
+;                         class="set-err"></span></div>
+;                 <div class="set-val"><input id="setval-username" type="text" onchange="handleText(this);"
+;                         value="skl424"></div>
+;             </div>
+;             <div class="set-opt" id="setopt-password">
+;                 <div id="setdesc-password" class="set-desc">Password<span id="setvalerr-password"
+;                         class="set-err"></span></div>
+;                 <div class="set-val"><input id="setval-password" type="password" onchange="handleText(this);"
+;                         value=""></div>
+;             </div>
+;         </details>
+;         <details class="set-cat" id="setcat-General" open="">
+;             <summary>General</summary>
+;             <div class="set-opt" id="setopt-MouseJiggler">
+;                 <div id="setdesc-MouseJiggler" class="set-desc">Enable mouse jiggler to prevent the screen from going to
+;                     sleep<span id="setvalerr-MouseJiggler" class="set-err"></span></div>
+;                 <div class="set-val"><input id="setval-MouseJiggler" role="switch" oninput="handleCheckbox(this);"
+;                         type="checkbox" checked=""></div>
+;             </div>
+;             <div class="set-opt" id="setopt-MouseJiggler_timeout">
+;                 <div id="setdesc-MouseJiggler_timeout" class="set-desc set-indent1">Disable mouse jiggler after this
+;                     many minutes of inactivity (0 = never disable)<span id="setvalerr-MouseJiggler_timeout"
+;                         class="set-err"></span></div>
+;                 <div class="set-val"><input id="setval-MouseJiggler_timeout" type="text" onchange="handleNum(this);"
+;                         value="0"></div>
+;             </div>
+;             <div class="set-opt" id="setopt-UseVoice">
+;                 <div id="setdesc-UseVoice" class="set-desc">Enable synthesized voice feedback<span
+;                         id="setvalerr-UseVoice" class="set-err"></span></div>
+;                 <div class="set-val"><input id="setval-UseVoice" role="switch" oninput="handleCheckbox(this);"
+;                         type="checkbox" checked=""></div>
+;             </div>
+;             <div class="set-opt" id="setopt-Voice">
+;                 <div id="setdesc-Voice" class="set-desc set-indent1">Which voice to use<span id="setvalerr-Voice"
+;                         class="set-err"></span></div>
+;                 <div class="set-val"><select id="setval-Voice" oninput="handleSelect(this);">
+;                         <option>Dave</option>
+;                         <option selected="">Zira</option>
+;                     </select></div>
+;             </div>
+;         </details>
+;     </form>
+; </div>
 ;
 PASettings_HTMLForm(show := true) {
     
@@ -592,7 +706,6 @@ PASettings_HTMLForm(show := true) {
 }
 
 
-
 ; Web callback form handler functions
 ;
 ; HandleFormInput() is called by JS in response to changes made to form elements.
@@ -652,3 +765,4 @@ HandleFormInput(WebView, id, newval) {
     }
 
 }
+

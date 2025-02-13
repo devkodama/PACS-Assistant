@@ -66,9 +66,13 @@ The **Tab** key moves to the next field in a PowerScribe report.
 
 ### ` (Backtick or tilde) key
 
-The **`** key toggles between the Worklist and Text pages of the EI Desktop.
+The **`** key displays the report for the comparison study, similar to clicking on the Display Study Details icon found in the upper right corner of each viewport. Typically, pressing the **`** key displays the report for the most recent comparison study. Pressing the key again toggles to the report of a second comparison study if displayed on the screen, or otherwise the empty report of the active study.
 
-**Shift-`** brings up the Search page of the EI Desktop. Pressing it a second time resets the search fields and puts the cursor in the Patient last name field, ready to enter a search.
+(This works for 1x1 up to 3x3 viewport layouts, due to the changing size of the icon.)
+
+**Shift-`** toggles between the Worklist and Text pages of the EI Desktop.
+
+**Ctrl-`** brings up the Search page of the EI Desktop. Pressing it a second time resets the search fields and puts the cursor in the Patient last name field, ready to enter a search.
 
 ### Spacebar
 
@@ -94,9 +98,6 @@ By default EI does not allow keyboard shortcuts to be assigned to some of its co
 
 ### Display Study Details
 
-A report icon in the upper right corner of each viewport displays the study's report on the EI Desktop Text page. This function can be assigned to a keyboard shortcut.
-
-In the typical scenario, pressing the shortcut key will display the report for the displayed comparison study. Pressing the key again toggles to the report of either a second displayed comparison study, or otherwise the empty report of the active study.
 
 ### Start 
 
@@ -104,14 +105,30 @@ In the typical scenario, pressing the shortcut key will display the report for t
 
 The PACS Assistant mouse jiggler suppresses the Windows screensaver and prevents the screen from turning off by periodically and imperceptibly moving the mouse.
 
+## Setup - Personal computer
+
+To use PACS Assistant on your own personal computer, copy the file to your Documents or Programs folder. Double click to start it.
+
+The first time you run it, you'll need to enter your username and password. PACS Assistant can save your password so you don't have to enter it again.
+
+
+
+
 ## Comments
 
-PACS Assistant is actively being developed and debugged, so you may run into bugs or conflicts with other applications. A useful key to remember is `F2` to disable PACS Assistant if something weird is happening.
+PACS Assistant is enables a handsfree setup, with a freestanding microphone (either desktop or headset), the right hand on the mouse, and keyboard shortcuts mapped to the left half of the keyboard. With this setup, almost everything can be done without looking down at the keyboard or away from the screen.
 
-PACS Assistant is optimized my own PACS setup. If your setup is different (e.g. different layout of the EI Text area), some features might not work or might not be as useful to you.
+You can use a separate shortcut keypad such as a Tartarus gaming keypad or a Stream Deck and map functions, but 
 
-My setup is: (1) Hands free mic, right hand on the mouse, and left hand on the keyboard, and (2) Almost all keyboard shortcuts are mapped to the left half of the keyboard. With this setup, almost everything can be done by touch without looking down at the keyboard or away from the screen.
+With PACS Assistant I've found it redundant since nearly everything can be done with just the standard keyboard.
 
-(My original setup included a Tartarus gaming keypad to provide the keys needed for many shortcuts. With PACS Assistant, however, all shortcuts can be mapped to the standard keyboard, no longer requiring an external keypad. Hospital workstations now have the exact same functionality as my home setup.)
+With a freestanding microphone and PACS Assistant, the Nuance PowerMic is unnecessary and does not even need to be plugged in.
+
+
+my own PACS setup. If your setup is different (e.g. different layout of the EI Text area), some features might not work or might not be as useful to you.
+
+
+PACS Assistant is actively being developed and debugged, so you may run into bugs or conflicts with other applications. A useful key to remember is `F2` which toggles on and off most PACS Assistant functions if you notice something weird happening.
+
 
 If you use PACS Assistant, let me know of any problems you encounter as well as of any features you'd like to see. I'm interested in improving PACS Assistant so it works for your workflow.

@@ -1,26 +1,58 @@
 /**
  * PAVPN.ahk
  * 
- * Functions for interacting with Cisco AnyConnect VPN
+ * Functions for working with Cisco AnyConnect VPN
  *
  *
  */
+
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
 
+
+
+/**********************************************************
+ * Includes
+ */
+
+
+#Include <FindText>
+#Include PAFindTextStrings.ahk
+
 #Include PAGlobals.ahk
+#Include PASound.ahk
 
 
+
+
+/**********************************************************
+ * Global variables and constants used in this module
+ */
+
+
+
+
+/**********************************************************
+ * Functions to send info
+ * 
+ */
+
+
+
+
+/**********************************************************
+ * Functions to retrieve info about the VPN
+ */
 
 
 ; Returns the connection status of the Cisco VPN
 ;
 ; Returns TRUE if connected, FALSE if not
 ;
-; Connected status is cached, only checked every WATCHVPN_UPDATE_INTERVAL, unless
-; forceupdate is true.
+; Connected status is cached, checked every WATCHVPN_UPDATE_INTERVAL,
+; unless forceupdate is true.
 ;
 VPNIsConnected(forceupdate := false) {
 	static vpnstatus := false
@@ -33,6 +65,13 @@ VPNIsConnected(forceupdate := false) {
 	return vpnstatus
 }
 
+
+
+
+/**********************************************************
+ * Start up and Shut down functions
+ * 
+ */
 
 
 ; Connects the Cisco AnyConnect VPN
@@ -52,12 +91,12 @@ VPNIsConnected(forceupdate := false) {
 ; Returns 1 once connection is successful, 0 if unsuccessful (e.g.
 ;  after timeout or if user cancels).
 ; 
-VPNConnect(cred := CurrentUserCredentials) {
+VPNStart(cred := CurrentUserCredentials) {
 	global PAWindowBusy
 	global PACancelRequest
 	static running := false			; true if the VPNConnect is already running
 
-	; if VPNConnect() is already running, don't run another instance
+	; if VPNStart() is already running, don't run another instance
 	if running {
 		return -1
 	}
@@ -92,15 +131,15 @@ VPNConnect(cred := CurrentUserCredentials) {
 	PAGui_ShowCancelButton()
 
 	; loop until connected, timed out, cancelled, or failed too many times
-	connected := false
 	tick0 := A_TickCount
-	lastdialog := ""
+	connected := false
+	cancelled := false
 	failedlogins := 0
 	runflag := false
-	cancelled := false
-	trace := ""			;for debugging
+	lastdialog := ""
+;	trace := ""			;for debugging
 
-	while !connected && !cancelled && failedlogins < VPN_FAILEDLOGINS_MAX && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
+	while !connected && !cancelled && (failedlogins < VPN_FAILEDLOGINS_MAX) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 
 		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
@@ -125,10 +164,13 @@ VPNConnect(cred := CurrentUserCredentials) {
 		if hwndotp {
 			; wait for user to enter otp and/or close window
 			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
-			while (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) && (WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)) {
-				WinActivate(hwndotp) 		; keep OTP window focused
-				Sleep(500)
+			while (WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 				PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				Sleep(500)
+				try {
+					WinActivate(hwndotp) 		; keep OTP window focused
+				} catch {
+				}
 				if PACancelRequest {
 					cancelled := true
 					break			; inner while
@@ -219,9 +261,9 @@ VPNConnect(cred := CurrentUserCredentials) {
 				; wait for main window to be appear
 				tick1 := A_TickCount
 				while !(hwndmain := PAWindows["VPN"]["main"].hwnd) && (A_TickCount - tick1 < VPN_DIALOG_TIMEOUT * 1000) {
-					PAWindows.Update("VPN")
-					Sleep(500)
 					PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+					Sleep(500)
+					PAWindows.Update("VPN")
 trace .= "(w:" . A_TickCount-tick1 . ")"
 					if PACancelRequest {
 						cancelled := true
@@ -263,7 +305,6 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 }
 
 
-
 ; Disconnects the Cisco AnyConnect VPN
 ;
 ; Function does not allow reentry. If called again while already running, 
@@ -277,12 +318,12 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 ;
 ; Returns 1 if disconnected, 0 if disconnection fails
 ; 
-VPNDisconnect() {
+VPNStop() {
 	global PACancelRequest
 	static running := false			; true if the VPNDisconnect is already running
 	static tick0 := A_TickCount
 
-	; if VPNDisconnect() is already running, don't run another instance
+	; if VPNStop() is already running, don't run another instance
 	if running {
 		return -1
 	}
@@ -326,3 +367,4 @@ VPNDisconnect() {
 	running := false
 	return !connected ? 1 : 0
 }
+

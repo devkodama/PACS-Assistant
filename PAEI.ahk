@@ -1,129 +1,44 @@
-/* PAEI.ahk
-**
-** for working with EI
-**
-**
-*/
+/**
+ * PAEI.ahk
+ * 
+ * Functions for working with EI
+ *
+ *
+ */
+
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
 
-/*
-** Includes
-*/
+
+
+/**********************************************************
+ * Includes
+ */
+
 
 #Include <FindText>
 #Include "PAFindTextStrings.ahk"
 
 #Include PAGlobals.ahk
-
 #include "PAInfo.ahk"
 
 
-/**
+
+
+/**********************************************************
  * Global variables and constants used in this module
  */
 
 
 
 
-
-
-/**
- * Functions for sending commands to PS
+/**********************************************************
+ * Functions to send info to EI
  * 
  */
 
-
-; Send Start Reading/Resume Reading command (Shift-Enter) to EI
-;
-EICmdStartReading() {
-	EISend("^{Enter}")					; Start reading
-	PASound("EIStartReading")
-}
-
-; Display Study Details, by clicking the first Study Details icon
-;	that is in off state, found on either EI image window. This
-;	effectively toggles between active and comparison study details
-;	in the most common scenarios.
-; If not already showing, shows the EI Text area.
-;
-EICmdDisplayStudyDetails() {
-	; search images2 window first
-	EIhwnd := PAWindows["EI"]["images2"].hwnd
-	WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
-	result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
-	if !result {
-		; if no match on images2 window, then search images1 window
-		EIhwnd := PAWindows["EI"]["images1"].hwnd
-		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
-		result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
-	}
-	if result {
-		; found an icon to click
-		WinActivate(EIhwnd)
-		CoordMode("Mouse", "Screen")
-		MouseGetPos(&savex, &savey)
-		FindText().Click(x, y)
-		MouseMove(savex, savey)
-		if !EIIsText() {
-			; switch EI Desktop to Text page
-			EIClickDesktop("EIText")
-		}
-		return true
-	} else {
-		; didn't find an icon to click
-		return false
-	}
-}
-
-; Toggles between the EI desktop Text and List pages
-;
-EICmdToggleListText() {
-	if EIIsList() {
-		EIClickDesktop("EIText")
-	} else {
-		EIClickDesktop("EIList")
-	}
-}
-
-; Shows the Search page on the EI desktop
-;
-EICmdShowSearch() {
-	EIClickDesktop("EISearch")
-}
-
-; Resets the Search page on the EI desktop, places cursor in the patient last name field
-; Assumes the Search page is already showing
-;
-EICmdResetSearch() {
-	if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
-		if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_Clear"], , 0, , , , 1) {
-			WinActivate(EIhwnd)
-			CoordMode("Mouse", "Screen")
-			Click(x, y)					; clear search fields
-			if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_LastName"], , 0, , , , 1) {
-				Click(x, y)				; click in patient last name search field
-				MouseMove(x, y + 16)	; move the mouse away from the edit field
-			}
-		}
-	}	
-}
-
-; Sends the Remove from list command (click on close icon)
-;
-EICmdRemoveFromList() {
-	EIClickImages("EI_RemoveFromList")
-}
-
-
-/**
- * Functions for sending keystrokes and mouse clicks to EI
- * 
- */
- 
 
 ; Send keystroke commands to EI 
 ;
@@ -197,6 +112,7 @@ EIClickDesktop(buttonname) {
 ;
 ; Valid button names are:
 ;	"EI_RemoveFromList"
+;	"EI_StartReading"
 ;
 ; Searches the client area of the EI images1 window within
 ; the coordinates (0,32) and (320,80) for the button (image search with FindText)
@@ -205,6 +121,20 @@ EIClickImages(buttonname) {
 
 	switch buttonname {
 		case "EI_RemoveFromList":
+			hwndEI := PAWindows["EI"]["images1"].hwnd
+			if hwndEI {
+				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+				if FindText(&x, &y, x0, y0, x0 + 1000, y0 + 64, 0, 0, PAText[buttonname]) {
+					PA_WindowBusy := true
+					WinActivate(hwndEI)
+					CoordMode("Mouse", "Screen")
+					MouseGetPos(&savex, &savey)
+					FindText().Click(x, y)
+					PA_WindowBusy := false
+					MouseMove(savex, savey)
+				}
+			}
+		case "EI_StartReading":
 			hwndEI := PAWindows["EI"]["images1"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
@@ -227,9 +157,8 @@ EIClickImages(buttonname) {
 
 
 
-/**
- * Functions for obtaining information about EI
- * 
+/**********************************************************
+ * Functions to retrieve info about PS
  */
 
 
@@ -293,15 +222,16 @@ EIIsImage() {
 
 ; Determines which type of study is being displayed in the EI Text page
 ;
-; Returns "Reading", "Study", "Comparison", or "Addendum"[todo]
+; Returns "Reading", "Study", "Comparison", or "Addendum" [todo]
 ;
 ; 	"Reading" means an unread study
-;	 "Study" means a previously read study on the primary screen
-;	 "Comparison" means a comparison study, being compared to either an unread or previously read study
+;	"Study" means a previously read study on the primary screen
+;	"Comparison" means a comparison study, being compared to either an unread or previously read study
 ;
-; The Text area must be showing or else this function will return the empty string.;
+; The Text area should be showing or else this function will return the empty string.
 ;
 EIGetStudyMode() {
+
 	if hwndEI := PAWindows["EI"]["desktop"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EITextOn"]) {
@@ -322,17 +252,19 @@ EIGetStudyMode() {
 		}
 	}
 	return ""
+
 }
 
 
 
-/**
- * Hook functions
- * 
+
+/**********************************************************
+ * Hook functions called on EI events
  */
 
 
 ; Hook function called when EI desktop window appears
+; This gets called either when desktop window is first opened or is restored
 ;
 EIOpen_EIdesktop() {
 	global PAWindows
@@ -365,19 +297,16 @@ EIOpen_EIdesktop() {
 
 
 ; Hook function called when EI desktop window goes away
+; This gets called either when desktop window is closed OR minimized
 ;
 EIClose_EIdesktop() {
-
 	PASound("EI desktop closed")
-
 }
 
 
 
-/***********************************************/
 
-
-/**
+/**********************************************************
  * Start up and Shut down functions
  * 
  */
@@ -400,7 +329,7 @@ EIClose_EIdesktop() {
 ; should be cancelled
 ;
 ; Returns 1 if EI startup is successful, 0 if unsuccessful. (e.g.
-;  after timeout or if user cancels).
+; after timeout or if user cancels).
 ; 
 EIStart(cred := CurrentUserCredentials) {
 	global PAWindowBusy
@@ -413,19 +342,12 @@ EIStart(cred := CurrentUserCredentials) {
 	}
 	running := true
 
-	; if desktop is aleady up and running, return 1 (true)
+	; if EI is aleady up and running, return 1 (true)
 	if EIIsRunning() {
 		PAStatus("EI is already running")
 	 	running := false
 	 	return 1
 	}
-
-	; hwnddesktop := WinExist(PAWindows["EI"]["desktop"].searchtitle, PAWindows["EI"]["desktop"].wintext)
-	; if hwnddesktop {
-	; 	PAStatus("EI is already running")
-	; 	running := false
-	; 	return 1
-	; }
 
 	; require VPN to be connected, if not quit and return 0 (failure)
 	if !VPNIsConnected(true) {
@@ -434,10 +356,15 @@ EIStart(cred := CurrentUserCredentials) {
 		return 0
 	}
 	
+	cancelled := false
+	failed := false
 	tick0 := A_TickCount
 	PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 	PAGui_ShowCancelButton()
+
+	; prevent focus following
+	PAWindowBusy := true
 
 	; if EI login window does not exist, then EI has not been run, so run EI
 	; or if EI login window does exist but is hidden, then need to kill EI process then rerun EI
@@ -448,12 +375,11 @@ EIStart(cred := CurrentUserCredentials) {
 			; if EI login window is hidden, likely EI was running then closed
 			; need to kill the existing process and start over, since the login box doesn't
 			; display properly with just WinShow()
-			pidlogin := WinGetPID(hwndlogin)
-			if pidlogin {
-				ProcessClose(pidlogin)
+			pid := WinGetPID(hwndlogin)
+			if pid {
+				ProcessClose(pid)
 				PAWindows.Update("EI")
 			}
-; PAToolTip("killed EI login process")
 			hwndlogin := 0
 		}
 
@@ -461,152 +387,155 @@ EIStart(cred := CurrentUserCredentials) {
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
 		PAWindows.Update("EI")
 
-		; wait for login window to be appear
+		; wait for login window to be exist
 		tick1 := A_TickCount
 		while !(hwndlogin := PAWindows["EI"]["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
-			PAWindows.Update("EI")
-			Sleep(500)
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			Sleep(500)
+			PAWindows.Update("EI")
 			if PACancelRequest {
+				cancelled := true
 				break		; while
 			}
 		}
 	}
 
-	; quit if user cancelled
-	if PACancelRequest {
-		PAGui_HideCancelButton()
-		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		running := false
-		return 0
-	}
-
-	; if couldn't get a login window, return failure
+	; if couldn't get a login window, return with failure
 	if !hwndlogin {
-		PAGui_HideCancelButton()
-		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		running := false
-		return 0
-	}
-
-	; restore the EI login window if it is minimized
-	if PAWindows["EI"]["login"].minimized {
-		WinRestore(hwndlogin)
-	}
-
-	; prevent focus following
-	PAWindowBusy := true
-
-	; wait for EI login window to be visible
-	while !PAWindows["EI"]["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
-		Sleep(500)
-		PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		if PACancelRequest {
-			break		; while
-		}
+		failed := true
 	}
 
 	; quit if user cancelled
 	if PACancelRequest {
-		PAGui_HideCancelButton()
-		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		PAWindowBusy := false	; restore focus following
-		running := false
-		return 0
+		cancelled := true
 	}
 
-	; if EI Login window still not visible after time out, return failure
-	if !PAWindows["EI"]["login"].visible {
-		PAGui_HideCancelButton()
-		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		PAWindowBusy := false	; restore focus following
-		running := false
-		return 0
-	}
+	if !cancelled && !failed {
 
-	; EI login window should be visible
-	WinActivate(hwndlogin)
+		; got an EI login window, start the login process
+	
+		; restore the EI login window if it is minimized
+		if PAWindows["EI"]["login"].minimized {
+			WinRestore(hwndlogin)
+		}
 
-	; delay to allow display of the username and password edit fields
-	sleep(750)
+		; wait for EI login window to be visible (not hidden)
+		while !PAWindows["EI"]["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
+			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			Sleep(500)
+			PAWindows.Update("EI")
+			if PACancelRequest {
+				cancelled := true
+				break		; while
+			}
+		}
 
-	if PACancelRequest {
-		PAGui_HideCancelButton()
-		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		PAWindowBusy := false	; restore focus following
-		running := false
-		return 0
-	}
+		if !PAWindows["EI"]["login"].visible {
+			
+			; if EI Login window still not visible after time out, return failure
+			failed := true
 
-	; locate the username and password fields
-	WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
-	ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EILoginField"])
-	if ok {
-		; enter the credentials and press OK to start login
-		CoordMode("Mouse", "Screen")
-		BlockInput true
-		MouseGetPos(&savex, &savey)
-		Click(ok[1].x, ok[1].y + 8)
-		Send("^a" . cred.username)
-		Click(ok[2].x, ok[2].y + 8)
-		Send("^a" . cred.password)
-		Send("!o")					; Presses OK key (Alt-O) to start login
-		MouseMove(savex, savey)
-		BlockInput false
-	}
+		} else {
 
-	Sleep(500)
-	PAWindows.Update("EI")
+			; EI login window is visible
+			WinActivate(hwndlogin)
 
-	if PACancelRequest {
-		PAGui_HideCancelButton()
-		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		PAWindowBusy := false	; restore focus following
-		running := false
-		return 0
-	}
+			; delay to allow display of the username and password edit fields
+			sleep(1000)
 
-	; waits for EI desktop window to appear
-	tick1 := A_TickCount
-	while !(hwnddesktop := PAWindows["EI"]["desktop"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
-		PAWindows.Update("EI")
-		Sleep(500)
-		PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		if PACancelRequest {
-			break
+			if PACancelRequest {
+				cancelled := true
+			}
+		}
+		
+		if !cancelled && !failed {
+
+			; locate the username and password fields
+			WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
+			ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EILoginField"])
+			if ok {
+				; enter the credentials and press OK to start login
+				CoordMode("Mouse", "Screen")
+				BlockInput true				; prevent user input from interfering
+				MouseGetPos(&savex, &savey)
+				Click(ok[1].x, ok[1].y + 8)
+				Send("^a" . cred.username)
+				Click(ok[2].x, ok[2].y + 8)
+				Send("^a" . cred.password)
+				Send("!o")					; Presses OK key (Alt-O) to start login
+				MouseMove(savex, savey)
+				BlockInput false
+			}
+
+			Sleep(500)
+			PAWindows.Update("EI")
+
+			if PACancelRequest {
+				cancelled := true
+			}
+
+			; waits for EI desktop window to appear
+			tick1 := A_TickCount
+			while !cancelled && !(hwnddesktop := PAWindows["EI"]["desktop"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
+				PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				Sleep(500)
+				PAWindows.Update("EI")
+				if PACancelRequest {
+					cancelled := true
+					break
+				}
+			}
+			if !hwnddesktop {
+				; if EI desktop window still not visible after time out, return failure
+				failed := true
+			}
 		}
 	}
-
-	; quit if user cancelled
-	if PACancelRequest {
-		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		PAGui_HideCancelButton()
-		PAWindowBusy := false	; restore focus following
-		running := false
-		return 0
-	}
-
-	; if no desktop window after timeout, return failure
-	if !hwnddesktop {
-		PAGui_HideCancelButton()
-		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		PAWindowBusy := false	; restore focus following
-		running := false
-		return 0
-	}
-
-	PAStatus("EI started (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 	PAGui_HideCancelButton()
 
-	; restore focus following
-	PAWindowBusy := false
+	if cancelled {
 
-	; done
+		; user cancelled
+		PAStatus("EI startup cancelled - cleaning up...")
+
+		; in this case, EI may have already been started up
+		; if there is an EI process, then need to kill EI process before we exit
+		if	hwndlogin := WinExist(PAWindows["EI"]["login"].searchtitle, PAWindows["EI"]["login"].wintext) {
+			if pid := WinGetPID(hwndlogin) {
+				ProcessClose(pid)
+				PAWindows.Update("EI")
+			}
+		} else if hwnddesktop := WinExist(PAWindows["EI"]["desktop"].searchtitle, PAWindows["EI"]["desktop"].wintext) {
+			if pid := WinGetPID(hwnddesktop) {
+				ProcessClose(pid)
+				PAWindows.Update("EI")
+			}
+		}
+
+		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+
+	} else if failed {
+
+		; if failure, or if no desktop window by now, return as failure
+		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+
+	} else {
+
+		; success
+		PAStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 1
+
+	}
+
+; Should we wait for PS & Epic to start up completely??
+
+	PAWindowBusy := false	; restore focus following
 	running := false
-	return 1
+	return result
 }
-
 
 
 ; Shut down Enterprise Imaging
@@ -614,16 +543,18 @@ EIStart(cred := CurrentUserCredentials) {
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
 ;
-; Monitors EI desktop until it is closed then returns true. If EI desktop
-; does not close within EI_SHUTDOWN_TIMEOUT, returns false.
+; Shutting down EI normally has side effects of closing PowerScribe and Epic.
+; This function monitors and waits for PowerScribe and Epic to fully close
+; as well before returning.
 ;
-; Shutting down EI has the side effects of closing PowerScribe and Epic.
+; Wait time is defined by EI_SHUTDOWN_TIMEOUT. If complete shutdown does not
+; occur by that time, returns 0 (failure).
 ;
 ; Periodically checks PACancelRequest to see if it the startup attempt
-; should be cancelled
+; should be cancelled.
 ;
-; Returns 1 if EI shut down is successful, 0 if unsuccessful. (e.g.
-;  after timeout or if user cancels).
+; Returns 1 if EI, PS, and Epic are all shut down is successful,
+; 0 if unsuccessful (e.g. after timeout or if user cancels).
 ;
 EIStop() {
 	global PACancelRequest
@@ -642,75 +573,129 @@ EIStop() {
 		return 1
 	}
 
-	tick0 := A_TickCount
 	PAStatus("Shutting down EI...")
+	tick0 := A_TickCount
 	
 	PAGui_ShowCancelButton()
+	cancelled := false
+	resultEI := false
+	resultPS := false
+	resultEPIC := false
+	
+	; prevent focus following
+	PAWindowBusy := true
 
 	; Close EI desktop
 	EISend("!{F4}", "desktop")
 
 	; wait for EI desktop to go away
-	tick0 := A_TickCount
-	while PAWindows["EI"]["desktop"].hwnd && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
-		sleep(500)
+	while !cancelled && (hwndEI := PAWindows["EI"]["desktop"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		sleep(500)
 		PAWindows.Update("EI")
+		if PACancelRequest {
+			cancelled := true
+			break
+		}
+	}
+	if !hwndEI {
+		; EI desktop successfuly closed
+		resultEI := true
 	}
 
-	if PAWindows["EI"]["desktop"].hwnd {
-		; EI desktop window is still not closed
-		PAStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		running := false
-		return 0
-	} else {
-		PAStatus("EI shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-	}
+	if !cancelled {
+
+		pscloseflag := false		; set to true if an Alt-F4 has been sent to close PS
+
+		; wait for both PS & Epic to shut down
+		while !cancelled && (!resultPS || !resultEPIC) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 	
+			PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			sleep(500)
+			PAWindows.Update("PS")
+			PAWindows.Update("EPIC")
+			
+			winitem := PSParent()
+			if !winitem {
+				; PS successfully closed
+				resultPS := true
+			} else if !pscloseflag && winitem.winkey = "login" {
+				; We're at the login window. Close it.
+				; Don't use PSSend() as it is written to send only to the report or addendum windows
+				; ControlSend("!{F4}", , winitem.hwnd)
+				WinClose(winitem.hwnd)
+				pscloseflag := true
+			}
+	
+			hwndEPIC := PAWindows["EPIC"]["main"].hwnd
+			if !hwndEPIC {
+				resultEPIC := true
+			} else if EPICIsLogin() {
+				; need to shut down Epic
+				WinClose(hwndEPIC)
+			}
 
+			if PACancelRequest {
+				cancelled := true
+				break
+			}
+		}
+	}
 
 	PAGui_HideCancelButton()
 
+	if cancelled {
+
+		; user cancelled
+		PAStatus("EI shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+
+	} else if resultEI && resultPS && resultEPIC {
+
+		; shut down successful
+		PAStatus("EI shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 1
+
+	} else if !resultEI {
+		
+		; something went wrong
+		PAStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+		
+	} else if !resultPS {
+		
+		; something went wrong
+		PAStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+		
+	} else if !resultEPIC {
+		
+		; something went wrong
+		PAStatus("Could not shut down Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+
+	} else {		
+
+		; something went wrong
+		PAStatus("Could not shut down EI, PowerScribe, and/or Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+		
+	}
+
+	PAWindowBusy := false	; restore focus following
+
 	; done
 	running := false
-	return 1
+	return result
 }
 
-;TODO the case where EI is already closed and didn't signal PS to close. The dialog boxes won't appear
-
-	; ; if powerscribe is running, wait for its close dialogs
-	; if WinExist("PowerScribe") {
-
-	; 	;wait for dialog to confirm logoff from powerscribe
-	; 	hwndPS := WinWait("PowerScribe", "Are you sure you wish to log off the application?", 30)			; 30 second timeout
-	; 	if (hwndPS) {
-	; 		ControlSend("{Enter}", "Yes", hwndPS)
-	; 	}
-
-	; 	;wait for dialog to confirm save speech files
-	; 	hwndPS := WinWait("PowerScribe", "Your speech files have changed. Do you wish to save the changes?", 5)			; 5 second timeout
-	; 	if (hwndPS) {
-	; 		ControlSend("{Enter}", "Yes", hwndPS)
-	; 	}
-
-	; 	; wait for the powerscribe login screen, then shut down powerscribe
-	; 	hwndPS := WinWait("PowerScribe", "Disable speech", 60)			; 60 second timeout
-	; 	if (hwndPS) {
-	; 		WinActivate(hwndPS)
-	; 		Send "!{F4}"				; send Alt-F4 to shutdown EI
-	; 	}
-
-	; }
-; 
-; 
-; }
 
 
 
-
-
-
-/***********************************************/
+/**********************************************************
+ * PS data retrieval and parsing functions
+ *  
+ */
 
 
 ; [wip]
@@ -864,7 +849,6 @@ _EIParsePatientInfo(&patientinfo := "", contents := "") {
 }
 
 
-
 ; Retrieves data from Study Info section data of EI Desktop text page
 ;
 ; Should be passed a Patient object, with whom this study is associated
@@ -1014,7 +998,6 @@ if n++ > 2 {
 }
 
 
-
 ; Looks for data within the passed contents string to match the following items:
 ;	Accession number
 ;	Study description
@@ -1126,259 +1109,102 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 
 
 
-/*
-; Retrieves obtainable data from EI Desktop window
-; Returns parsed data in data map, similar to:
-;	data["firstname"] = Last_name
-;	data["lastname"] = First_name
-;	...
-; Or returns empty object if no EI Desktop window
+
+/**********************************************************
+ * EI Commands
+ *  
+ */
+
+
+; Send Start reading/Resume reading command to EI
 ;
-; See _EIParseContents() definition for possible keys
+; Uses EIClickImages to target eyeglasses icon since that works for
+; both Start reading and Resume reading. Ctrl-Enter is a shortcut
+; for Start reading but it doesn't work for Resume reading.
 ;
-RetrieveDataEI() {
-	hwndEI := WinExist("Diagnostic Desktop - 8")
-	if (hwndEI) {
-
-		; Active EI window to work with it
-		WinActivate hwndEI
-
-		; Retrieve the location and size of the workspace of the EI window
-		WinGetClientPos &EIx, &EIy, &EIw, &EIh, hwndEI
-
-		; Create return data object
-		data := Map()
-
-		; Look for Patient Info section and extract contents
-		try {
-			if ImageSearch(&x0, &y0, 0, 0, EIw, 256, "images\img_PatientInfo.png") {
-				;MsgBox "img_PatientInfo was found at " x0 "x" y0
-
-				; look for right edge of Patient Info section
-				if ImageSearch(&x1, &y, x0, y0, EIh-x0, y0+16, "images\img_BlueVR16.png")
-					{} ;MsgBox "img_BlueVR16 was found at " x1 "x" y
-				else
-				{} ;MsgBox "img_BlueVR16 not found"
-
-				; look for bottom edge of Patient Info section
-				if ImageSearch(&x, &y1, x0, y0, x0+32, EIh-y0, "images\img_BlueHR32.png")
-					{} ;MsgBox "img_BlueHR32 was found at " x "x" y1
-				else
-				{} ;MsgBox "img_BlueHR32 not found"
-
-				; Patient Info section is bound by x0, y0, x1, y1
-				; Look for all the edit boxes within the Patient Info section and extract the text
-				; Parse the text into data fields
-				xcur := x - 1
-				ycur := y0
-				A_Clipboard := ""
-				;contents := ""
-
-				foundall := _EIParsePatientInfo()		;initialize PatientInfo section, sets foundall to false
-				while !foundall && ImageSearch(&x, &y, xcur, ycur, x1, y1, "images\img_ULCornerEditBox.png") {
-					; found one, copy the text
-					;MsgBox x "," y " cur[" xcur "," ycur "]"
-
-					Click x+4, y+4
-					SendInput "^a^c"
-					ClipWait 0.05				; 50 ms timeout
-					contents := A_Clipboard
-					;msgbox "'" contents "'"
-					foundall := _EIParsePatientInfo(&data, contents)
-
-					; update search start position for next iteration
-					ycur := y + 4
-					A_Clipboard := ""
-					;MsgBox "next starting position " xcur "," ycur " end pos[" x1 "," y1 "]"
-				}
-
-			} else
-				{} ;MsgBox "img_PatientInfo not found"
-
-		}
-		catch as exc {
-				MsgBox "1 ImageSearch failed due to the following error:`n" exc.Message
-		}
-
-		; Look for Study Info section and extract contents
-		try {
-			if ImageSearch(&x0, &y0, 0, 0, EIw, 256, "images\img_StudyInfo.png") {
-				;MsgBox "img_StudyInfo was found at " x0 "x" y0
-
-				; look for right edge of Study Info section
-				if ImageSearch(&x1, &y, x0, y0, EIh - x0, y0 + 16, "images\img_BlueVR16.png")
-					{} ;MsgBox "img_BlueVR16 was found at " x1 "x" y
-				else
-					{} ;MsgBox "img_BlueVR16 not found"
-
-				; look for bottom edge of Study Info section
-				if ImageSearch(&x, &y1, x0, y0, x0 + 32, EIh - y0, "images\img_BlueHR32.png")
-					{} ;MsgBox "img_BlueHR32 was found at " x "x" y1
-				else
-					{} ;MsgBox "img_BlueHR32 not found"
-
-				; Study Info section is bound by x0, y0, x1, y1
-				; Look for all the edit boxes within the Study Info section and extract the text
-				; Parse the text into data fields
-				xcur := x0-1
-				ycur := y0
-				A_Clipboard := ""
-
-				edit2flag := 0
-
-				foundall := _EIParseStudyInfo()		;initialize PatientInfo section, sets foundall to false
-				while !foundall && ImageSearch(&x, &y, xcur, ycur, x1, y1, "images\img_ULCornerEditBox.png") {
-
-					; found one, copy the text
-					;MsgBox x "," y " cur[" xcur "," ycur "]"
-
-					Click x + 4, y + 4
-					SendInput "^a^c"
-					ClipWait 0.05				; 50 ms timeout
-					contents := A_Clipboard
-
-					hint := ""
-					foundall := _EIParseStudyInfo(&data, contents, hint)
-
-					; update search start position for next iteration
-					ycur := y + 4
-					A_Clipboard := ""
-					;MsgBox "next starting position " xcur "," ycur " end pos[" x1 "," y1 "]"
-				}
-
-				xcur := x0-1
-				ycur := y0
-				A_Clipboard := ""
-				while !foundall && ImageSearch(&x, &y, xcur, ycur, x1, y1, "images\img_ULCornerEditBox2.png") {
-
-					; found one, copy the text
-					;MsgBox x "," y " cur[" xcur "," ycur "]"
-
-					Click x + 4, y + 4
-					SendInput "^a^c"
-					ClipWait 0.05				; 50 ms timeout
-					contents := A_Clipboard
-
-					hint := "reason"
-					foundall := _EIParseStudyInfo(&data, contents, hint)
-
-					; update search start position for next iteration
-					ycur := y + 4
-					A_Clipboard := ""
-					;MsgBox "next starting position " xcur "," ycur " end pos[" x1 "," y1 "]"
-				}
-
-			} else
-				{} ;MsgBox "img_StudyInfo not found"
-
-		}
-		catch as exc {
-				MsgBox "2 ImageSearch failed due to the following error:`n" exc.Message
-		}
-
-
-		return data
-	}
-
-	return		; nothing returned
+EICmdStartReading() {
+	EIClickImages("EI_StartReading")
+	PASound("EIStartReading")
 }
 
-*/
 
-
-
-
-; Looks for data within the passed contents string matching the following items:
-; 	Performing facility
-;	Patient type at acquisition
-;	Task priority
-;	Ordering physician
-;	Study description
-;	Accession number
-;	Reason for study
+; Display Study Details, by clicking the first Study Details icon
+;	that is in off state, found on either EI image window. This
+;	effectively toggles between active and comparison study details
+;	in the most common scenarios.
 ;
-; and stores the string in:
-;	data["facility"]
-;	data["patienttype"]
-;	data["priority"]
-;	data["orderingmd"]
-;	data["study"]
-;	data["accession"]
-;	data["reason"]
+; If not already showing, switches to the EI Text area.
 ;
-; Once all items have been found, function returns true.
-;
-; If unrecognized data are found, strings are stored in:
-;	data["unknown1"]
-;	data["unknown2"]
-;	...
-;
-; To reset and search for a new set of data, call with no parameters.
-; Function will return false again.
-;
-xx_EIParseStudyInfo(&data := "", contents := "", hint := "") {
-	static index :=0
-	static foundfacility := false
-	static foundpatienttype := false
-	static foundpriority := false
-	static foundorderingmd := false
-	static foundstudy := false
-	static foundaccession := false
-	static foundreason := false
-
-	if data = "" {
-		index := 0
-		foundfacility := false
-		foundpatienttype := false
-		foundpriority := false
-		foundorderingmd := false
-		foundstudy := false
-		foundaccession := false
-		foundreason := false
-
-	} else if contents = "" {
-		; contents are empty, return without storing it
-
-	} else if SubStr(contents, 1, 8) = "com.agfa" {
-		; ignore this field, return without storing it
-
+EICmdDisplayStudyDetails() {
+	; search images2 window first
+	EIhwnd := PAWindows["EI"]["images2"].hwnd
+	WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
+	result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
+	if !result {
+		; if no match on images2 window, then search images1 window
+		EIhwnd := PAWindows["EI"]["images1"].hwnd
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
+		result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
+	}
+	if result {
+		; found an icon to click
+		WinActivate(EIhwnd)
+		CoordMode("Mouse", "Screen")
+		MouseGetPos(&savex, &savey)
+		FindText().Click(x, y)
+		MouseMove(savex, savey)
+		if !EIIsText() {
+			; switch EI Desktop to Text page
+			EIClickDesktop("EIText")
+		}
+		return true
 	} else {
-		; look for data matches
+		; didn't find an icon to click
+		return false
+	}
+}
 
-		if !foundaccession && SubStr(contents, 1, 3) = "ADV" {
-			foundaccession := true
-			key := "accession"
-		} else if !foundfacility && SubStr(contents, 1, 6) = "AH UCM" {
-			foundfacility := true
-			key := "facility"
-		} else if !foundpriority && RegExMatch(contents, "^Routine|^STAT") {
-			foundpriority := true
-			key := "priority"
-		} else if !foundpatienttype && RegExMatch(contents, "^Ambulatory|^Hospitalized") {
-			foundpatienttype := true
-			key := "patienttype"
-		} else if !foundstudy RegExMatch(contents, "^BI |^CT |^DR |^MR |^NM |^US |^XR ") {
-			foundstudy := true
-			key := "study"
-		} else if !foundorderingmd && RegExMatch(contents, "^[A-Z ]+,[A-Z ]+") {
-			foundorderingmd := true
-			key := "orderingmd"
-		} else {
 
-			if hint {
-				key := hint
-			} else {
-				key := "unknown" . String(index++)
+; Toggles between the EI desktop Text and List pages
+;
+EICmdToggleListText() {
+	if EIIsList() {
+		EIClickDesktop("EIText")
+	} else {
+		EIClickDesktop("EIList")
+	}
+}
+
+
+; Shows the Search page on the EI desktop
+;
+EICmdShowSearch() {
+	EIClickDesktop("EISearch")
+}
+
+
+; Resets the Search page on the EI desktop, places cursor in the patient last name field
+; Assumes the Search page is already showing
+;
+EICmdResetSearch() {
+	if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
+		if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_Clear"], , 0, , , , 1) {
+			WinActivate(EIhwnd)
+			CoordMode("Mouse", "Screen")
+			Click(x, y)					; clear search fields
+			if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_LastName"], , 0, , , , 1) {
+				Click(x, y)				; click in patient last name search field
+				MouseMove(x, y + 16)	; move the mouse away from the edit field
 			}
 		}
-
-		data[key] := contents
-	}
-
-	return foundfacility && foundpatienttype && foundpriority && foundorderingmd && foundstudy && foundaccession && foundreason
+	}	
 }
 
 
-
-
+; Sends the Remove from list command (click on the close icon)
+;
+EICmdRemoveFromList() {
+	EIClickImages("EI_RemoveFromList")
+}
 

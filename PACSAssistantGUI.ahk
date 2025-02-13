@@ -61,12 +61,13 @@ ClickId(WebView, id) {
         
         case "app-VPN":
             if !VPNIsConnected() {
-                DispatchQueue.Push(VPNConnect)
+                DispatchQueue.Push(VPNStart)
             }
         case "app-VPN-connect":
-            DispatchQueue.Push(VPNConnect)
+            DispatchQueue.Push(VPNStart)
         case "app-VPN-disconnect":
-            DispatchQueue.Push(VPNDisconnect)
+            DispatchQueue.Push(VPNStop)
+        
         case "app-EI":
             if !EIIsRunning() {
                 DispatchQueue.Push(EIStart)
@@ -83,15 +84,16 @@ ClickId(WebView, id) {
             PAToolTip("id='" . id . "' was clicked")
 ;            DispatchQueue.Push(PAGui_ForceClosePS)
         case "app-PS-shutdown":
-            ; DispatchQueue.Push(PAGui_ClosePS)
+            DispatchQueue.Push(PSStop)
         case "app-PS-forceclose":
             ; DispatchQueue.Push(PAGui_ForceClosePS)
 
         case "app-EPIC":
-            PASound("EPIC")
-            DispatchQueue.Push(EPICtest)
+            if !EPICIsRunning() {
+                DispatchQueue.Push(EPICstart)
+            }
         case "app-EPIC-startup":
-            PAToolTip("id='" . id . "' was clicked")
+            DispatchQueue.Push(EPICstart)
         case "app-EPIC-shutdown":
             DispatchQueue.Push(EPICStop)
 
@@ -101,7 +103,7 @@ ClickId(WebView, id) {
             DispatchQueue.Push(PAGui_SaveWindowPositions)
 
         case "cancelbutton":
-            PAToolTip("id='" . id . "' was clicked")
+            ; PAToolTip("id='" . id . "' was clicked")
             DispatchQueue.Push(PAGui_CancelButton)
 
         default:
@@ -134,7 +136,7 @@ HoverEvent(WebView, id) {
     msg := HoverMessages[id][PACurState[app]]
     if msg {
         ; display tooltip
-        PAToolTip(msg, 1500)
+        PAToolTip(msg, 500)
     }
 }
 
@@ -163,11 +165,6 @@ PAGui_Post(id, propname, propval) {
 /***************************************/
 
 
-EPICtest() {
-    PAToolTip("EPIC test called")
-}
-
-
 ; Set Status Bar text
 PAGui_SetStatusBar(message := "") {
     global PAStatusBarText
@@ -183,6 +180,7 @@ PAStatus(message := "", duration := 0) {
 }
 
 
+
 ; Call this to show the Cancel button on the status bar
 PAGui_ShowCancelButton() {
     global PACancelRequest
@@ -190,7 +188,6 @@ PAGui_ShowCancelButton() {
     PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').removeAttribute('disabled', '');")
     PAGui_Post("cancelbutton", "style.display", "flex")
     PACancelRequest := false
-PAToolTip("PACancelRequest = " PACancelRequest)
 }
 
 ; Call this to hide the Cancel button on the status bar
@@ -204,8 +201,9 @@ PAGui_CancelButton() {
 
     PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').setAttribute('disabled', '');")
     PACancelRequest := true
-PAToolTip("PACancelRequest = " PACancelRequest)
 }
+
+
 
 ; Restore saved window positions from settings file
 PAGui_RestoreWindowPositions(*) {
@@ -266,24 +264,64 @@ PAGui_PACSStartup(cred := CurrentUserCredentials) {
     }
     running := true
 
-    resultVPN := VPNConnect(cred)
+    resultVPN := false
+    resultEI := false
+    resultEPIC := false
+    resultPS := false
+    ; resultEPIC := false
+    tick0 := A_TickCount
+    
+    PAStatus("Starting PACS (VPN)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+    resultVPN := VPNStart(cred)
     if resultVPN = 1 {
+        PAStatus("Starting PACS (EI)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
         resultEI := EIStart(cred)
+        resultEI := (resultEI = 1) ? true : false
     } else {
-        resultEI := 0
+        resultVPN := false
+        resultEI := false
     }
 
-    if resultVPN && resultEI {
-            PAStatus("PACS started")
-            returnresult := 1
-    } else {
-        if !resultVPN {
-            PAStatus("PACS not started - VPN not connected")
-            returnresult := 0
-        } else if !resultEI {
-            PAStatus("PACS not started - EI could not be started")
-            returnresult := 0
-        }
+	if resultEI {
+        ; EI desktop was started successfully, now wait for PowerScribe
+        ; to login and get to main page
+
+        PAGui_ShowCancelButton()
+        cancelled := false
+
+		tick1 := A_TickCount
+		while !cancelled && !(hwndPS := PAWindows["PS"]["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+            PAStatus("Starting PACS (PowerScribe)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			PAWindows.Update("PS")
+			Sleep(500)
+			if PACancelRequest {
+				cancelled := true
+				break           ; while
+			}
+		}
+       	PAGui_HideCancelButton()
+        resultPS := hwndPS ? true : false
+	}
+
+    if EPICIsRunning() {
+        resultEPIC := true
+    }
+
+    if resultVPN && resultEI && resultPS && resultEPIC {
+        PAStatus("PACS started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        returnresult := 1
+    } else if !resultVPN {
+        PAStatus("PACS not started - VPN not connected (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        returnresult := 0
+    } else if !resultEI {
+        PAStatus("PACS not started - EI could not be started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        returnresult := 0
+    } else if !resultPS {
+        PAStatus("PACS not started - PowerScribe could not be started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        returnresult := 0
+    } else if !resultEPIC {
+        PAStatus("PACS started but Epic could not be started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        returnresult := 0
     }
 
     ;done
@@ -297,7 +335,7 @@ PAGui_PACSStartup(cred := CurrentUserCredentials) {
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
 ;
-; First shuts down EI
+; First shuts down EI (which also shuts down PowerScribe and Epic)
 ;
 ; Upon successful EI shutdown, then disconnects the VPN
 ;
@@ -314,26 +352,23 @@ PAGui_PACSShutdown() {
 
     resultEI := EIStop()
     if resultEI = 1 {
-        
-        ; [todo] need to wait until PS and EPIC (and EI?) are fully shut down before disconnecting the VPN
-
-        resultVPN := VPNDisconnect()
+        resultEI := true
+        resultVPN := VPNStop()
     } else {
-        resultVPN := 0
+        resultEI := false
+        resultVPN := false
     }
 
 
     if resultEI && resultVPN {
         PAStatus("PACS shut down successfully")
         returnresult := 1
-    } else {
-        if !resultEI {
-            PAStatus("PACS shut down not completed - EI not stopped")
-            returnresult := 0
-        } else if !resultVPN {
-            PAStatus("PACS shut down not completed - VPN not disconnected")
-            returnresult := 0
-        }
+    } else if !resultEI {
+        PAStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic not shut down")
+        returnresult := 0
+    } else if !resultVPN {
+        PAStatus("PACS shut down not completed - VPN not disconnected")
+        returnresult := 0
     }
 
     ;done
@@ -390,7 +425,6 @@ PAGui_Init(*) {
 
     PAGui.Title := PAGUI_WINDOWTITLE
 
-
     ; display the PACS Assistant window
     ; restore PACS Assistant window position
 	x := PAWindows["PA"]["main"].xpos
@@ -399,7 +433,6 @@ PAGui_Init(*) {
 	h := PAWindows["PA"]["main"].height
 	if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
 		PAGui.Show("X" . x . " Y" . y . " W" . w . " H" . h, PAGUI_WINDOWTITLE)
-;        PAGui.Show()
 
         PAWindows.Update("PA")
 
@@ -412,7 +445,7 @@ PAGui_Init(*) {
 	}
 
     ; call resize to calculate and set the height of the main display area
-    ; wihtout actually changing the window size
+    ; don't actually change the window size
     PAGui.GetClientPos(, , &w, &h)
     PAGui_Size(PAGui, 0, w, h)
   
@@ -473,12 +506,16 @@ PAGui_Exit(*) {
 
     ; stop daemons
     InitDaemons(false)
+    
+    Sleep(2000)
+
+; msgbox("About to call WinEvent.Stop()")
 
     ; stop all WinEvent windows event callbacks
-;    WinEvent.Stop()    ; this causes crashes on exiting - ???
+; WinEvent.Stop("Show")    ; this causes crashes on exiting - ???
 
-    Sleep(1000)
-    
+; msgbox("About to call ExitApp()")
+
     ; terminate the script
     ExitApp()
 }

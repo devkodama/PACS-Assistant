@@ -1,92 +1,140 @@
-/* PAEPIC.ahk
-**
-** Utility scripts for working with Epic
-**
-**
-*/
+/**
+ * PAEPIC.ahk
+ *
+ * Functions for working with Epic
+ *
+ *
+ */
+
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
 
-/*
-** Includes
-*/
+
+
+/**********************************************************
+ * Includes
+ */
+
 
 #Include <FindText>
 #Include PAFindTextStrings.ahk
 
 #Include PAGlobals.ahk
-
-/*
-** Global variables and constants used in this module
-*/
+#Include PASound.ahk
 
 
 
 
-/***********************************************/
+/**********************************************************
+ * Global variables and constants used in this module
+ */
 
-; Send keystroke commands to Epic
+
+
+
+/**********************************************************
+ * Functions to send info to Epic
+ */
+
+
+; Send keystrokes to Epic
 ;
-; PSSend(cmdstring := "") {
-;     global PA_WindowBusy
+EPICSend(cmdstring := "") {
+    global PAWindowBusy
 
-; 	if (cmdstring) {
-; 		if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) {
-; 			return
-; 		}
+	if PAActive && cmdstring {
+		if hwndEPIC := PAWindows["EPIC"]["main"].hwnd {
+			; at this point hwndPS is non-null and points to the current PS window
+			PAWindowBusy := true
+			BlockInput true				; prevent user input from interfering
+			WinActivate(hwndEPIC)
+			Send(cmdstring)
+			BlockInput false
+			PAWindowBusy := false
+		}
+	}
+}
 
-; 		; at this point hwndPS is non-null and points to the current PS window
-; 		PA_WindowBusy := true
-; 		WinActivate(hwndPS)
-; 		Send(cmdstring)
-; 		PA_WindowBusy := false
-; 	}
-; }
 
 
+/**********************************************************
+ * Functions to retrieve info about Epic
+ */
 
-; Returns the state of the PS360 Dictate button by reading the toolbar button
-; The Dicate button must be visible on screen
-; 
-; If the Dictate button is On, returns true
-; Otherwise returns false
+
+; Returns the status of Epic
 ;
-; Search PS360 client window area from (0,16) to (width, 128). The toolbar
-; button should be within this area.
+; Returns TRUE if Epic is running, FALSE if not
 ;
-; Dictate status is cached, only checked every WATCHDICTATE_UPDATE_INTERVAL
+EPICIsRunning() {
+	PAWindows.Update("EPIC")
+	return PAWindows["EPIC"]["main"].hwnd ? true : false
+}
+
+
+; Several functions below that return true if a specific EPIC page is showing
+; EPIC pages are: login, timezone, chart
 ;
-; PSDictateIsOn() {
-; 	static dictatestatus := false
-; 	static lastcheck := A_TickCount
-
-; 	; if PS report or main window does not exist, return false
-; 	if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) {
-; 		dictatestatus := false
-; 	}
-
-; 	if (A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL {
-; 		try {
-; 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
-; 			if FindText(&x, &y, x0, y0 + 16, x0 + w0, y0 + 128, 0.001, 0.001, PAText["PSDictateOn"]) {
-; 				dictatestatus := true
-; 			} else {
-; 				dictatestatus := false
-; 			}
-; 		} catch {
-; 			dictatestatus := false
-; 		}
-; 		lastcheck := A_TickCount
-; 	}
-
-; 	return dictatestatus
-; }
+; FindText() searches entire Epic window ([todo] could narrow the search to speed up slightly)
+;
 
 
+; Returns true if the Epic login page is showing
+;
+EPICIsLogin() {
+	if hwndEPIC := PAWindows["EPIC"]["main"].hwnd {
+		try {
+			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
+	;PASound("EPIC Is Login")	; debug
+				return true
+			}
+		} catch {
+		}
+	}
+	return false
+}
 
-/***********************************************/
+; Returns true if the Epic time zone confirmation page is showing
+;
+EPICIsTimezone() {
+	if (hwndEPIC := PAWindows["EPIC"]["main"].hwnd) {
+		try {
+			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
+	;PASound("EPIC Is Timezone")	; debug
+				return true
+			}
+		} catch {
+		}
+	}
+	return false
+}
+
+
+; Returns true if the Epic main chart page is showing
+;
+EPICIsChart() {
+	if hwndEPIC := PAWindows["EPIC"]["main"].hwnd {
+		try {
+			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
+	;PASound("EPIC Is chart")
+				return true
+			}
+		} catch {
+		}
+	}
+	return false
+}
+
+
+
+/**********************************************************
+ * Hook functions called on Epic events
+ */
 
 
 ; Hook function called when EPIC main window opens
@@ -100,85 +148,54 @@ EPICOpened_EPICmain() {
 		; Restore EPIC window positions
 		PAWindows.RestoreWindows("EPIC")
 	}
-
-	; launch daemon to monitor for login window and timezone window
-
-
+	
+	if PASettings["EPICtimezone_dismiss"].value {
+		; launch daemon to look for and dismiss timezone window
+		_EPIC_DismissTimezone(true)	; call directly to initialize the callback
+		SetTimer(_EPIC_DismissTimezone, 500)
+	}
 }
 
 
-; Hook function called when EPIC main window opens
+; Hook function called when EPIC main window closed or minimized
 ;
-; When the Epic main window appears
 EPICClosed_EPICmain() {
-
 	PASound("Epic closed")
 }
 
 
-
-/***********************************************/
-
-
-; Returns the status of Epic
+; Helper function to look for and dismiss timezone window,
+; setting the time zone to America/Chicago
 ;
-; Returns TRUE if Epic is running, FALSE if not
-;
-EPICIsRunning() {
-	global PAWindows
+_EPIC_DismissTimezone(initial := false) {
+	static tick0 := 0
 
-	PAWindows.Update("EPIC")
-	hwndEPIC := PAWindows["EPIC"]["main"].hwnd
-
-	return hwndEPIC ? true : false
-}
-
-
-; Functions that return true if a specific EPIC page is showing
-;
-; EPIC pages are: login, timezone, chart
-;
-EPICIsLogin() {
-	if EPIChwnd := PAWindows["EPIC"]["main"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, EPIChwnd)
-		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EPICIsLogin"]) {
-			return true
-		}
+	if initial {
+		tick0 := A_TickCount
+		return
 	}
-	return false
-}
 
-EPICIsTimezone() {
-	if EPIChwnd := PAWindows["EPIC"]["main"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, EPIChwnd)
-		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EPICIsTimezone"]) {
-			return true
-		}
+	if EPICIsTimezone() {
+		EPICSend(EPIC_TIMEZONE . "{Enter}")				; dismiss Timezone dialog with Continue (Alt-O)
+		SetTimer(_EPIC_DismissTimezone, 0)
+	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
+		; timed out, stop checking
+		SetTimer(_EPIC_DismissTimezone, 0)
 	}
-	return false
-}
 
-EPICIsChart() {
-	if EPIChwnd := PAWindows["EPIC"]["main"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, EPIChwnd)
-		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EPICIsChart"]) {
-			return true
-		}
-	}
-	return false
 }
 
 
 
-/***********************************************/
 
-/**
+/**********************************************************
  * Start up and Shut down functions
  * 
  */
 
 
-; [todo] Start Epic
+
+; Start Epic
 ;
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
@@ -187,7 +204,9 @@ EPICIsChart() {
 ;
 ; Returns 1 if successful at starting Epic, 0 if not
 ; 
-EPICStart() {
+EPICStart(cred := CurrentUserCredentials) {
+	global PAWindowBusy
+	global PACancelRequest
 	static running := false
 	
 	; if EPICStart() is already running, don't run another instance
@@ -203,31 +222,125 @@ EPICStart() {
 		return 1
 	}
 
+	; Start Epic
+
+	result := 0
+	cancelled := false
+	failed := false
 	tick0 := A_TickCount
-	PAStatus("Starting Epic...")
-	
+	PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
+	PAGui_ShowCancelButton()
 
-; start Epic here
+	; prevent focus following
+	PAWindowBusy := true
 
+	Run('"' . EXE_EPIC . '" env="PRD"')
+	PAWindows.Update("EPIC")
 
-
-	if !PAWindows["EPIC"]["main"].hwnd {
-		; Epic desktop window is still not opened
-		PAStatus("Could not start Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		running := false
-		return 0
-	} else {
-		PAStatus("Epic started (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+	while !cancelled && !(hwndEPIC := PAWindows["EPIC"]["main"].hwnd) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
+		PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		Sleep(500)
+		PAWindows.Update("EPIC")
+		if PACancelRequest {
+				cancelled := true
+				break		; while
+		}
 	}
+
+	if !cancelled && hwndEPIC {
+		; wait for login window to be exist
+		tick1 := A_TickCount
+		while !cancelled && !(islogin := EPICIsLogin()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+			PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			Sleep(500)
+			PAWindows.Update("EPIC")
+			if PACancelRequest {
+					cancelled := true
+					break		; while
+			}
+		}
+
+		if !cancelled && islogin {
+			; got a login window, now enter credentials
+
+			; locate the username field
+			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+			ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICLoginUser"])
+			if ok {
+				; enter the username
+
+				CoordMode("Mouse", "Screen")
+				BlockInput true				; prevent user input from interfering
+				MouseGetPos(&savex, &savey)	; save current mouse position
+
+				Click(ok[1].x, ok[1].y)
+				Send("^a" . cred.username)
+
+				; locate the password field
+				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+				ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICLoginPassword"])
+				if ok {
+					; enter the password and press OK to start login
+					Click(ok[1].x, ok[1].y)
+					Send("^a" . cred.password)
+					Send("!o")					; Presses OK key (Alt-O) to start login
+				}
+
+				MouseMove(savex, savey)		; restore mouse position
+				BlockInput false
+
+				; now wait for Epic to get past the time zone screen to consider login successful
+				while !cancelled && !(istimezone := EPICIsTimezone()) && !(ischart := EPICIsChart()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+					PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+					Sleep(500)
+					PAWindows.Update("EPIC")
+					if PACancelRequest {
+							cancelled := true
+							break		; while
+					}
+				}
+				; now wait for Epic to get to the chart screen
+				while !cancelled && !(ischart := EPICIsChart()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+					PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+					Sleep(500)
+					PAWindows.Update("EPIC")
+					if PACancelRequest {
+							cancelled := true
+							break		; while
+					}
+				}
+				if !ischart {
+					failed := true
+				}
+			}
+		}
+	}	
+	
+	PAGui_HideCancelButton()
+
+	if cancelled {
+		PAStatus("EPIC startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+	} else if failed {
+		PAStatus("Could not start EPIC (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+	} else {
+		PAStatus("EPIC startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 1
+	}
+	
+	PAWindowBusy := false	; restore focus following
 
 	; done
 	running := false
-	return 1
+	return result
 }
 
 
-; Stop Epic
+; Shut down Epic
+;
+; Log out, close application.
 ;
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
@@ -237,6 +350,8 @@ EPICStart() {
 ; Returns 1 if successful, 0 if not
 ; 
 EPICStop() {
+	global PAWindowBusy
+	global PACancelRequest
 	static running := false
 	
 	; if EPICStop() is already running, don't run another instance
@@ -252,33 +367,72 @@ EPICStop() {
 		return 1
 	}
 
+	cancelled := false
+	failed := false
 	tick0 := A_TickCount
 	PAStatus("Shutting down Epic...")
-	
+
+	PAGui_ShowCancelButton()
+
+	; prevent focus following
+	PAWindowBusy := true
+
 	; close Epic
 	hwndEPIC := PAWindows["EPIC"]["main"].hwnd
     if hwndEPIC {
         WinClose(hwndEPIC)
     }
-	
+
 	; wait for Epic main window to go away
-	tick0 := A_TickCount
-	loop {
-		sleep(500)
+	while !cancelled && PAWindows["EPIC"]["main"].hwnd && (A_TickCount-tick0 < EPIC_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		sleep(500)
 		PAWindows.Update("EPIC")
-	} until !PAWindows["EPIC"]["main"].hwnd || (A_TickCount-tick0 > EPIC_SHUTDOWN_TIMEOUT * 1000) 
+		if PACancelRequest {
+			cancelled := true
+			break		; while
+		}
+	}
 
 	if PAWindows["EPIC"]["main"].hwnd {
-		; Epic desktop window is still not closed
-		PAStatus("Could not shut down Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		running := false
-		return 0
-	} else {
-		PAStatus("Epic shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		failed := true
 	}
+
+	PAGui_HideCancelButton()
+
+	if cancelled {
+		PAStatus("EPIC shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+	} else if failed {
+		PAStatus("Could not shut down EPIC (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+	} else {
+		PAStatus("EPIC shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 1
+	}
+	
+	PAWindowBusy := false	; restore focus following
 
 	; done
 	running := false
-	return 1
+	return result
 }
+
+
+
+
+/**********************************************************
+ * Epic data retrieval and parsing functions
+ *  
+ */
+
+
+
+
+
+
+/**********************************************************
+ * Epic Commands
+ *  
+ */
+

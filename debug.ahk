@@ -19,13 +19,19 @@
 
 #HotIf WinActive('ahk_exe code.exe')
 
-~^s:: {
-    
+~^s:: {   
     ; stop daemons
     InitDaemons(false)
 
     ; stop windows "Close" event callbacks
-    WinEvent.Stop("Close")
+;    WinEvent.Stop("Close")
+
+; MsgBox("About to call WinEvent.Stop()")
+
+    ; stop all WinEvent event callbacks
+; WinEvent.Stop("Show")
+
+; MsgBox("Just called WinEvent.Stop()")
 
     PAToolTip("Reloading script " A_ScriptName " in 3 seconds...")
     Sleep(1000)
@@ -39,7 +45,7 @@
     if Result = "Yes"
         Edit
     return
-    
+
 }
 
 #HotIf

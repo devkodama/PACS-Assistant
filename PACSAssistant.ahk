@@ -142,7 +142,7 @@ class WindowItem {
 		this.winkey := winkey
 
 		this.fulltitle := full
-		this.searchtitle := (short ? short : "xxx")
+		this.searchtitle := (short ? short : "")
 		this.wintext := text
 		this.ahk_exe := exe
 		this.criteria := this.searchtitle . (this.ahk_exe ? " ahk_exe " . this.ahk_exe : "")
@@ -290,7 +290,7 @@ class WindowItem {
 				}
 
 				; set up callback that triggers (once) when this window gets closed
-				WinEvent.Close(_PAWindowCloseCallback, gethwnd, 1)
+; WinEvent.Close(_PAWindowCloseCallback, gethwnd, 1)
 				
 			}
 
@@ -795,10 +795,22 @@ PACheckContext(contexts*) {
 		return false
 	}
 
+	if IsObject(contexts[1]) {
+		; we got an array of strings as the first parameter so split it up
+		sarr := Array()
+		for s in contexts[1] {
+			sarr.Push(s)
+		}
+	} else {
+		; contexts[] is an array of strings
+		sarr := contexts
+	}
+	; sarr now contains an array of context strings
+
 	if app != "" || PAWindows.GetAppWin("", &app, &win) {
 	
 		; check app, win again each context string
-		for i,context in contexts {
+		for context in sarr {
 
 			carr := StrSplit(context, " ")
 			capp := carr[1]		;get the app from the context string
@@ -821,7 +833,7 @@ PACheckContext(contexts*) {
 					if (k := InStr(cwin, "/")) {
 						cpag := SubStr(cwin, k + 1)
 						cwin := SubStr(cwin, 1, k - 1)
-						PAToolTip(cwin "/" cpag)
+;						PAToolTip(cwin "/" cpag)
 						if win == cwin {
 							; found a window match, look for a page match
 							switch cpag {
@@ -882,7 +894,7 @@ _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 				; SetTimer ToolTip, -7000
 
 				; set up an event trigger for when this window is closed
-				WinEvent.Close(_PAWindowCloseCallback, hwnd, 1)
+;debug				WinEvent.Close(_PAWindowCloseCallback, hwnd, 1)
 				break 2		; break out of both for loops
 			}
 		}
@@ -961,16 +973,19 @@ PA_Init() {
 
 	; Register Windows hooks to monitor window open events for all the
 	; windows of interest (all of the windows in PAWindows)
-;	debugmsg := ""
+; debugmsg := ""
 	for app in PAWindows["keys"] {
 		for win in PAWindows[app]["keys"] {
 			if PAWindows[app][win].criteria {
 				WinEvent.Show(_PAWindowshowCallback, PAWindows[app][win].criteria, ,PAWindows[app][win].wintext)
+; debugmsg .= PAWindows[app][win].criteria " / " PAWindows[app][win].wintext "`n"
 			}
 		}
 	}
 
+; MsgBox(debugmsg)
 	;
+
 	PAWindows.Update()
 
 	PAWindows.ReadSettings()

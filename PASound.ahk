@@ -74,11 +74,12 @@ class SoundItem {
 ; Sounds maps PA events to voice or audio feedback
 Sounds := Map()
 
-Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
-;Sounds["sign report"] := SoundItem(, A_WinDir "\Media\tada.wav")
 Sounds["PSTab"] := SoundItem( , [440, 10])
 Sounds["PSToggleMic"] := SoundItem( , 392)
-Sounds["PSDraftReport"] := SoundItem("Save as draft", , "Report saved as draft")
+
+Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
+Sounds["PSDraftReport"] := SoundItem("Save as draft", , "Report saved as Draft")
+Sounds["PSSPreliminary"] := SoundItem("Preliminary report", , "Report saved as Preliminary")
 
 Sounds["EIStartReading"] := SoundItem( , 480)
 Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])

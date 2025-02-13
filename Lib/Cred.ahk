@@ -3,10 +3,27 @@
  *
  * Credentials management using Windows Credential Manager API
  * 
+ * Customized for PACS Assistant
+ * 
  * Refs:
  *	https://www.autohotkey.com/boards/viewtopic.php?t=116285
  *	https://www.reddit.com/r/AutoHotkey/comments/1051mkc/comment/j3921wj/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
  *  https://learn.microsoft.com/en-us/windows/win32/secauthn/credentials-management
+ * 
+ * 
+ *    Usage examples:
+ *  
+ *    if !CredWrite("AHK_CredForScript1", "SomeUsername", "SomePassword")
+ *    	MsgBox "failed to write cred"
+ * 
+ *    if (cred := CredRead("AHK_CredForScript1"))
+ *    	MsgBox cred.name "," cred.username "," cred.password
+ *    else
+ *    	MsgBox "Cred not found"
+ * 
+ *    if !CredDelete("AHK_CredForScript1")
+ *    	MsgBox "Failed to delete cred"
+ * 
  * 
  */
 
@@ -14,19 +31,28 @@
  #Requires AutoHotkey v2.0
 
 
-; Usage examples:
- 
-; if !CredWrite("AHK_CredForScript1", "SomeUsername", "SomePassword")
-; 	MsgBox "failed to write cred"
 
-; if (cred := CredRead("AHK_CredForScript1"))
-; 	MsgBox cred.name "," cred.username "," cred.password
-; else
-; 	MsgBox "Cred not found"
 
-; if !CredDelete("AHK_CredForScript1")
-; 	MsgBox "Failed to delete cred"
+/**********************************************************
+ * Classes defined by this module
+ */
 
+
+; Credential class
+;
+; Stores a set of credentials for PACS Assistant
+;
+class Credential {
+    username := ""      ; username
+    password := ""      ; password
+}
+
+
+
+
+/**********************************************************
+ * Functions defined by this module
+ */
 
 
 ; Write username and password to credential name.
@@ -47,6 +73,7 @@ CredWrite(name, username, password) {
 	)
 }
 
+
 ; Delete credential name.
 ; Returns true on success, false on failure.
 CredDelete(name) {
@@ -57,6 +84,7 @@ CredDelete(name) {
 		"UInt" ; BOOL
 	)
 }
+
 
 ; Read username and password under credential name.
 ; Returns a Map of form {name: name, username: username, password: password}

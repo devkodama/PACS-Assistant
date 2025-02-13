@@ -53,14 +53,9 @@ _Dispatcher() {
 	; runs regardless of PAActive
 
 	if DispatchQueue.Length > 0 {
-		fn := DispatchQueue.RemoveAt(1)
-
-		 ToolTip(fn.Name . " started")
 		; call fn() via SetTimer to simulate multithreading
+		fn := DispatchQueue.RemoveAt(1)
 		SetTimer(fn, -1)
-;		fn()
-
-			ToolTip(fn.Name . " finished")
 	}
 }
 
@@ -342,6 +337,7 @@ _WatchWindows() {
 		return
 	}
 
+try{
 	; update the open/visibility status of all windows
 	PAWindows.Update()
 
@@ -353,6 +349,10 @@ _WatchWindows() {
 
 	; update window info for GUI
 	PAWindowInfo := PAWindows.Print() . "#" . EIGetStudyMode() . "#"
+} catch {
+
+}
+
 
 }
 
@@ -387,6 +387,7 @@ _WatchMouse() {
 	}
 	running := true
 
+try {
 	; local function to restore windows that have been enlarged
 	_RestoreSaved() {
 		if restore_EPICchat {
@@ -478,6 +479,10 @@ _WatchMouse() {
 				; do nothing
 		}
 	}
+
+} catch {
+}
+
 
 	running := false
 	return
