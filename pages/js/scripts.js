@@ -115,16 +115,11 @@ document.getElementsByClassName("tab-icon default")[0].click();
  * 
  */
 
-var close = document.getElementsByClassName("closebtn");
-var i;
-for (i = 0; i < close.length; i++) {
-  close[i].onclick = function(){
-    var div = this.parentElement;
+function closeAlert(target) {
+    var div = target.parentElement;
     div.style.opacity = "0";
     setTimeout(function(){ div.style.display = "none"; div.classList.add("dismissed");}, 400);
-  }
 }
-
 
 
 /** Form element functions

@@ -81,17 +81,23 @@ EISend(cmdstring := "", targetwindow := "images1") {
 ;	"EIImage"
 ;	"EIEpic"
 ;
+;	"EI_StartReading"
+;
 ; Searches the client area of the EI Desktop window within
-; the coordinates (0,32) and (320,80) for the button (image search with FindText)
+; the coordinates (0,32) and (720,80) for the button (image search with FindText)
+;
+; Returns true if a button was clicked, false if no button was clicked
 ;
 EIClickDesktop(buttonname) {
+
+	result := false
 
 	switch buttonname {
 		case "EISearch", "EIList", "EIText", "EIImage", "EIEpic":
 			hwndEI := PAWindows["EI"]["desktop"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
-				if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText[buttonname]) {
+				if FindText(&x, &y, x0, y0 + 32, x0 + 720, y0 + 80, 0, 0, PAText[buttonname]) {
 					PA_WindowBusy := true
 					WinActivate(hwndEI)
 					CoordMode("Mouse", "Screen")
@@ -99,12 +105,29 @@ EIClickDesktop(buttonname) {
 					FindText().Click(x, y)
 					PA_WindowBusy := false
 					MouseMove(savex, savey)
+					result := true
+				}
+			}
+		case "EI_DesktopStartReading":
+			hwndEI := PAWindows["EI"]["desktop"].hwnd
+			if hwndEI {
+				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+				if FindText(&x, &y, x0, y0 + 32, x0 + 720, y0 + 80, 0, 0, PAText[buttonname]) {
+					PA_WindowBusy := true
+					WinActivate(hwndEI)
+					CoordMode("Mouse", "Screen")
+					MouseGetPos(&savex, &savey)
+					FindText().Click(x, y)
+					PA_WindowBusy := false
+					MouseMove(savex, savey)
+					result := true
 				}
 			}
 		default:
 			;
 	}
 
+	return result
 }
 
 
@@ -115,9 +138,13 @@ EIClickDesktop(buttonname) {
 ;	"EI_StartReading"
 ;
 ; Searches the client area of the EI images1 window within
-; the coordinates (0,32) and (320,80) for the button (image search with FindText)
+; the coordinates (0,0) and (1000,64) for the button (image search with FindText)
+;
+; Returns true if a button was clicked, false if no button was clicked
 ;
 EIClickImages(buttonname) {
+
+	result := false
 
 	switch buttonname {
 		case "EI_RemoveFromList":
@@ -132,6 +159,7 @@ EIClickImages(buttonname) {
 					FindText().Click(x, y)
 					PA_WindowBusy := false
 					MouseMove(savex, savey)
+					result := true
 				}
 			}
 		case "EI_StartReading":
@@ -146,12 +174,14 @@ EIClickImages(buttonname) {
 					FindText().Click(x, y)
 					PA_WindowBusy := false
 					MouseMove(savex, savey)
+					result := true
 				}
 			}
 		default:
 			;
 	}
 
+	return result
 }
 
 
@@ -759,7 +789,7 @@ EIRetrievePatientInfo() {
 								Click(v.x + 2, v.y)
 								SendInput("^a^c")
 								if !ClipWait(0.05) {				; wait until clipboard contains data, with 100 ms timeout
-									PAToolTip("ClipWait (1) timed out")
+;									PAToolTip("ClipWait (1) timed out")
 									SoundBeep(250)
 								}
 								MouseMove(savex, savey)
@@ -924,7 +954,7 @@ EIRetrieveStudyInfo(patient) {
 									Click(v.x + 2, v.y, 2)
 									SendInput("^a^c")
 									if !ClipWait(0.1) {				; wait until clipboard contains data, with 100 ms timeout
-										PAToolTip("ClipWait (2) timed out")
+;										PAToolTip("ClipWait (2) timed out")
 										SoundBeep(250)
 									}
 									MouseMove(savex, savey)
@@ -1123,7 +1153,9 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 ; for Start reading but it doesn't work for Resume reading.
 ;
 EICmdStartReading() {
-	EIClickImages("EI_StartReading")
+	if !EIClickImages("EI_StartReading") {
+		EIClickDesktop("EI_DesktopStartReading")
+	}
 	PASound("EIStartReading")
 }
 

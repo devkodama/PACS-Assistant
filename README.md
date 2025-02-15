@@ -44,7 +44,11 @@ PACS Assistant provides several new keyboard shortcuts for working with PowerScr
 
 The **CapsLock** key turns the microphone on and off.
 
-**Shift-CapsLock** signs the report currently being dictated. If there is no open report, then it starts (or resumes) dictation on the currently open active case (*i.e.* Start reading).
+**Shift-CapsLock** signs the currently open report.
+
+Otherwise if there is an open study ready to start (or resume) dictation, pressing **Shift-CapsLock** begins dictation.
+
+Otherwise if there are studies selected in th EI worklist that are ready to start (or resume) dictation, pressing **Shift-CapsLock** begins dictation.
 
 **Ctrl-CapsLock** drafts the current report.
 
@@ -78,7 +82,9 @@ The **`** key displays the report for the comparison study, similar to clicking 
 
 The **Spacebar** has a few new functions:
 
-- When the mouse pointer is within an EI image window, pressing **Spacebar** performs a double-click. This is useful to enlarge or restore the size of a series. Also, when the mouse pointer is over a series thumbnail, it will display the series in the active viewport.
+- When the mouse pointer is within the EI desktop List area, pressing **Spacebar** performs a double-click. This is useful to open a case.
+- When the mouse pointer is within an EI image window, pressing **Spacebar** performs a double-click. This is useful to enlarge or restore the size of a series, or if the mouse pointer is over a series thumbnail to put the series into the active viewport.
+> Known issue: The spacebar no longer works to type a space, for example when creating a text annotation on an image. It will send a double-click instead which leads to unwanted side effects. You can use **Shift-Spacebar** to type a space, or press `F2` to temporarily disable PACS Assistant.
 - When scrolling through a stack of images in EI by holding down the left mouse button, pressing **Spacebar** engages Click Lock, allowing the left mouse button to be physically released. Pressing **Spacebar** again, or clicking either mouse button, disengages Click Lock.
 - When the mouse pointer is within the PowerScribe window and text is currently selected, pressing **Spacebar** deletes the selected text.
 
@@ -104,6 +110,12 @@ By default EI does not allow keyboard shortcuts to be assigned to some of its co
 ## Mouse jiggler
 
 The PACS Assistant mouse jiggler suppresses the Windows screensaver and prevents the screen from turning off by periodically and imperceptibly moving the mouse.
+
+## Window management
+
+PACS Assistant remembers your preset window layout and can restore them when PACS is started.
+
+PACS Assistant can automatically dismiss selected messages, such as logout confirmation messages from PowerScribe, ...
 
 ## Setup - Personal computer
 

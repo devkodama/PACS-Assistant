@@ -36,13 +36,14 @@
 ; as it does not update the toggle switch on screen.
 ;
 ; [todo] what if PA is hidden, verify if ControlClick still works
+; [todo] should be calling PAEnable() rather than doing controlclick here
 ;
 F2:: {
 	;	global PASettings
 	;   PASettings["active"].value := !PAActive
 	
 	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
-		ControlClick "X25 Y275", hwndPA
+		ControlClick("X25 Y275", hwndPA)
 	}
 }
 
@@ -57,21 +58,21 @@ F2:: {
 ;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
 ;
 $Tab:: {
-	if PACheckContext("PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if PAContext("PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
 		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if PACheckContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if PAContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
 		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if PACheckContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if PAContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
 		if A_PriorHotkey = ThisHotkey {
 			PSCmdNextEOL()
 		} else {
@@ -82,7 +83,7 @@ $^Tab:: {
 	}
 }
 $^+Tab:: {
-	if PACheckContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if PAContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
 		PSCmdPrevEOL()
 	} else {
 		Send("^+{Tab}")
@@ -92,7 +93,8 @@ $^+Tab:: {
 
 ; CapsLock mapping
 ;	CapsLock -> PowerScribe Start/Stop Dictation (F4)
-;	Shift-CapsLock -> PowerScribe Sign Dictation (F12) OR EI Start reading (Ctrl-Enter)
+;	Shift-CapsLock -> PowerScribe Sign Dictation (F12)
+;						or EI Start reading, Resume reading, Start list
 ;	Ctrl-CapsLock -> PowerScribe Draft Dictation (F9)
 ;	Ctrl-Shift-CapsLock -> PowerScribe Prelim Dictation (Alt-F Alt-M (File > Prelim))
 ;
@@ -100,14 +102,14 @@ $^+Tab:: {
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
 $CapsLock:: {
-	if PACheckContext(["EI", "PS"]) {
+	if PAContext(["EI", "PS"]) {
 		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if PACheckContext("EI", "PS") {
+	if PAContext("EI", "PS") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -120,14 +122,14 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if PACheckContext("EI", "PS") {
+	if PAContext("EI", "PS") {
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if PACheckContext("EI", "PS") {
+	if PAContext("EI", "PS") {
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -147,21 +149,21 @@ $^+CapsLock:: {
 ; In effect for EI and PS windows.
 ;
 $`:: {
-	if PACheckContext("EI", "PS") {
+	if PAContext("EI", "PS") {
 		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if PACheckContext("EI", "PS") {
+	if PAContext("EI", "PS") {
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if PACheckContext("EI", "PS") {
+	if PAContext("EI", "PS") {
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -179,7 +181,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $Esc:: {
-	if PACheckContext("EI images1 images2") {
+	if PAContext("EI images1 images2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("{Esc}")
@@ -195,14 +197,14 @@ $Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if PACheckContext("PS", "EI images1 images2 desktop/text 4dm") {
+	if PAContext("PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if PACheckContext("PS", "EI images1 images2 desktop/text 4dm") {
+	if PAContext("PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -212,9 +214,9 @@ $^z:: {
 
 ; Space bar key mapping
 ;
-; If pressed while the mouse cursor is on an EI image window,
-; a doubleclick (Click 2) is sent to double click at the current mouse position.
-; Blocks user mouse movement or input while sending doubleclick, for reliability
+; Send a double click (Click 2) at the current mouse position.
+; Blocks user mouse movement or input while sending the double 
+; click, for reliability
 ;
 ; In effect for EI image windows, EI desktop if list area showing
 ;
@@ -228,7 +230,7 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLocktrigger
 	
-	if PACheckContext("EI images1 images2") {
+	if PAContext("EI images1 images2") {
 		if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
@@ -258,14 +260,14 @@ $Space:: {
 				BlockInput false
 			}
 		}
-	} else if PACheckContext("EI desktop/list") {
+	} else if PAContext("EI desktop/list") {
 		; avoid double clicking on a window by checking system double click timeout
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false
 		}
-	} else if PACheckContext("PS report addendum") {
+	} else if PAContext("PS report addendum") {
 		; Check to see if there is a text selection in the PS report area
 		; If so, smart delete it
 
@@ -323,7 +325,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 			; 	Click("D")
 			; }
 		} else if PASettings["ClickLock"].value = "Auto" {
-			if PACheckContext( , , "EI images1 images2") {
+			if PAContext( , , "EI images1 images2") {
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
 				if LButton_ClickLockon {
@@ -422,26 +424,28 @@ _LButton_beep() {
 PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
 
 PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
-	static definedlist := Array()		; remembers all hotkeys which have been defined through this function
+	static definedhklist := Array()		; remembers all hotkeys which have been defined through this function
 
 	if keylist {
-		for k in definedlist {
-			Hotkey(k, "Off")	; disable previously defined hotkeys
+		for hk in definedhklist {
+			Hotkey(hk, "Off")	; disable previously defined hotkeys
 		}
 
 		for key in keylist {
-			hkey := "$" . GetKeyName(key)
+			; (re)define a hotkey for key
+			hkey := "$" . key
 			Hotkey(hkey, _PA_EIHotkey, "On")
 			
+			; if the hotkey is not already in the definedhklist, then add it
 			found := 0
-			for k in definedlist {
-				if k = hkey {
+			for hk in definedhklist {
+				if hk = hkey {
 					found := true
 					break
 				}
 			}
 			if !found {
-				definedlist.Push(hkey)	; remember the new hotkey
+				definedhklist.Push(hkey)	; remember the new hotkey
 			}
 		}
 	}
@@ -451,7 +455,7 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 _PA_EIHotkey(key) {
 	global PA_DoubleClickSetting
 
-	if PACheckContext("EI images1 images2") {
+	if PAContext("EI images1 images2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			
@@ -493,8 +497,8 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
-
-
+	PAAlert("New message here!!!", "info")
+	PAAlert("Another new message here!!!", "success")
 }
 
 

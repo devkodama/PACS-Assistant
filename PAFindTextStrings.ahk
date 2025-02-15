@@ -125,8 +125,19 @@ PAText["EI_SD"] := PAText["EI_SD_LOn"] . PAText["EI_SD_LOff"] . PAText["EI_SD_MO
 
 ; EI Images Remove from list button
 PAText["EI_RemoveFromList"] := "|<EI_RemoveFromList>*160$24.zzzzzzzzzzzzzzzzzzzzzzwzz7UTz30Tz00TzU0Tzk0Tzs0Tzs0zzk3zzU1zz1Uzz3kTz7sTzzwzzzzzzzzzzzzzzzzzU"
-; EI Images Start reading button (same as Resume reading button)
+
+; EI Images Start reading button (Ctrl-Enter) (eyeglasses)
+; EI Images Resume reading button is the same image (eyeglasses) but does not have the Ctrl-Enter shortcut
 PAText["EI_StartReading"] := "|<EI_StartReading>*139$23.yTwzkDUQC0S0y0y9ynwnxbtbnbnb7DDUT0zrzzs"
+; EI Images Start sign-off button (Ctrl-Enter) (pen with squiggle) is added to PAText["EI_StartReading"]
+PAText["EI_StartReading"] .= "|<EI_StartReading>*94$24.zzznzzzlzzz1zzy7zzwDzzsTzzkzzzlzzzVzwT7ztCDznATzb8zzb1zzi3rzC7XzyDXzwT80wzA1wyTzy0Tzz1zzU"
+
+; EI Desktop Start reading button (Ctrl-Enter) (eyeglasses) (differs slightly from button on images windows)
+PAText["EI_DesktopStartReading"] := "|<EI_DesktopStartReading>*128$24.y7sDs3k71k3UXs7lntbnntbnntbbs3k7w7wTU"
+; EI Desktop Resume reading button (Ctrl-Enter) (pen with squiggle) (differs slightly from button on images windows)
+PAText["EI_DesktopStartReading"] .= "|<EI_DesktopStartReading>*91$23.zzzbzzy7zzwDzzkzzz7zzsTzzVzzz3znwDz3lzwn7zvYTzb1zzS7zwsSTtlsTz7m0yzg0xyTzstzzs7zw"
+; EI Desktop Start list button (Shift-F1) (gear with arrowhead)
+PAText["EI_DesktopStartReading"] .= "|<>*126$23.zszzzlzzl1bzU07z00Dy00zU00y000A000Q001w0k7s1UDU00C003A007D00DD00Qw00ns01DtUUzzXXzzbDs"
 
 ; EI Images IMPAX Volume Viewing button
 PAText["EI_VolumeViewing"] := "|<EI_VolumeViewing>*90$26.zzU7zy00zy00Dz001z000TU007k000k000A0001Ts00Hz006zk00by00Bzk03Dw00vzU0TTs0Drz07yzk1zjy0zxzUTzDwDzs3Xy"

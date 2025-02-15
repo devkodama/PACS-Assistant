@@ -24,6 +24,8 @@
 #Include PAGlobals.ahk
 #Include PASound.ahk
 
+#Include PACSAssistant.ahk
+
 
 
 
@@ -155,28 +157,28 @@ PSDictateIsOn(forceupdate := false) {
 	; if PS report or addendum or main window does not exist, return false
 	if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) && !(hwndPS := PAWindows["PS"]["addendum"].hwnd) {
 		dictatestatus := false
-	}
-
-	if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
+	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
 			if FindText(&x, &y, x0, y0 + 16, x0 + w0, y0 + 128, 0.001, 0.001, PAText["PSDictateOn"]) {
-				dictatestatus := true
+				; dictate button is on
+				if PASettings["PS_dictate_idleoff"].value {
+					; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
+					; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
+					if dictatestatus && A_TimeIdlePhysical > (PASettings["PS_dictate_idletimeout"].value * 60000) {
+						; microphone is currently on and we have idled for greater than timeout, so turn off the mic
+						PSSend("{F4}")		; Stop Dictation
+						dictatestatus := false
+					} else {
+						; haven't idled long enough, don't turn off mic
+						dictatestatus := true
+					}
+				}
 			} else {
 				dictatestatus := false
 			}
 			lastcheck := A_TickCount
 		} catch {
-			dictatestatus := false
-		}
-	}
-
-	if PASettings["PS_dictate_idleoff"].value {
-		; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
-		; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
-		if dictatestatus && A_TimeIdlePhysical > (PASettings["PS_dictate_idletimeout"].value * 60000) {
-			; microphone is currently on and we have idled for greater than timeout, so turn off the mic
-			PSSend("{F4}")		; Stop Dictation
 			dictatestatus := false
 		}
 	}
@@ -274,13 +276,15 @@ PSOpen_PSreport() {
 
 	; Automatically turn on microphone when opening a report (and off when closing a report)
 	if PASettings["PS_dictate_autoon"].value {
+PAToolTip("aa")
 		if _Dictate_autooff {
+PAToolTip("aa bb")
 			; mic should already by on, so cancel the autooff timer
 			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
 			_Dictate_autooff := false
 		}
 		; check to ensure the mic is on, turn it on if it isn't
-		if !PSDictateIsOn(true) {
+		if !PSDictateIsOn(true) {			
 			; mic is not on so turn it on
 			PSSend("{F4}")						; Start Dictation
 			PASound("PSToggleMic")

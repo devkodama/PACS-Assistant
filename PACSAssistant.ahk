@@ -787,7 +787,7 @@ PAWindows_Print(this) {
 ;
 ; Case sensitive
 ;
-PACheckContext(contexts*) {
+PAContext(contexts*) {
 	app := ""
 	win := ""
 
@@ -938,8 +938,9 @@ PAToolTip(message, duration := 5000) {
 	SetTimer ToolTip, -duration
 }
 
+/*
 
-; Enables/disables PACS Assistant
+; Enable/disable PACS Assistant
 PAEnable(state) {
 	global PAActive
 
@@ -951,13 +952,13 @@ PAEnable(state) {
 }
 
 
-; Toggles (enables/disables) PACS Assistant
+; Toggle (enable/disable) PACS Assistant
 PAToggle() {
 	global PAActive
 
 	PAEnable(!PAActive)
 }
-
+*/
 
 
 
