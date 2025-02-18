@@ -490,6 +490,131 @@ try {
 
 
 
+; Update the hwnd of the window under the mouse cursor
+;
+; Also makes the window active if appropriate.
+; Automatic window activation is suspended if Shift key is being held down
+;
+; Typically used with a timer, e.g. SetTimer(_WatchMouse, UPDATE_INTERVAL)
+;
+; PAActive must be true for this function to be active
+;
+; PA_WindowBusy must be false for focus following to be allowed
+;
+_WatchMouse2() {
+	global PAActive
+	global PA_WindowUnderMouse
+	global PAWindowBusy
+	static running := false
+	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
+
+	; local function to restore windows that have been enlarged
+	; _RestoreSaved() {
+	; 	if restore_EPICchat {
+	; 		hwndEPICchat := PAWindows["EPIC"]["chat"].hwnd
+	; 		try {
+	; 			WinGetPos(&x, &y, &w, &h, hwndEPICchat)
+	; 			if x != restore_EPICchat[1] || y != restore_EPICchat[2] || w != restore_EPICchat[3] || h != restore_EPICchat[5] {
+	; 				; user moved the window after it was enlarged, don't restore
+	; 			} else {
+	; 				if hwndEPICchat {
+	; 					WinMove(restore_EPICchat[1], restore_EPICchat[2], restore_EPICchat[3], restore_EPICchat[4], hwndEPICchat)
+	; 				}
+	; 			}
+	; 			restore_EPICchat := 0
+	; 		} catch {
+	; 			PAWindows["EPIC"]["chat"].Update()
+	; 		}
+	; 	}
+	; }
+
+
+	; local function to autoclose the PS spelling window
+	_ClosePSspelling() {
+		if PASettings["PSspelling_autoclose"] && PAWindows["PS"]["spelling"].visible {
+			PAWindows["PS"]["spelling"].Close()
+		}
+	}
+
+
+	; don't allow reentry
+	if running {
+		return
+	}
+	running := true
+
+	; get the handle of the window under the mouse
+	MouseGetPos(, , &hwnd)
+
+	; activate window under the mouse, if appropriate
+	;
+	; activate window if another window is not busy
+	; and Lshift is not being held down
+	; and if not already active
+	if !PAWindowBusy && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
+		app := GetApp(hwnd)		
+
+		switch app {
+			case "E":			; EI
+				; close PS Spelling window
+				_ClosePSspelling()
+
+				; don't activate if there are more than one PS windows open
+				if _WindowKeys.CountAppWindows("PS") < 2 {
+					_RestoreSaved()
+					WinActivate(hwnd)
+				}
+			case "P":			; PowerScribe
+				_RestoreSaved()
+				WinActivate(hwnd)
+			case "A":			; PACS Assistant
+				_RestoreSaved()
+				WinActivate(hwnd)
+			case "H":			; Epic
+				win := GetWin(hwnd)		
+				switch win {
+					case "chat":
+						; if !restore_EPICchat {
+						; 	WinGetPos(&x, &y, &w, &h, hwnd)
+						; 	if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+						; 		extended_h := (h < 600) ? 600 : h
+						; 		restore_EPICchat := [x, y, w, h, extended_h]
+						; 		WinMove(x, y, w, extended_h, hwnd)
+						; 		; [todo] if mouse was in bottom 70px of the chat window, move the mouse down by the same amount as the window was extended downwards
+						; 		CoordMode "Mouse", "Screen"
+						; 		MouseGetPos(&mousex, &mousey)
+						; 		;							msgbox x ", " y ", " w ", " h "/" extended_h ", " mousex ", " mousey
+						; 		if mousey >= y + h - 70 {
+						; 			MouseMove(mousex, mousey + extended_h - h)
+						; 		}
+						; 	} else {
+						; 		restore_EPICchat := 0
+						; 	}
+						; }
+						_ClosePSspelling()
+						; don't activate if there are more than one PS windows open
+						if _WindowKeys.CountAppWindows("PS") < 2 {
+							WinActivate(hwnd)
+						}
+					default:
+						_ClosePSspelling()
+						; don't activate if there are more than one PS windows open
+						if _WindowKeys.CountAppWindows("PS") < 2 {
+							_RestoreSaved()
+							WinActivate(hwnd)
+						}
+				}
+			default:
+				; do nothing
+		}
+	}
+
+
+	running := false
+	return
+}
+
+
 
 
 ; Jiggle the mouse to keep screen awake

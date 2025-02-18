@@ -964,6 +964,7 @@ PAToggle() {
 ; Called once at startup to do necessary initialization
 ;
 PA_Init() {
+global Apps
 
 	; Get Windows system double click setting
 	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
@@ -995,6 +996,14 @@ PA_Init() {
 
 	; Read ICD code file
 	ICDReadCodeFile()
+
+
+
+	; initialize the Apps[] global
+	for k, a in App {
+		Apps[k] := a
+	}
+
 
 }
 
