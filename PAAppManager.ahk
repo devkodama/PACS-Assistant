@@ -126,7 +126,7 @@ class WinItem {
     __New(parentapp, key, id, fulltitle, searchtitle := "", wintext := "", hook_open := 0, hook_close := 0, parentwindow := 0) {
         this.key := key
         this.id := id
-        this.appid := parentapp.appid
+        this.appid := parentapp.id
         this.fulltitle := fulltitle
         this.searchtitle := searchtitle
         this.wintext := wintext
@@ -246,6 +246,7 @@ class AppItem {
         this.wintext := wintext
 
         this.Win := Map()
+        this._pid := 0
 
         if exename {
             this.criteria := searchtitle . " ahk_exe " . exename
@@ -255,7 +256,7 @@ class AppItem {
             ; Do not want to search hidden text when looking for windows
             DetectHiddenText(false)
             if hwnd := WinExist(this.criteria, wintext) {
-                this.pid := WinGetPID(hwnd)
+                this._pid := WinGetPID(hwnd)
             } else {
                 this.pid := 0
             }
@@ -266,14 +267,17 @@ class AppItem {
 
     pid {
         get {
-            if !this.pid && this.criteria {
+            if !this._pid && this.criteria {
                 ; Do not want to search hidden text when looking for windows
                 DetectHiddenText(false)
                 if hwnd := WinExist(this.criteria, this.wintext) {
-                    this.pid := WinGetPID(hwnd)
+                    this._pid := WinGetPID(hwnd)
                 }
             }
-            return this.pid
+            return this._pid
+        }
+        set {
+            this._pid := Value
         }
     }
 

@@ -561,14 +561,14 @@ _WatchMouse2() {
 
 				; don't activate if there are more than one PS windows open
 				if _WindowKeys.CountAppWindows("PS") < 2 {
-					_RestoreSaved()
+;					_RestoreSaved()
 					WinActivate(hwnd)
 				}
 			case "P":			; PowerScribe
-				_RestoreSaved()
+;				_RestoreSaved()
 				WinActivate(hwnd)
 			case "A":			; PACS Assistant
-				_RestoreSaved()
+;				_RestoreSaved()
 				WinActivate(hwnd)
 			case "H":			; Epic
 				win := GetWin(hwnd)		
@@ -600,7 +600,7 @@ _WatchMouse2() {
 						_ClosePSspelling()
 						; don't activate if there are more than one PS windows open
 						if _WindowKeys.CountAppWindows("PS") < 2 {
-							_RestoreSaved()
+;							_RestoreSaved()
 							WinActivate(hwnd)
 						}
 				}

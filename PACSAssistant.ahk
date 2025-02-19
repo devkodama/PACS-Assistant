@@ -964,7 +964,7 @@ PAToggle() {
 ; Called once at startup to do necessary initialization
 ;
 PA_Init() {
-global Apps
+global PAApps
 
 	; Get Windows system double click setting
 	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
@@ -999,9 +999,9 @@ global Apps
 
 
 
-	; initialize the Apps[] global
+	; initialize the PAApps[] global
 	for k, a in App {
-		Apps[k] := a
+		PAApps[k] := a
 	}
 
 

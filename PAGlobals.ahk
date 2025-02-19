@@ -19,6 +19,7 @@
 
 #Include <Cred>
 
+#Include PAAppManager.ahk
 
 
 
@@ -243,12 +244,12 @@ global PACurState := Map(
 
 
 
-; Apps is a global object which stores information about all of the
+; PAApps is a global object which stores information about all of the
 ; applications and windows of interest to PACS Assistant.
 ;
-; Apps is initialized by PAInit(), recording all of the apps defined in App[].
+; PAApps is initialized by PAInit(), recording all of the apps defined in App[].
 ;
-global Apps() = Map()
+global PAApps := Map()
 
 
 ; App is a Map which stores information about all the windows that belong to;
