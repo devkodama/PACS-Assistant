@@ -72,8 +72,7 @@ _HwndLookup := Map()
 ;   key         - string, single letter window code used as a key, e.g. "d", "1", "2", "m", "l", etc.
 ;   id          - string, window id, e.g. "desktop", "images1", "images2", "main", "login", etc.
 ;
-;   pseudo      - boolean, true if this is a pseudowindow, false if this is a real window
-;   parentwindow - WinItem, 
+;   parent      - WinItem, parent window if this is a pseudowindow, zero if this is a true window
 ;
 ;	appid		- string, single letter app code, the app to which this window belongs
 ;   
@@ -110,7 +109,7 @@ _HwndLookup := Map()
 ; unique system windows, but are a subpage of a window such as the Text display
 ; area of the EI desktop page.
 ; 
-; A pseudowindow is defined by setting the parentwindow at instantiation to
+; A pseudowindow is defined by setting parentwindow at instantiation to
 ; the parent window (WinItem).
 ;
 ; To instantiate a new WinItem, use:
@@ -140,14 +139,12 @@ class WinItem {
         ; check if this is a psuedowindow
         if parentwindow {
 
-            this.pseudo := true
             this.parentwindow := parentwindow
             this.criteria := ""
             this.hwnd := ""
 
         } else {
 
-            this.pseudo := false
             this.parentwindow := ""
 
             if parentapp && parentapp.exename {
@@ -182,7 +179,7 @@ class WinItem {
 
     hwnd {
         get {
-            if this.pseudo {
+            if this.parentwindow {
                 return this.parentwindow.hwnd
             }
             if !this.hwnd {
@@ -198,8 +195,10 @@ class WinItem {
             return this.hwnd
         }
         set {
-            if !this.pseudo {
+            if !this.parentwindow {
                 this.hwnd := Value
+            } else {
+                this.hwnd := 0
             }
         }
     }
@@ -212,10 +211,10 @@ class WinItem {
 ;   key         - string, single letter app code used as a key, e.g. "V", "E", "P", "H", "P"
 ;   id          - string, app id, e.g. "VPN", "EI", "PS", "EPIC", "PA"
 ;
+;	exename		- string, executable name, used for matching, e.g. "Nuance.PowerScribe360.exe"
 ;   appname     - string, full name of app, e.g. "PowerScribe 360"
 ;   searchtitle - string, optional, title of main window of app, used for window matching
 ;   wintext     - string, optional, window text used for window matching of main window
-;	exename		- string, executable name, used for matching, e.g. "Nuance.PowerScribe360.exe"
 ;
 ;   Win         - Map, all windows associated with the app
 ;
@@ -230,9 +229,9 @@ class WinItem {
 ;
 ; To instantiate a new AppItem, use:
 ;
-;       AppItem(key, id, appname, exename, [searchtitle, wintext])
+;       AppItem(key, id, exename, appname, [searchtitle, wintext])
 ;
-; Note that creating an AppItem does not populate its Win Map.
+; Creating an AppItem  populate its Win Map.
 ;
 class AppItem {
 
@@ -248,26 +247,53 @@ class AppItem {
         this.Win := Map()
         this._pid := 0
 
-        if exename {
-            this.criteria := searchtitle . " ahk_exe " . exename
+        if !exename {
+            return 0    ; cannot create an AppItem without an exename
         }
 
-        if this.criteria {
-            ; Do not want to search hidden text when looking for windows
-            DetectHiddenText(false)
-            if hwnd := WinExist(this.criteria, wintext) {
-                this._pid := WinGetPID(hwnd)
-            } else {
-                this.pid := 0
-            }
+        ; if searchtitle {
+        ;     this.criteria := searchtitle . " ahk_exe " . exename
+        ; } else {
+        ;     this.criteria := " ahk_exe " . exename
+        ; }
+        
+        ; ; Do not want to search hidden text when looking for windows
+        ; DetectHiddenText(false)
+        ; if hwnd := WinExist(this.criteria, wintext) {
+        ;     this.pid := WinGetPID(hwnd)
+        ; } else {
+        ;     this.pid := 0
+        ; }
+
+
+        this.criteria := " ahk_exe " . exename
+        
+        DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+
+        if hwndarr := WinGetList(this.criteria) && hwndarr.Length > 0 {
+            this.pid := WinGetPID(hwndarr[1])
         } else {
             this.pid := 0
         }
+
+        ; * Currently the following events are supported: `Show`, `Create`, `Close`, `Exist`, `NotExist`, `Active`, `NotActive`, `Move`, 
+        ; * `MoveStart`, `MoveEnd`, `Minimize`, `Restore`, `Maximize`. See comments for the functions for more information.
+       
+        ; Set up event handlers
+        this.hookShow := WinEvent.Show(_cbAppShow, this.criteria)
+        this.hookCreate := WinEvent.Create(_cbAppShow, this.criteria)
+        this.hookClose := WinEvent.Close(_cbAppClose, this.criteria)
+        this.hookMove := WinEvent.Move(_cbAppMove, this.criteria)
+        this.hookMinimize := WinEvent.Minimize(_cbAppMinimize, this.criteria)
+        this.hookRestore := WinEvent.Restore(_cbAppRestore, this.criteria)
+        this.hookMaximize := WinEvent.Maximize(_cbAppMaximize, this.criteria)
+
     }
 
     pid {
         get {
-            if !this._pid && this.criteria {
+            if !this.pid {
+                ; Try to find the pid
                 ; Do not want to search hidden text when looking for windows
                 DetectHiddenText(false)
                 if hwnd := WinExist(this.criteria, this.wintext) {
@@ -290,6 +316,36 @@ class AppItem {
 }
 
 
+
+
+
+
+
+; This callback function is called when a matching window is shown.
+;
+_cbAppShow(hwnd, hook, dwmsEventTime) {
+
+	; Figure out which application window was created by searching PAWindows
+	; for matching criteria
+	crit := hook.MatchCriteria[1]
+	text := hook.MatchCriteria[2]
+	for app in PAWindows["keys"] {
+		for win in PAWindows[app]["keys"] {
+			if crit = PAWindows[app][win].criteria && text = PAWindows[app][win].wintext {
+
+				; found the window
+				PAWindows[app][win].Update(hwnd)
+
+				; ToolTip "Window opened: " app "/" win " [" hwnd "] <- " crit "/" text "`n"
+				; SetTimer ToolTip, -7000
+
+				; set up an event trigger for when this window is closed
+;debug				WinEvent.Close(_PAWindowCloseCallback, hwnd, 1)
+				break 2		; break out of both for loops
+			}
+		}
+	}
+}
 
 
 

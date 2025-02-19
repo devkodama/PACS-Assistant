@@ -302,12 +302,11 @@ App["E"].Win["4"] := WinItem(App["E"], "4", "4dm" ,"4DM(Enterprise Imaging) v201
 App["E"].Win["c"] := WinItem(App["E"], "c", "collaborator", "Collaborator", "Collaborator")
 ; pseudowindows
 App["E"].Win["w"] := WinItem(App["E"], "w", "listpage", "Desktop List page", , , , , App["E"].Win["d"])
-App["E"].Win["t"] := WinItem(App["E"], "w", "textpage", "Desktop Text page", , , , , App["E"].Win["d"])
+App["E"].Win["t"] := WinItem(App["E"], "t", "textpage", "Desktop Text page", , , , , App["E"].Win["d"])
 App["E"].Win["s"] := WinItem(App["E"], "s", "searchpage", "Desktop Search page", , , , , App["E"].Win["d"])
 
-
 ; for Agfa ClinApps (e.g. MPR)
-App["E"].Win["m"] := WinItem(App["E"], "m", "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
+App["E"].Win["r"] := WinItem(App["E"], "r", "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
 
 ; for PowerScribe
 App["P"].Win["l"] := WinItem(App["P"], "l", "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin)
@@ -324,7 +323,7 @@ App["P"].Win["e"] := WinItem(App["P"], "e", "confirmanotheraddendum", "PowerScri
 App["P"].Win["x"] := WinItem(App["P"], "x", "existing", "PowerScribe 360 | Reporting", "PowerScribe", "is associated with an existing report", PSOpen_PSexisting)
 App["P"].Win["b"] := WinItem(App["P"], "b", "continue", "PowerScribe 360 | Reporting", "PowerScribe", "Do you wish to continue editing", PSOpen_PScontinue)
 App["P"].Win["w"] := WinItem(App["P"], "w", "ownership", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to acquire ownership", PSOpen_PSownership)
-App["P"].Win["m"] := WinItem(App["P"], "m", "microphone", "PowerScribe 360 | Reporting", "PowerScribe", "Your microphone is disconnected", PSOpen_PSmicrophone)
+App["P"].Win["i"] := WinItem(App["P"], "i", "microphone", "PowerScribe 360 | Reporting", "PowerScribe", "Your microphone is disconnected", PSOpen_PSmicrophone)
 App["P"].Win["f"] := WinItem(App["P"], "f", "find", "Find and Replace", "Find and", , PSOpen_PSfind)
 
 ; for PowerScribe spelling window
