@@ -43,7 +43,10 @@ F2:: {
 	;   PASettings["active"].value := !PAActive
 	
 	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
-		ControlClick("X25 Y275", hwndPA)
+		; click on the on screen toggle switch, which is located in the lower
+		; left corner of the GUI at approx x = 25 and y = WinHeight - 55
+		WinGetPos( , , &w, &h, hwndPA)
+		ControlClick("X25 Y" . (h - 55), hwndPA)
 	}
 }
 
