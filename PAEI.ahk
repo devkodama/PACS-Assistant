@@ -651,7 +651,7 @@ EIStop() {
 				resultPS := true
 			} else if !pscloseflag && winitem.winkey = "login" {
 				; We're at the login window. Close it.
-				; Don't use PSSend() as it is written to send only to the report or addendum windows
+				; Can't use PSSend() as it is written to send only to the report or addendum windows
 				; ControlSend("!{F4}", , winitem.hwnd)
 				WinClose(winitem.hwnd)
 				pscloseflag := true
@@ -683,6 +683,20 @@ EIStop() {
 	} else if resultEI && resultPS && resultEPIC {
 
 		; shut down successful
+		
+		; After EI desktop is closed, the EI login window persists in a hidden state.
+		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
+		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
+		hwndlogin := PAWindows["EI"]["login"].hwnd
+		hiddenlogin := !PAWindows["EI"]["login"].visible
+		if hwndlogin && hiddenlogin {
+			pid := WinGetPID(hwndlogin)
+			if pid {
+				ProcessClose(pid)
+				PAWindows.Update("EI")
+			}
+		}
+
 		PAStatus("EI shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 

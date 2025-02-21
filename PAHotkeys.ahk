@@ -35,7 +35,9 @@
 ; Directly changing PASettings["active"].value does not work, 
 ; as it does not update the toggle switch on screen.
 ;
-; [todo] what if PA is hidden, verify if ControlClick still works
+; [todo] if PA is minimized, this doesn't work; 
+; might want to check and directly change PASettings["active"].value
+;
 ; [todo] should be calling PAEnable() rather than doing controlclick here
 ;
 F2:: {

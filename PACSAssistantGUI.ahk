@@ -375,6 +375,9 @@ PAGui_PACSShutdown() {
     }
     running := true
 
+	tick0 := A_TickCount
+	PAStatus("Shutting down PACS...")
+
     resultEI := EIStop()
     if resultEI = 1 {
         resultEI := true
@@ -386,13 +389,13 @@ PAGui_PACSShutdown() {
 
 
     if resultEI && resultVPN {
-        PAStatus("PACS shut down successfully")
-        returnresult := 1
+        PAStatus("PACS shut down successfully (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+    returnresult := 1
     } else if !resultEI {
-        PAStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic not shut down")
+        PAStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic was not shut down")
         returnresult := 0
     } else if !resultVPN {
-        PAStatus("PACS shut down not completed - VPN not disconnected")
+        PAStatus("PACS shut down not completed - VPN was not disconnected")
         returnresult := 0
     }
 
