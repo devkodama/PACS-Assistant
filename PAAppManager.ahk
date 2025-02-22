@@ -69,27 +69,26 @@ _HwndLookup := Map()
 ; 
 ; WinItem properties:
 ;
-;   key         - string, single letter window code used as a key, e.g. "d", "1", "2", "m", "l", etc.
-;   id          - string, window id, e.g. "desktop", "images1", "images2", "main", "login", etc.
+;   parentapp   - AppItem, parent app to which this window belongs
+;   key         - string, window id, e.g. "desktop", "images1", "images2", "main", "login", etc.
 ;
-;   parent      - WinItem, parent window if this is a pseudowindow, zero if this is a true window
-;
-;	appid		- string, single letter app code, the app to which this window belongs
-;   
 ;	fulltitle	- string, full title of window, not used for matching
 ;	searchtitle	- string, short title of window, used for matching
-;
-;	criteria	- string, combined search string generated from searchtitle and exename of parent app
 ;	wintext		- string, window text to match, used for matching
+;
+;	hook_open	- function to be called when this window is opened
+;	hook_close	- function to be called when this window is closed
+;
+;   parentwindow - WinItem, parent window if this is a pseudowindow, zero if this is a true window
 ;
 ;	hwnd		- 0 if window doesn't exist, HWND of the window if it not a pseudowindow
 ;               - Pseudowindows return the hwnd of their parent window
 ;
+;	criteria	- string, combined search string generated from searchtitle and exename of parent app
+;
 ;	visible		- true if window is visible (has WF_VISIBLE style), false if a hidden window
 ;	minimized	- true if window is minimized, false if not
-;	opentime	- timestamp when window was last opened (from A_Now)
-;
-;	status		- [optional] status item, window specific usage
+;	opentime	- tickcount when window was last opened (from A_TickCount)
 ;
 ;   x           - current screen x position of the window
 ;   y           - current screen y position of the window
@@ -101,9 +100,10 @@ _HwndLookup := Map()
 ;	savew		- saved width of the window (should be >= 100)
 ;	saveh		- saved height of the window (should be >= 100)
 ;
-;	hook_open	- function to be called when this window is opened
-;	hook_close	- function to be called when this window is closed
 ;
+; WinItem methods:
+;
+;   Update()    - updates properties for the window (visible, minimized, opentime, etc.)
 ;
 ; Pseudowindows can also be tracked by this class. Pseudowindows are not
 ; unique system windows, but are a subpage of a window such as the Text display
@@ -122,15 +122,15 @@ _HwndLookup := Map()
 ;
 class WinItem {
 
-    __New(parentapp, key, id, fulltitle, searchtitle := "", wintext := "", hook_open := 0, hook_close := 0, parentwindow := 0) {
+    __New(parentapp, key, fulltitle, searchtitle := "", wintext := "", hook_open := 0, hook_close := 0, parentwindow := 0, hwnd := 0) {
+        this.parentapp := parentapp
         this.key := key
-        this.id := id
-        this.appid := parentapp.id
         this.fulltitle := fulltitle
         this.searchtitle := searchtitle
         this.wintext := wintext
         this.hook_open := hook_open
         this.hook_close := hook_close
+
         this.savex := 0
         this.savey := 0
         this.savew := 0
@@ -139,40 +139,79 @@ class WinItem {
         ; check if this is a psuedowindow
         if parentwindow {
 
+            ; this is a pseudowindow
             this.parentwindow := parentwindow
             this.criteria := ""
-            this.hwnd := ""
+            this.hwnd := 0
+
+            this.opentime := 0
+            this.visible := false
+            this.minimized := false
+            this.x := 0
+            this.y := 0
+            this.w := 0
+            this.h := 0
 
         } else {
 
-            this.parentwindow := ""
+            ; this is a real window, not a pseudowindow
+            this.parentwindow := 0
 
+            ; store the search criteria for this window
             if parentapp && parentapp.exename {
-                searchtitle .= " ahk_exe " . parentapp.exename
+                this.criteria := searchtitle . " ahk_exe " . parentapp.exename
+            } else {
+                this.criteria := searchtitle
             }
             
-            if this.criteria := searchtitle {
-                ; Do not want to search hidden text when looking for windows
-                DetectHiddenText(false)
-                this.hwnd := WinExist(this.criteria, this.wintext)
+            ; If we are passed a hwnd, use it. If not, look for it by criteria.
+            if hwnd {
+                this.hwnd := hwnd
             } else {
-                this.hwnd := 0
+                ; check if the window exists, get its hwnd
+                DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+                try {
+                    this.hwnd := WinExist(this.criteria, this.wintext)
+                } catch {
+                    this.hwnd := 0
+                }
             }
 
             if this.hwnd {
                 ; success, found a matching window, save the visibility, minimized, and opentime
-                this.visible := (WinGetStyle(this.hwnd) & WS_VISIBLE) ? true : false
-                this.minimized := WinGetMinMax(this.hwnd) = -1 ? true : false
-                this.opentime := A_Now
-                WinGetPos(&x, &y, &w, &h, this.hwnd)
-                this.x := x
-                this.y := y
-                this.w := w
-                this.h := h
+                this.opentime := A_TickCount
+                try {
+                    this.visible := (WinGetStyle(this.hwnd) & WS_VISIBLE) ? true : false
+                    try {
+                        this.minimized := WinGetMinMax(this.hwnd) = -1 ? true : false
+                    } catch {
+                        this.minimized := false
+                    }
+                } catch {
+                    this.visible := false
+                    this.minimized := false
+                }
+                try {
+                    WinGetPos(&x, &y, &w, &h, this.hwnd)
+                    this.x := x
+                    this.y := y
+                    this.w := w
+                    this.h := h
+                } catch {
+                    this.x := 0
+                    this.y := 0
+                    this.w := 0
+                    this.h := 0
+                }
             } else {
+                ; no existing window at this time
+                this.opentime := 0
                 this.visible := false
                 this.minimized := false
-                this.opentime := ""
+                this.x := 0
+                this.y := 0
+                this.w := 0
+                this.h := 0
             }
         }
     }
@@ -184,21 +223,104 @@ class WinItem {
             }
             if !this.hwnd {
                 ; try to find the window
-                if this.criteria {
-                    ; Do not want to search hidden text when looking for windows
-                    DetectHiddenText(false)
-                    this.hwnd := WinExist(this.criteria, this.wintext)
-                } else {
-                    this.hwnd := 0
-                }
+                ; if this.criteria {
+                ;     DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+                ;     try {
+                ;         this.hwnd := WinExist(this.criteria, this.wintext)
+                ;         this.opentime := A_TickCount
+                ;     } catch {
+                ;         this.hwnd := 0
+                ;     }
+
+                ; } else {
+                ;     this.hwnd := 0
+                ; }
             }
             return this.hwnd
         }
         set {
-            if !this.parentwindow {
-                this.hwnd := Value
-            } else {
+            if this.parentwindow {
                 this.hwnd := 0
+            } else {
+                this.hwnd := Value
+            }
+        }
+    }
+
+    ; if a non-zero hwnd is passed, it is assumed to be the valid hwnd for this window
+    Update(hwnd := 0) {
+
+        ; check if this is a psuedowindow
+        if this.parentwindow {
+
+            ; pseudowindow, don't do anything (for now)
+
+        } else {
+
+            if hwnd {
+
+                ; assume a passed non-zero hwnd is valid
+                this.hwnd := hwnd
+                this.opentime := A_TickCount
+
+            } else if !this.hwnd {
+
+                ; look to see if the window exists, get its hwnd
+                if this.criteria {
+                    DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+                    try {
+                        this.hwnd := WinExist(this.criteria, this.wintext)
+                        this.opentime := A_TickCount
+                    } catch {
+                        this.hwnd := 0
+                    }
+                } else {
+                    this.hwnd := 0
+                }
+            }
+
+            if this.hwnd {
+                ; update the visibility, minimized, and position of this window
+                try {
+                    this.visible := (WinGetStyle(this.hwnd) & WS_VISIBLE) ? true : false
+                    try {
+                        this.minimized := WinGetMinMax(this.hwnd) = -1 ? true : false
+                    } catch {
+                        this.hwnd := 0
+                        this.opentime := 0
+                        this.visible := false
+                        this.minimized := false
+                    }
+                } catch {
+                    this.hwnd := 0
+                    this.opentime := 0
+                    this.visible := false
+                    this.minimized := false
+                }
+                try {
+                    WinGetPos(&x, &y, &w, &h, this.hwnd)
+                    this.x := x
+                    this.y := y
+                    this.w := w
+                    this.h := h
+                } catch {
+                    this.hwnd := 0
+                    this.opentime := 0
+                    this.visible := false
+                    this.minimized := false
+                    this.x := 0
+                    this.y := 0
+                    this.w := 0
+                    this.h := 0
+                }
+            } else {
+                ; window does not exist
+                this.visible := false
+                this.minimized := false
+                this.x := 0
+                this.y := 0
+                this.w := 0
+                this.h := 0
             }
         }
     }
@@ -209,14 +331,14 @@ class WinItem {
 ; AppItem properties:
 ;
 ;   key         - string, single letter app code used as a key, e.g. "V", "E", "P", "H", "P"
-;   id          - string, app id, e.g. "VPN", "EI", "PS", "EPIC", "PA"
 ;
 ;	exename		- string, executable name, used for matching, e.g. "Nuance.PowerScribe360.exe"
 ;   appname     - string, full name of app, e.g. "PowerScribe 360"
-;   searchtitle - string, optional, title of main window of app, used for window matching
-;   wintext     - string, optional, window text used for window matching of main window
 ;
-;   Win         - Map, all windows associated with the app
+;;   searchtitle - string, optional, title of main window of app, used for window matching
+;;   wintext     - string, optional, window text used for window matching of main window
+;
+;   Win[]       - Map, all windows associated with the app
 ;
 ;   pid         - process ID of this function
 ;   isrunning   - (read only) true if app has been started, false if not
@@ -226,6 +348,9 @@ class WinItem {
 ;
 ; AppItem methods:
 ;
+;   Update()    - Searches for all windows associated with this app
+;                   and adds a WinItem object for each window to Win[]
+;
 ;
 ; To instantiate a new AppItem, use:
 ;
@@ -233,16 +358,17 @@ class WinItem {
 ;
 ; Creating an AppItem  populate its Win Map.
 ;
+; 
+;
 class AppItem {
 
-    __New(key, id, exename, appname, searchtitle := "", wintext := "") {
+    __New(key, exename, appname, searchtitle := "", wintext := "") {
         this.key := key
-        this.id := id
         this.exename := exename
         this.appname := appname
-        this.searchtitle := searchtitle
-        this.criteria := searchtitle
-        this.wintext := wintext
+;        this.searchtitle := searchtitle
+;        this.criteria := searchtitle
+;        this.wintext := wintext
 
         this.Win := Map()
         this._pid := 0
@@ -250,30 +376,16 @@ class AppItem {
         if !exename {
             return 0    ; cannot create an AppItem without an exename
         }
-
-        ; if searchtitle {
-        ;     this.criteria := searchtitle . " ahk_exe " . exename
-        ; } else {
-        ;     this.criteria := " ahk_exe " . exename
-        ; }
-        
-        ; ; Do not want to search hidden text when looking for windows
-        ; DetectHiddenText(false)
-        ; if hwnd := WinExist(this.criteria, wintext) {
-        ;     this.pid := WinGetPID(hwnd)
-        ; } else {
-        ;     this.pid := 0
-        ; }
-
-
         this.criteria := " ahk_exe " . exename
         
+        ; check whether the app is running, get its PID
         DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
-
-        if hwndarr := WinGetList(this.criteria) && hwndarr.Length > 0 {
-            this.pid := WinGetPID(hwndarr[1])
-        } else {
-            this.pid := 0
+        try {
+            ; found a running process
+            this._pid := WinGetPID(this.criteria)
+        } catch {
+            ; did not find a running process
+            this._pid := 0
         }
 
         ; * Currently the following events are supported: `Show`, `Create`, `Close`, `Exist`, `NotExist`, `Active`, `NotActive`, `Move`, 
@@ -281,7 +393,7 @@ class AppItem {
        
         ; Set up event handlers
         this.hookShow := WinEvent.Show(_cbAppShow, this.criteria)
-        this.hookCreate := WinEvent.Create(_cbAppShow, this.criteria)
+        this.hookCreate := WinEvent.Create(_cbAppCreate, this.criteria)
         this.hookClose := WinEvent.Close(_cbAppClose, this.criteria)
         this.hookMove := WinEvent.Move(_cbAppMove, this.criteria)
         this.hookMinimize := WinEvent.Minimize(_cbAppMinimize, this.criteria)
@@ -292,14 +404,16 @@ class AppItem {
 
     pid {
         get {
-            if !this.pid {
+            if !this._pid {
                 ; Try to find the pid
-                ; Do not want to search hidden text when looking for windows
-                DetectHiddenText(false)
-                if hwnd := WinExist(this.criteria, this.wintext) {
-                    this._pid := WinGetPID(hwnd)
-                }
-            }
+            ;     DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+            ;     try {
+            ;         ; found a running process
+            ;         this._pid := WinGetPID(this.criteria)
+            ;     } catch {
+            ;         ; did not find a running process
+            ;     }
+            ; }
             return this._pid
         }
         set {
@@ -313,6 +427,60 @@ class AppItem {
         }
     }
 
+    ; Searches for all windows associated with this app and updates
+    ; the existing WinItem or adds a new WinItem corresponding to each window
+    Update() {
+
+        ; get all the windows belonging to this app
+        if !this.criteria {
+            ; can't update
+            return 0
+        }
+
+        hwndarr := WinGetList(this.criteria)
+        for hwnd in hwndarr {
+
+            ; look for an existing Win entry that matches this window hwnd
+            wintitle := WinGetTitle(hwnd)
+            wintext := WinGetText(hwnd)
+            match  := false
+
+            for k, w in this.Win {
+
+                if w.parentwindow {
+                    ; skip pseudowindows
+                    continue
+                }
+
+                if w.searchtitle {
+                    if InStr(wintitle, w.searchtitle) {
+                        ; w.searchtitle found within wintitle
+                        if !w.wintext || InStr(wintext, w.wintext) {
+                            ; we have a match
+                            match := true
+                            ; update the WinItem with this hwnd
+                            w.Update(hwnd)
+                            break
+                        }
+                    }
+                }
+            }
+
+            if !match {
+                ; Did not find a matching WinItem in Win[], so create a new WinItem.
+                ; The window key for the new item is "1001", "1002", etc....
+                ; Find the next unused key
+                k := 1001
+                while this.Win.Has(String(k)) {
+                    k++
+                }
+                ; Add the new window
+                this.Win[String(k)] := WinItem(this, String(k), wintitle, , , , , , hwnd)
+            }
+        }
+
+    }
+
 }
 
 
@@ -324,6 +492,85 @@ class AppItem {
 ; This callback function is called when a matching window is shown.
 ;
 _cbAppShow(hwnd, hook, dwmsEventTime) {
+    global PAApps
+
+    ; Update the window that matches this hwnd
+
+
+
+    ; Get the PID of this process
+
+
+	; Figure out which application window was shown by searching
+	; for the matching criteria in all the apps within PAApps[]
+	criteria := hook.MatchCriteria[1]
+
+    for app in PAApps {
+        if app.criteria = criteria {
+            ; found the matching app
+
+            ; search the windows of the app for a match
+
+
+            for k, w in this.Win {
+
+                if w.parentwindow {
+                    ; skip pseudowindows
+                    continue
+                }
+
+                if w.searchtitle {
+                    if InStr(wintitle, w.searchtitle) {
+                        ; w.searchtitle found within wintitle
+                        if !w.wintext || InStr(wintext, w.wintext) {
+                            ; we have a match
+                            match := true
+                            ; update the WinItem with this hwnd
+                            w.Update(hwnd)
+                            break
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+
+
+	text := hook.MatchCriteria[2]
+
+    
+
+            ; look for an existing Win entry that matches this window hwnd
+            wintitle := WinGetTitle(hwnd)
+            wintext := WinGetText(hwnd)
+            match  := false
+
+
+
+	for app in PAWindows["keys"] {
+		for win in PAWindows[app]["keys"] {
+			if crit = PAWindows[app][win].criteria && text = PAWindows[app][win].wintext {
+
+				; found the window
+				PAWindows[app][win].Update(hwnd)
+
+				; ToolTip "Window opened: " app "/" win " [" hwnd "] <- " crit "/" text "`n"
+				; SetTimer ToolTip, -7000
+
+				; set up an event trigger for when this window is closed
+;debug				WinEvent.Close(_PAWindowCloseCallback, hwnd, 1)
+				break 2		; break out of both for loops
+			}
+		}
+	}
+}
+
+
+; This callback function is called when a matching window is created.
+;
+_cbAppCreate(hwnd, hook, dwmsEventTime) {
 
 	; Figure out which application window was created by searching PAWindows
 	; for matching criteria

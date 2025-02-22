@@ -244,12 +244,12 @@ global PACurState := Map(
 
 
 
-; PAApps is a global object which stores information about all of the
-; applications and windows of interest to PACS Assistant.
+; PAApps is a global Array() which tracks all of the applications of interest
+; to PACS Assistant.
 ;
 ; PAApps is initialized by PAInit(), recording all of the apps defined in App[].
 ;
-global PAApps := Map()
+global PAApps := Array()
 
 
 ; App is a Map which stores information about all the windows that belong to;
@@ -257,85 +257,85 @@ global PAApps := Map()
 ;
 ; The following are valid keys for PAWins:
 ;
-;	"A"     - id "PA", PACS Assistant
-;	"V"     - id "VPN", Cisco VPN
-;	"E"     - id "EI", Agfa EI
-;	"F"     - id "EICLIN", Agfa EI ClinApps
-;	"P" 	- id "PS", PowerScribe
-;	"S" 	- id "PSSPELL", PowerScribe Spelling Window
-;	"H" 	- id "EPIC", Epic Hyperspace
-;	"D"     - id "DCAD", DynaCAD Prostate and Breast
-;	"B"     - id "DCADSTUDY", DynaCAD Prostate and Breast
-;	"L"     - id "DLUNG", DynaCAD Lung
+;	"PA"     - id "PA", PACS Assistant
+;	"VPN"     - id "VPN", Cisco VPN
+;	"EI"     - id "EI", Agfa EI
+;	"EICLIN"     - id "EICLIN", Agfa EI ClinApps
+;	"PS" 	- id "PS", PowerScribe
+;	"PSSP" 	- id "PSSPELL", PowerScribe Spelling Window
+;	"EP" 	- id "EPIC", Epic Hyperspace
+;	"DCAD"     - id "DCAD", DynaCAD Prostate and Breast
+;	"DSTUDY"     - id "DCADSTUDY", DynaCAD Prostate and Breast
+;	"DLUNG"     - id "DLUNG", DynaCAD Lung
 ;
 ;
 global App := Map()
 
-App["A"] := AppItem("A", "PA", "AutoHotkey64.exe", "PACS Assistant", "PACS Assistant")
-App["V"] := AppItem("V", "VPN", "vpnui.exe", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences")
-App["E"] := AppItem("E", "EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
-App["F"] := AppItem("F", "EICLIN", "javawClinapps.exe", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
-App["P"] := AppItem("P", "PS", "Nuance.PowerScribe360.exe", "PowerScribe 360", "PowerScribe", "Disable speech")
-App["S"] := AppItem("P", "PS", "natspeak.exe", "PowerScribe 360 Spelling Window", "Spelling Window", "Spelling")
-App["H"] := AppItem("H", "EPIC", "Hyperdrive.exe", "Hyperspace – Production (PRD)", "Production")
-App["D"] := AppItem("D", "DCAD", "StudyManager.exe", "DynaCAD", "Login")
-App["B"] := AppItem("B", "DCADSTUDY", "MRW.exe", "DynaCAD Study", "")
-App["L"] := AppItem("L", "DLUNG", "MeVisLabApp.exe", "DynaCAD Lung", "DynaCAD Lung - Main")
+App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant")
+App["VPN"] := AppItem("VPN", "vpnui.exe", "Cisco AnyConnect Secure Mobility Client")
+App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging")
+App["EICLIN"] := AppItem("EICLIN", "javawClinapps.exe", "Agfa HealthCare Enterprise Imaging")
+App["PS"] := AppItem("PS", "Nuance.PowerScribe360.exe", "PowerScribe 360")
+App["PSSP"] := AppItem("PSSP", "natspeak.exe", "PowerScribe 360 Spelling Window")
+App["EPIC"] := AppItem("EPIC", "Hyperdrive.exe", "Hyperspace – Production (PRD)")
+App["DCAD"] := AppItem("DCAD", "StudyManager.exe", "DynaCAD")
+App["DSTUDY"] := AppItem("DSTUDY", "MRW.exe", "DynaCAD Study")
+App["DLUNG"] := AppItem("DLUNG", "MeVisLabApp.exe", "DynaCAD Lung")
 
 
 ; Add known windows of interest belonging to each app.
 ; Okay to add the main window with a different key
 
 ; for Cisco VPN
-App["V"].Win["m"] := WinItem(App["V"], "m", "main", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences")
-App["V"].Win["p"] := WinItem(App["V"], "p", "prefs", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Export Stats")
-App["V"].Win["l"] := WinItem(App["V"], "l", "login", "Cisco AnyConnect |", "Cisco AnyConnect |", "Username")
-App["V"].Win["o"] := WinItem(App["V"], "o", "otp", "Cisco AnyConnect |", "Cisco AnyConnect |", "Answer")
-App["V"].Win["c"] := WinItem(App["V"], "c", "connected", "Cisco AnyConnect", "Cisco AnyConnect", "Security policies")
+App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences")
+App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Export Stats")
+App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco AnyConnect |", "Cisco AnyConnect |", "Username")
+App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco AnyConnect |", "Cisco AnyConnect |", "Answer")
+App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco AnyConnect", "Cisco AnyConnect", "Security policies")
 
 ; for Agfa EI
-App["E"].Win["l"] := WinItem(App["E"], "l", "login", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
-App["E"].Win["d"] := WinItem(App["E"], "d", "desktop", "Diagnostic Desktop - 8.2.2.062  - mivcsp.adventhealth.com - AHEIAE1", "Diagnostic Desktop - 8", , EIOpen_EIdesktop, EIClose_EIdesktop)
-App["E"].Win["1"] := WinItem(App["E"], "1", "images1", "Diagnostic Desktop - Images (1 of 2)", "Diagnostic Desktop - Images (1")
-App["E"].Win["2"] := WinItem(App["E"], "2", "images2", "Diagnostic Desktop - Images (2 of 2)", "Diagnostic Desktop - Images (2")
-App["E"].Win["4"] := WinItem(App["E"], "4", "4dm" ,"4DM(Enterprise Imaging) v2017", "4DM", , "Corridor4DM.exe")
-App["E"].Win["c"] := WinItem(App["E"], "c", "collaborator", "Collaborator", "Collaborator")
+App["EI"].Win["login"] := WinItem(App["EI"], "login", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
+App["EI"].Win["d"] := WinItem(App["EI"], "d", "Diagnostic Desktop - 8.2.2.062  - mivcsp.adventhealth.com - AHEIAE1", "Diagnostic Desktop - 8", , EIOpen_EIdesktop, EIClose_EIdesktop)
+App["EI"].Win["i1"] := WinItem(App["EI"], "i1", "Diagnostic Desktop - Images (1 of 2)", "Diagnostic Desktop - Images (1")
+App["EI"].Win["i2"] := WinItem(App["EI"], "i2", "Diagnostic Desktop - Images (2 of 2)", "Diagnostic Desktop - Images (2")
+App["EI"].Win["4dm"] := WinItem(App["EI"], "4dm" ,"4DM(Enterprise Imaging) v2017", "4DM", , "Corridor4DM.exe")
+App["EI"].Win["collab"] := WinItem(App["EI"], "collab", "Collaborator", "Collaborator")
 ; pseudowindows
-App["E"].Win["w"] := WinItem(App["E"], "w", "listpage", "Desktop List page", , , , , App["E"].Win["d"])
-App["E"].Win["t"] := WinItem(App["E"], "t", "textpage", "Desktop Text page", , , , , App["E"].Win["d"])
-App["E"].Win["s"] := WinItem(App["E"], "s", "searchpage", "Desktop Search page", , , , , App["E"].Win["d"])
+App["EI"].Win["list"] := WinItem(App["EI"], "list", "Desktop List page", , , , , App["EI"].Win["d"])
+App["EI"].Win["text"] := WinItem(App["EI"], "text", "Desktop Text page", , , , , App["EI"].Win["d"])
+App["EI"].Win["search"] := WinItem(App["EI"], "search", "Desktop Search page", , , , , App["EI"].Win["d"])
 
 ; for Agfa ClinApps (e.g. MPR)
-App["E"].Win["r"] := WinItem(App["E"], "r", "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
+App["EICLIN"].Win["mpr"] := WinItem(App["EICLIN"], "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
 
 ; for PowerScribe
-App["P"].Win["l"] := WinItem(App["P"], "l", "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin)
-App["P"].Win["m"] := WinItem(App["P"], "m", "main", "PowerScribe 360 | Reporting", "PowerScribe", "Signing queue", PSOpen_PSmain, PSClose_PSmain)
-App["P"].Win["r"] := WinItem(App["P"], "r", "report", "PowerScribe 360 | Reporting", "PowerScribe", "Report -", PSOpen_PSreport, PSClose_PSreport)
-App["P"].Win["a"] := WinItem(App["P"], "a", "addendum", "PowerScribe 360 | Reporting", "PowerScribe", "Addendum -", PSOpen_PSreport, PSClose_PSreport)
-App["P"].Win["o"] := WinItem(App["P"], "o", "logout", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you wish to log off the application?", PSOpen_PSlogout)
-App["P"].Win["s"] := WinItem(App["P"], "s", "savespeech", "PowerScribe 360 | Reporting", "PowerScribe", "Your speech files have changed. Do you wish to save the changes?", PSOpen_PSsavespeech)
-App["P"].Win["p"] := WinItem(App["P"], "p", "savereport", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to save the changes to the", PSOpen_PSsavereport)
-App["P"].Win["d"] := WinItem(App["P"], "d", "deletereport", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to delete", PSOpen_PSdeletereport)
-App["P"].Win["u"] := WinItem(App["P"], "u", "unfilled", "PowerScribe 360 | Reporting", "PowerScribe", "This report has unfilled fields. Are you sure you wish to sign it?", PSOpen_PSunfilled)
-App["P"].Win["c"] := WinItem(App["P"], "c", "confirmaddendum", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create an addendum", PSOpen_PSconfirmaddendum)
-App["P"].Win["e"] := WinItem(App["P"], "e", "confirmanotheraddendum", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create another addendum", PSOpen_PSconfirmanotheraddendum)
-App["P"].Win["x"] := WinItem(App["P"], "x", "existing", "PowerScribe 360 | Reporting", "PowerScribe", "is associated with an existing report", PSOpen_PSexisting)
-App["P"].Win["b"] := WinItem(App["P"], "b", "continue", "PowerScribe 360 | Reporting", "PowerScribe", "Do you wish to continue editing", PSOpen_PScontinue)
-App["P"].Win["w"] := WinItem(App["P"], "w", "ownership", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to acquire ownership", PSOpen_PSownership)
-App["P"].Win["i"] := WinItem(App["P"], "i", "microphone", "PowerScribe 360 | Reporting", "PowerScribe", "Your microphone is disconnected", PSOpen_PSmicrophone)
-App["P"].Win["f"] := WinItem(App["P"], "f", "find", "Find and Replace", "Find and", , PSOpen_PSfind)
+App["PS"].Win["login"] := WinItem(App["PS"], "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin)
+App["PS"].Win["main"] := WinItem(App["PS"], "main", "PowerScribe 360 | Reporting", "PowerScribe", "Signing queue", PSOpen_PSmain, PSClose_PSmain)
+App["PS"].Win["report"] := WinItem(App["PS"], "report", "PowerScribe 360 | Reporting", "PowerScribe", "Report -", PSOpen_PSreport, PSClose_PSreport)
+App["PS"].Win["addendum"] := WinItem(App["PS"], "addendum", "PowerScribe 360 | Reporting", "PowerScribe", "Addendum -", PSOpen_PSreport, PSClose_PSreport)
+App["PS"].Win["logout"] := WinItem(App["PS"], "logout", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you wish to log off the application?", PSOpen_PSlogout)
+App["PS"].Win["savespeech"] := WinItem(App["PS"], "savespeech", "PowerScribe 360 | Reporting", "PowerScribe", "Your speech files have changed. Do you wish to save the changes?", PSOpen_PSsavespeech)
+App["PS"].Win["savereport"] := WinItem(App["PS"], "savereport", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to save the changes to the", PSOpen_PSsavereport)
+App["PS"].Win["deletereport"] := WinItem(App["PS"], "deletereport", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to delete", PSOpen_PSdeletereport)
+App["PS"].Win["unfilled"] := WinItem(App["PS"], "unfilled", "PowerScribe 360 | Reporting", "PowerScribe", "This report has unfilled fields. Are you sure you wish to sign it?", PSOpen_PSunfilled)
+App["PS"].Win["confirmaddendum"] := WinItem(App["PS"], "confirmaddendum", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create an addendum", PSOpen_PSconfirmaddendum)
+App["PS"].Win["confirmanother"] := WinItem(App["PS"], "confirmanother", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create another addendum", PSOpen_PSconfirmanotheraddendum)
+App["PS"].Win["existing"] := WinItem(App["PS"], "existing", "PowerScribe 360 | Reporting", "PowerScribe", "is associated with an existing report", PSOpen_PSexisting)
+App["PS"].Win["continue"] := WinItem(App["PS"], "continue", "PowerScribe 360 | Reporting", "PowerScribe", "Do you wish to continue editing", PSOpen_PScontinue)
+App["PS"].Win["ownership"] := WinItem(App["PS"], "ownership", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to acquire ownership", PSOpen_PSownership)
+App["PS"].Win["microphone"] := WinItem(App["PS"], "microphone", "PowerScribe 360 | Reporting", "PowerScribe", "Your microphone is disconnected", PSOpen_PSmicrophone)
+App["PS"].Win["find"] := WinItem(App["PS"], "find", "Find and Replace", "Find and", , PSOpen_PSfind)
 
 ; for PowerScribe spelling window
-App["S"].Win["s"] := WinItem(App["P"], "g", "spelling", "Spelling Window", "Spelling", , "natspeak.exe", PSOpen_PSspelling)
+App["PSSP"].Win["spelling"] := WinItem(App["PSSP"], "spelling", "Spelling Window", "Spelling", , "natspeak.exe", PSOpen_PSspelling)
 
 ; for Epic
-App["E"].Win["m"] := WinItem(App["E"], "m", "main", "Hyperspace – Production (PRD)", "Production", , EPICOpened_EPICmain, EPICClosed_EPICmain)
-App["E"].Win["c"] := WinItem(App["E"], "c", "chat", "Secure Chat", "Secure Chat")
-; pseudowindows, parent is main window App["E"].Win["m"]
-App["E"].Win["l"] := WinItem(App["E"], "l", "login", "Hyperspace - login", , , , , App["E"].Win["m"])
-App["E"].Win["t"] := WinItem(App["E"], "t", "timezone", "Hyperspace - time zone", , , , , App["E"].Win["m"])
-App["E"].Win["m"] := WinItem(App["E"], "m", "main chart", "Hyperspace - chart", , , , , App["E"].Win["m"])
+App["EPIC"].Win["main"] := WinItem(App["EPIC"], "main", "Hyperspace – Production (PRD)", "Production", , EPICOpened_EPICmain, EPICClosed_EPICmain)
+App["EPIC"].Win["chat"] := WinItem(App["EPIC"], "chat", "Secure Chat", "Secure Chat")
+; pseudowindows, parent is main window App["EI"].Win["main"]
+App["EPIC"].Win["login"] := WinItem(App["EPIC"], "login", "Hyperspace - login", , , , , App["EI"].Win["main"])
+App["EPIC"].Win["timezone"] := WinItem(App["EPIC"], "timezone", "Hyperspace - time zone", , , , , App["EI"].Win["main"])
+App["EPIC"].Win["chart"] := WinItem(App["EPIC"], "chart", "Hyperspace - chart", , , , , App["EI"].Win["main"])
 
 
 
