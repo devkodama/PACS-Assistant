@@ -38,7 +38,7 @@
 ; [todo] if PA is minimized, this doesn't work; 
 ; might want to check and directly change PASettings["active"].value
 ;
-; [todo] should be calling PAEnable() rather than doing controlclick here
+; [todo] should be calling a PAEnable() function rather than doing controlclick here
 ;
 F2:: {
 	;	global PASettings
@@ -259,7 +259,7 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+			if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 				BlockInput true
 				Click 2
 				BlockInput false
@@ -267,7 +267,7 @@ $Space:: {
 		}
 	} else if PAContext("EI desktop/list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+		if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false

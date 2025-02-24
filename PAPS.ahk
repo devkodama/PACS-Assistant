@@ -276,15 +276,16 @@ PSOpen_PSreport() {
 
 	; Automatically turn on microphone when opening a report (and off when closing a report)
 	if PASettings["PS_dictate_autoon"].value {
-PAToolTip("aa")
+PAToolTip("ao")
 		if _Dictate_autooff {
-PAToolTip("aa bb")
+PAToolTip("ao keep")
 			; mic should already by on, so cancel the autooff timer
 			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
 			_Dictate_autooff := false
 		}
 		; check to ensure the mic is on, turn it on if it isn't
 		if !PSDictateIsOn(true) {			
+PAToolTip("ao on")
 			; mic is not on so turn it on
 			PSSend("{F4}")						; Start Dictation
 			PASound("PSToggleMic")
