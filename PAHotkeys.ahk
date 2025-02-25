@@ -57,21 +57,21 @@ F2:: {
 ;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
 ;
 $Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		if A_PriorHotkey = ThisHotkey {
 			PSCmdNextEOL()
 		} else {
@@ -82,7 +82,7 @@ $^Tab:: {
 	}
 }
 $^+Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdPrevEOL()
 	} else {
 		Send("^+{Tab}")
@@ -179,7 +179,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $Esc:: {
-	if Context(Mouse(), "EI images1 images2") {
+	if Context(Mouse(), "EI i1 i2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("{Esc}")
@@ -195,14 +195,14 @@ $Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if Context(Mouse(), "PS", "EI images1 images2 desktop/text 4dm") {
+	if Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if Context(Mouse(), "PS", "EI images1 images2 desktop/text 4dm") {
+	if Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -228,7 +228,7 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLocktrigger
 	
-	if Context(Mouse(), "EI images1 images2") {
+	if Context(Mouse(), "EI i1 i2") {
 		if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
@@ -258,7 +258,7 @@ $Space:: {
 				BlockInput false
 			}
 		}
-	} else if Context(Mouse(), "EI desktop/list") {
+	} else if Context(Mouse(), "EI d/list") {
 		; avoid double clicking on a window by checking system double click timeout
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			BlockInput true
@@ -323,7 +323,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 			; 	Click("D")
 			; }
 		} else if PASettings["ClickLock"].value = "Auto" {
-			if Context(Mouse(), "EI images1 images2") {
+			if Context(Mouse(), "EI i1 i2") {
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
 				if LButton_ClickLockon {
@@ -451,7 +451,7 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 _PA_EIHotkey(key) {
 	global PA_DoubleClickSetting
 
-	if Context(Mouse(), "EI images1 images2") {
+	if Context(Mouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			
