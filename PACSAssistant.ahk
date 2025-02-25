@@ -25,6 +25,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include <WinEvent>
 #Include <Cred>
+#Include <Peep.v2>
 
 #Include Utils.ahk
 
@@ -244,7 +245,7 @@ class WindowItem {
 
 				this.visible := newvisible
 				this.minimized := newminimized
-					
+				
 				return 
 
 			} else {
@@ -965,6 +966,7 @@ PAToggle() {
 ;
 PA_Init() {
 	global PAApps
+	global App
 
 	; Get Windows system double click setting
 	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
@@ -999,11 +1001,10 @@ PA_Init() {
 
 
 
-	; initialize the PAApps[] global
+	; initialize the PAApps[] global with all of the defined App objects
 	for k, a in App {
 		PAApps.Push(a)
 	}
-
 
 }
 
@@ -1022,7 +1023,7 @@ PA_Main() {
 
     ; Start daemons
     InitDaemons(true)
-	
+
 }
 
 

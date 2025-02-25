@@ -163,7 +163,7 @@ _RefreshGUI() {
 
 
 	; Update window info area
-	PAGui.PostWebMessageAsString("document.getElementById('windowinfo').innerHTML = `"" . PAWindowInfo . A_Now . "`"")
+	PAGui.PostWebMessageAsString("document.getElementById('windowinfo').innerHTML = `"" . PAWindowInfo . "`"")
 
 
 	; Update status bar text
@@ -341,18 +341,27 @@ try{
 	; update the open/visibility status of all windows
 	PAWindows.Update()
 
+
+	; update all the app windows
+	for app in PAApps {
+		app.Update()
+	}
+
 	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
 	
 
 	; [todo] if PS spelling window is open for more than 1 second while mouse is not
 	; over a PS window, then close it
 
-	; update window info for GUI
-	PAWindowInfo := PAWindows.Print() . "#" . EIGetStudyMode() . "#"
+
 } catch {
 
 }
 
+	; update window info for GUI
+	PAWindowInfo := PAWindows.Print() . "<br />"
+	
+	PAWindowInfo .= PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 
@@ -552,7 +561,7 @@ _WatchMouse2() {
 	; and Lshift is not being held down
 	; and if not already active
 	if !PAWindowBusy && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
-		app := GetApp(hwnd)		
+		app := GetAppkey(hwnd)		
 
 		switch app {
 			case "E":			; EI
@@ -571,7 +580,7 @@ _WatchMouse2() {
 ;				_RestoreSaved()
 				WinActivate(hwnd)
 			case "H":			; Epic
-				win := GetWin(hwnd)		
+				win := GetWinkey(hwnd)		
 				switch win {
 					case "chat":
 						; if !restore_EPICchat {

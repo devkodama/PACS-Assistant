@@ -224,6 +224,9 @@ body.ahk-maximized .ahk-title-btn-maximize {
 #tab-settings {
   background-image: url('../images/settings.png');
 }
+#tab-windows {
+  background-image: url('../images/windows.png');
+}
 
 /* these styles are for the PAActive On/Off switch */
 #tab-active-wrapper {

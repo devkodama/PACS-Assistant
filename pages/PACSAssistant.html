@@ -47,6 +47,7 @@
   <div class="tabbar">
     <div id="tab-home" class="tab-icon default" onclick="openTab(this.id, 'home')"></div>
     <div id="tab-settings" class="tab-icon" onclick="openTab(this.id, 'settings')"></div>
+    <div id="tab-windows" class="tab-icon" onclick="openTab(this.id, 'windows')"></div>
     <div id="tab-active-wrapper">
       <label for="active">ON/OFF</label>
       <input id="tab-active" name="active" class="" role="switch" type="checkbox" oninput="handleCheckbox(this)">
@@ -76,14 +77,7 @@
   <div id="main">
 
     <!-- Alerts area -->
-    <div id="alerts">
-
-      <div class="alert info">
-        <span class="closebtn">&times;</span>  
-        <strong>Success!</strong> Indicates a successful or positive action.
-      </div>
-
-    </div>
+    <div id="alerts"></div>
     
     <!-- Home page -->
     <div id="home" class="tabpage">
@@ -130,15 +124,43 @@
         <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
           class="btn btn-block btn-outline-primary">Restore window positions</button>
 
-          <br />
-          <br />
-        <div id="windowinfo"></div>
+        <br />
+        <br />
 
       </div>
 
     </div>
     <!-- End Settings page -->
 
+
+    <!-- Window Manager page -->
+    <div id="windows" class="tabpage">
+
+      <div class="col-left">
+
+        <h1>Windows</h1>
+
+        <div id="windowinfo"></div>
+
+
+      </div>
+
+      <div class="col-right">
+
+        <br />
+        <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Save window positions</button>
+        <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
+          class="btn btn-block btn-outline-primary">Restore window positions</button>
+
+        <br />
+        <br />
+
+      </div>
+
+    </div>
+    <!-- End Settings page -->
+    
   </div>
   <!-- End Primary display area -->
 
