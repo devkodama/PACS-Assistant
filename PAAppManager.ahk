@@ -355,9 +355,10 @@ class WinItem {
     }
 
     ; Returns diagnostic info about this window as a string
+    ; does not show non-existing windows or pseudowindows unless showall is set to true
     Print(showall := false) {
 
-        if showall || this.hwnd {
+        if showall || (this.hwnd && !this.parentwindow) {
             output := "&nbsp;&nbsp;&nbsp;&nbsp;"
 
             output .= this.key " (" this.hwnd 
@@ -733,6 +734,9 @@ Mouse() {
 ;
 Context(hwnd, contexts*) {
 
+    if !PAActive {
+        return false
+    }
     if !hwnd || !contexts {
         return false
     }

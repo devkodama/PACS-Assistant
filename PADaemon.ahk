@@ -359,9 +359,9 @@ try{
 }
 
 	; update window info for GUI
-	PAWindowInfo := PAWindows.Print() . "<br />"
+	; PAWindowInfo := PAWindows.Print() . "<br />"
 	
-	PAWindowInfo .= PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 

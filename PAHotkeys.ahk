@@ -57,21 +57,21 @@ F2:: {
 ;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
 ;
 $Tab:: {
-	if PACheckContext("PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
 		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if PACheckContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
 		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if PACheckContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
 		if A_PriorHotkey = ThisHotkey {
 			PSCmdNextEOL()
 		} else {
@@ -82,7 +82,7 @@ $^Tab:: {
 	}
 }
 $^+Tab:: {
-	if PACheckContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if Context(Mouse(), "PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
 		PSCmdPrevEOL()
 	} else {
 		Send("^+{Tab}")
@@ -100,14 +100,14 @@ $^+Tab:: {
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
 $CapsLock:: {
-	if PACheckContext(["EI", "PS"]) {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if PACheckContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -120,14 +120,14 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if PACheckContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if PACheckContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -147,21 +147,21 @@ $^+CapsLock:: {
 ; In effect for EI and PS windows.
 ;
 $`:: {
-	if PACheckContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS") {
 		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if PACheckContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS") {
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if PACheckContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS") {
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -179,7 +179,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $Esc:: {
-	if PACheckContext("EI images1 images2") {
+	if Context(Mouse(), "EI images1 images2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("{Esc}")
@@ -195,14 +195,14 @@ $Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if PACheckContext("PS", "EI images1 images2 desktop/text 4dm") {
+	if Context(Mouse(), "PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if PACheckContext("PS", "EI images1 images2 desktop/text 4dm") {
+	if Context(Mouse(), "PS", "EI images1 images2 desktop/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -228,7 +228,7 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLocktrigger
 	
-	if PACheckContext("EI images1 images2") {
+	if Context(Mouse(), "EI images1 images2") {
 		if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
@@ -258,14 +258,14 @@ $Space:: {
 				BlockInput false
 			}
 		}
-	} else if PACheckContext("EI desktop/list") {
+	} else if Context(Mouse(), "EI desktop/list") {
 		; avoid double clicking on a window by checking system double click timeout
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false
 		}
-	} else if PACheckContext("PS report addendum") {
+	} else if Context(Mouse(), "PS report addendum") {
 		; Check to see if there is a text selection in the PS report area
 		; If so, smart delete it
 
@@ -323,7 +323,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 			; 	Click("D")
 			; }
 		} else if PASettings["ClickLock"].value = "Auto" {
-			if PACheckContext( , , "EI images1 images2") {
+			if Context(Mouse(), "EI images1 images2") {
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
 				if LButton_ClickLockon {
@@ -451,7 +451,7 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 _PA_EIHotkey(key) {
 	global PA_DoubleClickSetting
 
-	if PACheckContext("EI images1 images2") {
+	if Context(Mouse(), "EI images1 images2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			
