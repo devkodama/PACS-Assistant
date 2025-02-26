@@ -16,12 +16,22 @@
  * 
  * This module defines the functions:
  *  
- *  GetApp(hwnd)        - returns the application key of the specified window
- *  GetWin(hwnd)        - returns the window key of the specified window
+ *  GetWinItem(hwnd)    - Returns the WinItem for the specified window handle
+ *  GetAppkey(hwnd)     - Returns the application key of the specified window handle
+ *  GetWinkey(hwnd)     - Returns the window key of the specified window handle
  * 
- *  Context(hwnd, contexts*) - returns true if the passed hwnd matches the passed context(s), false otherwise
+ *  Mouse()             - Returns hwnd of window under mouse
  * 
- *  PrintWindows([app, win])    - returns a string, diagnostic info about a window(s) for an app (or all apps)
+ *  Context(hwnd, contexts*) - Check whether the passed hwnd matches the passed context(s).
+ *                              Returns true if hwnd matches any of the context strings, false otherwise.
+ * 
+ *  PrintWindows([app, win])    - Returns diagnostic info about a window(s) for an app (or all apps) as a string
+ * 
+ *  SavePositionsAll()      - For all windows of all apps, saves the current x, y, width, and height of each in its savepos proprety.
+ *  RestorePositionsAll()   - For all windows of all apps, restores window to the size and position in its savepos property.
+ *  WritePositionsAll()     - For all windows of all apps, write window's savepos to user specific settings.ini file.
+ *  ReadPositionsAll()      - For all windows of all apps, reads window's savepos from user specific settings.ini file.
+ * 
  * 
  */
 
@@ -40,6 +50,7 @@
 #Include <WinEvent>
 
 #Include PAGlobals.ahk
+#Include PASettings.ahk
 
 
 
@@ -49,15 +60,6 @@
  */
 
 
-; Reverse lookup table for determining the app and window given an hwnd
-;
-; Entries are of the form:
-;
-;   _HwndLookup[hwnd] := WinItem
-;
-; Updated every time a window is opened or closed
-;
-_HwndLookup := Map()
 
 
 
@@ -127,14 +129,23 @@ class WinPos {
 ;	opentime	- tickcount when window was last opened (from A_TickCount)
 ;
 ;   pos         - current WinPos of the window
-;
 ;   savepos     - saved WinPos of the window
 ;
+;   appkey      - returns the key of the parent app (parentapp), e.g. "EI"
 ;
 ; WinItem methods:
 ;
 ;   Update()    - Updates properties for the window including hwnd, visible, minimized, opentime
 ;   Print()     - Returns diagnostic info about this window as a string 
+;
+;	SavePosition()	    - Saves the current x, y, width, and height of a window in its savepos proprety
+;	RestorePosition() 	- Restores window to the size and position in its savepos property.
+;
+;	CenterWindow(parentwindow)	- Centers a window over a parent window (WinItem)
+;
+;	WritePosition()	- Write window's savepos to user specific settings.ini file.
+;	ReadPosition()	- Reads window's savepos from user specific settings.ini file.
+;
 ;
 ; To instantiate a new WinItem, use:
 ;
@@ -146,6 +157,8 @@ class WinPos {
 class WinItem {
 
     __New(parentapp, key, fulltitle, searchtitle := "", wintext := "", hook_open := 0, hook_close := 0, parentwindow := 0, validate := 0, hwnd := 0) {
+        global _HwndLookup
+        
         this.parentapp := parentapp
         this.key := key
         this.fulltitle := fulltitle
@@ -155,7 +168,7 @@ class WinItem {
         this.hook_close := hook_close
         this.validate :=  validate
 
-        this.savepos := WinPos()
+        this._savepos := WinPos()
 
         ; check if this is a psuedowindow
         if parentwindow {
@@ -262,9 +275,32 @@ class WinItem {
             this._pos.h := Value.h
         }
     }
+    
+    savepos {
+        get {
+            return this._savepos
+        }
+        set {
+            this._savepos.x := Value.x
+            this._savepos.y := Value.y
+            this._savepos.w := Value.w
+            this._savepos.h := Value.h
+        }
+    }
+
+    appkey {
+        get {
+            if this.parentapp {
+                return this.parentapp.key
+            } else {
+                return ""
+            }
+        }
+    }
 
     ; if a non-zero hwnd is passed, it is assumed to be the valid hwnd for this window
     Update(hwnd := 0) {
+        global _HwndLookup
 
         ; check if this is a psuedowindow
         if this.parentwindow {
@@ -369,13 +405,14 @@ class WinItem {
                 output .= ") - "
             }
 
-            output .= this.fulltitle " (= '" this.criteria "'"
-            
-            if this.wintext {
-                output .= ", '" this.wintext "')"
-            } else {
-                output .= ")"
-            }
+            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ") / (" this.savepos.x ", " this.savepos.y ", " this.savepos.w ", " this.savepos.h ")"
+
+            ; output .= this.fulltitle " (= '" this.criteria "'"  
+            ; if this.wintext {
+            ;     output .= ", '" this.wintext "')"
+            ; } else {
+            ;     output .= ")"
+            ; }
             
             output .= "<br />"
 
@@ -386,6 +423,130 @@ class WinItem {
         }
 
         return output
+    }
+
+    ; Saves the current x, y, width, and height of a window in its savepos proprety
+    ; Returns true on success, false on failure.
+    SavePosition() {
+        try {
+            if this.hwnd {
+				WinGetPos(&x, &y, &w, &h, this.hwnd)
+				if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+                    this._savepos.x := x
+                    this._savepos.y := y
+                    this._savepos.w := w
+                    this._savepos.h := h
+                    return true
+				}
+			}
+        }
+        return false
+    }
+
+    ; Restores window to the size and position in its savepos property.
+    ; Returns true on success, false on failure.
+    RestorePosition() {
+        try {
+			if this.hwnd {
+                if this._savepos.w >= WINDOWPOSITION_MINWIDTH && this._savepos.h >= WINDOWPOSITION_MINHEIGHT {
+    				WinMove(this._savepos.x, this._savepos.y, this._savepos.w, this._savepos.h, this.hwnd)
+                    return true
+                }
+			}
+        }
+        return false
+    }
+
+    ; Centers this window over another (parent) window (parentwindow is a WinItem)
+    ; Returns true on success, false on failure.
+    CenterWindow(parentwindow) {
+
+		if parentwindow {
+			cw := 0
+			pw := 0
+
+            try {
+                ; get child and parent window positions and dimensions
+                if this.hwnd {
+                    WinGetPos( , , &cw, &ch, this.hwnd)
+                }
+                if parentwindow.hwnd {
+                    WinGetPos(&px, &py, &pw, &ph, parentwindow.hwnd)
+                }
+                if cw = 0 || pw = 0 {
+                    return false
+                }
+                ; calculate new position
+                nx := px + (pw - cw) / 2
+                ny := py + (ph - ch) / 2
+
+                ; move child window
+                WinMove(nx, ny, , , this.hwnd)
+			
+    			return true
+            }
+        }
+        return false
+    }
+
+    ; Write window's savepos to user specific settings.ini file.
+    ; If this is a pseudowindow, do nothing, return failure.
+    ; Returns true on success, false on failure.
+	WritePosition() {
+        if this.parentwindow {
+            ; pseuodwindow, return failure
+            return false
+        }
+
+        try {
+            if this._savepos.w >= WINDOWPOSITION_MINWIDTH && this._savepos.h >= WINDOWPOSITION_MINHEIGHT {
+                appkey := this.parentapp.key
+                winkey := this.key
+                sectionname := A_ComputerName . "_WinPos"
+                inifile := PASettings["inifile"].value
+;    MsgBox(inifile "/" sectionname "/" appkey "/" winkey)
+;    MsgBox(this._savepos.x "," this._savepos.y "," this._savepos.w "," this._savepos.h)
+                if inifile {
+                    IniWrite(this._savepos.x, inifile, sectionname, appkey . winkey . "_x") 
+                    IniWrite(this._savepos.y, inifile, sectionname, appkey . winkey . "_y")
+                    IniWrite(this._savepos.w, inifile, sectionname, appkey . winkey . "_w")
+                    IniWrite(this._savepos.h, inifile, sectionname, appkey . winkey . "_h")
+                }
+            }
+        }
+    }
+
+    ; Reads window's savepos from user specific settings.ini file.
+    ; If this is a pseudowindow, do nothing, return failure.
+    ; Returns true on success, false on failure.
+    ReadPosition() {
+        if this.parentwindow {
+            ; pseuodwindow, return failure
+            return false
+        }
+
+        try {
+            appkey := this.parentapp.key
+            winkey := this.key
+            sectionname := A_ComputerName . "_WinPos"
+            inifile := PASettings["inifile"].value
+    ; MsgBox(inifile "/" sectionname "/" appkey "/" winkey)
+            if inifile {
+                x := IniRead(inifile, sectionname, appkey . winkey . "_x", -1)
+                y := IniRead(inifile, sectionname, appkey . winkey . "_y", -1)
+                w := IniRead(inifile, sectionname, appkey . winkey . "_w", 0)
+                h := IniRead(inifile, sectionname, appkey . winkey . "_h", 0)
+                if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+                    this._savepos.x := x
+                    this._savepos.y := y
+                    this._savepos.w := w
+                    this._savepos.h := h
+    ; MsgBox(this._savepos.x "," this._savepos.y "," this._savepos.w "," this._savepos.h)
+                    return true
+                }
+            }
+        }
+        return false
     }
 
 }
@@ -413,6 +574,20 @@ class WinItem {
 ;
 ;   Update()    - Searches for all windows associated with this app
 ;                   and adds a WinItem object for each window to Win[]
+;   Print()     - Returns diagnostic info about the window(s) for this app as a string
+;
+;   CountOpenWindows()   - Returns the number of open and visible windows that belong to this app
+; 
+;	SavePositions()     - For all windows of this app,
+;                           saves the current x, y, width, and height
+;                           of each in its savepos proprety.
+;	RestorePositions() 	- For all windows of this app,
+;                           restores window to the size and position in its savepos property.
+;
+;	WritePositions()	- For all windows of this app,
+;                           write window's savepos to user specific settings.ini file.
+;	ReadPositions()	    - For all windows of this app,
+;                           reads window's savepos from user specific settings.ini file.
 ;
 ;
 ; To instantiate a new AppItem, use:
@@ -420,7 +595,6 @@ class WinItem {
 ;       AppItem(key, exename, appname, [searchtitle, wintext])
 ;
 ; 
-;
 class AppItem {
 
     __New(key, exename, appname, searchtitle := "", wintext := "") {
@@ -459,9 +633,9 @@ class AppItem {
         ; * `MoveStart`, `MoveEnd`, `Minimize`, `Restore`, `Maximize`. See comments for the functions for more information.
        
         ; Set up event handlers
-        this.hookShow := WinEvent.Show(_cbAppShow, this.criteria)
+        ; this.hookShow := WinEvent.Show(_cbAppShow, this.criteria)
         ; this.hookCreate := WinEvent.Create(_cbAppCreate, this.criteria)
-        this.hookClose := WinEvent.Close(_cbAppClose, this.criteria)
+        ; this.hookClose := WinEvent.Close(_cbAppClose, this.criteria)
         ; this.hookMove := WinEvent.Move(_cbAppMove, this.criteria)
         ; this.hookMinimize := WinEvent.Minimize(_cbAppMinimize, this.criteria)
         ; this.hookRestore := WinEvent.Restore(_cbAppRestore, this.criteria)
@@ -533,6 +707,51 @@ class AppItem {
         }
 
         return output
+    }
+
+    ; Returns the number of open (and visible?) windows that belong to this app
+    CountOpenWindows() {
+      	count := 0
+
+        ; check all the open windows for a match with this app
+        for , win in _HwndLookup {
+            if win.appkey = this.key {
+                count++
+            }
+        }
+        return count
+    }
+
+    ; For all windows of this app, saves the current x, y, width, and height
+    ; of each in its savepos proprety.
+    SavePositions() {
+        for , win in this.Win {
+            win.SavePosition()
+        }
+    }
+
+    ; For all windows of this app, restores window to the size and position
+    ; in its savepos property.
+    RestorePositions() {
+        for , win in this.Win {
+            win.RestorePosition()
+        }
+    }
+    
+	; For all windows of this app, write window's savepos to 
+    ; user specific settings.ini file.
+    WritePositions() {
+        for , win in this.Win {
+            win.WritePosition()
+        }
+    }
+
+    ; For all windows of this app, reads window's savepos from
+    ; user specific settings.ini file.
+    ReadPositions() {
+        for , win in this.Win {
+            win.ReadPosition()
+        }
     }
 
 }
@@ -802,6 +1021,19 @@ Context(hwnd, contexts*) {
 }
 
 
+; Update all windows of all apps.
+UpdateAll() {
+    global _PAUpdate_Initial
+
+	for app in PAApps {
+		app.Update()
+	}
+
+    _PAUpdate_Initial := false
+}
+
+
+
 ; Returns diagnostic info about a window(s) for an app (or all apps)
 ; as a string
 ;
@@ -827,3 +1059,37 @@ PrintWindows(appkey := "", winkey := "") {
 
 	return output
 }
+
+
+; For all windows of all apps, saves the current x, y, width, and height
+; of each in its savepos proprety.
+SavePositionsAll() {
+    for app in PAApps {
+        app.SavePositions()
+    }
+}
+
+; For all windows of all apps, restores window to the size and position
+; in its savepos property.
+RestorePositionsAll() {
+    for app in PAApps {
+        app.RestorePositions()
+    }
+}
+
+; For all windows of all apps, write window's savepos to 
+; user specific settings.ini file.
+WritePositionsAll() {
+    for app in PAApps {
+        app.WritePositions()
+    }
+}
+
+; For all windows of all apps, reads window's savepos from
+; user specific settings.ini file.
+ReadPositionsAll() {
+    for app in PAApps {
+        app.ReadPositions()
+    }
+}
+

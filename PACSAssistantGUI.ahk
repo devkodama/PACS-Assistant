@@ -214,8 +214,10 @@ PAGui_RestoreWindowPositions(*) {
         return
     }
     running := true
-
-    PAWindows.RestoreWindows()  
+  PAToolTip("PAGui_RestoreWindowPositions")
+    ; PAWindows.RestoreWindows()  
+    ReadPositionsAll()
+    RestorePositionsAll()
 
     ;done
     running := false
@@ -232,8 +234,11 @@ PAGui_SaveWindowPositions(*) {
     }
     running := true
 
-    PAWindows.SaveWindowPositions()
-    PAWindows.SaveSettings()
+  PAToolTip("PAGui_SaveWindowPositions")
+    ; PAWindows.SaveWindowPositions()
+    ; PAWindows.SaveSettings()
+    SavePositionsAll()
+    WritePositionsAll()
 
     ;done
     running := false
@@ -427,16 +432,24 @@ PAGui_Init(*) {
 
     ; display the PACS Assistant window
     ; restore PACS Assistant window position
-	x := PAWindows["PA"]["main"].xpos
+    x := PAWindows["PA"]["main"].xpos
 	y := PAWindows["PA"]["main"].ypos
 	w := PAWindows["PA"]["main"].width
 	h := PAWindows["PA"]["main"].height
+
+    win := App["PA"].Win["main"]
+    x := win.savepos.x
+    y := win.savepos.y
+    w := win.savepos.w
+    h := win.savepos.h
+
 	if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
 		PAGui.Show("X" . x . " Y" . y . " W" . w . " H" . h, PAGUI_WINDOWTITLE)
 
-        PAWindows.Update("PA")
+;        PAWindows.Update("PA")
+        win.Update()
 
-        PAWindows["PA"]["main"].RestorePosition()
+        ; PAWindows["PA"]["main"].RestorePosition()
 
 	} else {
 
@@ -501,8 +514,11 @@ PAGui_Exit(*) {
     PAStatus("Closing PACS Assistant...")
 
     ; save PA window position
-    PAWindows.SaveWindowPositions("PA")
-    PAWindows.SaveSettings("PA")
+    ; PAWindows.SaveWindowPositions("PA")
+    ; PAWindows.SaveSettings("PA")
+    win := App["PA"].Win["main"]
+    win.SavePosition
+    win.WritePosition
 
     ; stop daemons
     InitDaemons(false)

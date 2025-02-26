@@ -19,8 +19,6 @@
 
 #Include <Cred>
 
-#Include PAAppManager.ahk
-
 
 
 /**********************************************************
@@ -214,7 +212,7 @@ global PAStatus_PowerButton := ""
 
 
 ; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
-global PA_DoubleClickSetting := 400
+global PADoubleClickSetting := 400
 
 ; This holds the Windows mouse speed setting (1-20) - value is updated by 
 global PA_MouseSpeedSetting := 10
@@ -250,6 +248,17 @@ global PACurState := Map(
 ; PAApps is initialized by PAInit(), recording all of the apps defined in App[].
 ;
 global PAApps := Array()
+
+
+; Reverse lookup table for determining the app and window given an hwnd
+;
+; Entries are of the form:
+;
+;   _HwndLookup[hwnd] := WinItem
+;
+; Updated every time a window is opened or closed
+;
+global _HwndLookup := Map()
 
 
 ; App is a Map which stores information about all the windows that belong to;

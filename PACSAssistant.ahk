@@ -1,46 +1,58 @@
-/* PACSAssistant.ahk
-**
-** Primary script for PACS Assistant
-**
-**
-*/
+/************************************************************************
+ * PACSAssistant.ahk
+ * 
+ * @description Main script for PACS Assistant
+ * @author 
+ * @date 2025/02/25
+ * @version 0.0.0
+ * 
+ * 
+ ***********************************************************************/
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
 #MaxThreads 64
 
-DetectHiddenWindows true		; look also for hidden windows by default
-DetectHiddenText true			; don't search hidden text by default
 
+
+
+/**********************************************************
+ * Defaults
+ */
+
+
+DetectHiddenWindows true		; look for hidden windows by default
+DetectHiddenText true			; search hidden text by default
 SetDefaultMouseSpeed 0			; 0 = fastest
 
 
-/**
- *
+
+
+/**********************************************************
  * Includes
- * 
  */
 
 
 #Include <WinEvent>
 #Include <Cred>
-#Include <Peep.v2>
+
+#Include <Peep.v2>				; for debugging
 
 #Include Utils.ahk
-
 #Include PAGlobals.ahk
 
 #Include PASound.ahk
-
 #Include PAFindTextStrings.ahk
 
 #Include PADaemon.ahk
-#Include PAHotkeys.ahk
+
 #Include PAVPN.ahk
 #Include PAEI.ahk
 #Include PAPS.ahk
 #Include PAEPIC.ahk
+
+#Include PAHotkeys.ahk
 
 #Include PAInfo.ahk
 #Include PASettings.ahk
@@ -50,12 +62,15 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include PACSAssistantGUI.ahk
 
+#Include PAAppManager.ahk
+
 
 ; for debugging use
 #Include Debug.ahk
 
 
 
+; *** DEPRECATED
 
 ; _WindowKeys is a Map object which allows fast reverse lookup of appplication
 ; and window keys given a HWND value. It does this by maintaining a reverse
@@ -87,6 +102,7 @@ _WindowKeys_CountAppWindows(this, appkey) {
 }
 
 
+; *** DEPRECATED
 
 ; The WindowItem class is defined below. It holds information about an individual
 ; window in the following properties:
@@ -476,6 +492,7 @@ class WindowItem {
 }
 
 
+; *** DEPRECATED
 
 ; PAWindows is a global Map object which stores information about 
 ; all the windows of interest. Stored info includes arrays of application 
@@ -706,7 +723,7 @@ PAWindows_Update(this, appkey := "") {
 		}
 	}
 	
-	global _PAUpdate_Initial := false
+	_PAUpdate_Initial := false
 }
 
 ; Given a window handle, retrives the app and win keys and the visibility
@@ -788,7 +805,7 @@ PAWindows_Print(this) {
 ;
 ; Case sensitive
 ;
-PACheckContext(contexts*) {
+xxPACheckContext(contexts*) {
 	app := ""
 	win := ""
 
@@ -871,7 +888,6 @@ PACheckContext(contexts*) {
 	}
 
 }
-
 
 
 
@@ -964,12 +980,17 @@ PAToggle() {
 
 ; Called once at startup to do necessary initialization
 ;
-PA_Init() {
+PAInit() {
 	global PAApps
 	global App
 
 	; Get Windows system double click setting
-	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
+	PADoubleClickSetting := DllCall("GetDoubleClickTime")
+
+	; initialize the PAApps[] global with all of the defined App objects
+	for k, a in App {
+		PAApps.Push(a)
+	}
 
 	; Initialize systemwide settings
 	PASettings_Init()
@@ -977,34 +998,30 @@ PA_Init() {
 	; Register Windows hooks to monitor window open events for all the
 	; windows of interest (all of the windows in PAWindows)
 ; debugmsg := ""
-	for app in PAWindows["keys"] {
-		for win in PAWindows[app]["keys"] {
-			if PAWindows[app][win].criteria {
-				WinEvent.Show(_PAWindowshowCallback, PAWindows[app][win].criteria, ,PAWindows[app][win].wintext)
-; debugmsg .= PAWindows[app][win].criteria " / " PAWindows[app][win].wintext "`n"
-			}
-		}
-	}
+; 	for app in PAWindows["keys"] {
+; 		for win in PAWindows[app]["keys"] {
+; 			if PAWindows[app][win].criteria {
+; 				WinEvent.Show(_PAWindowshowCallback, PAWindows[app][win].criteria, ,PAWindows[app][win].wintext)
+; ; debugmsg .= PAWindows[app][win].criteria " / " PAWindows[app][win].wintext "`n"
+; 			}
+; 		}
+; 	}
 
 ; MsgBox(debugmsg)
 	;
 
-	PAWindows.Update()
 
-	PAWindows.ReadSettings()
+	; PAWindows.Update()
+	UpdateAll()
+
+	; PAWindows.ReadSettings()
+	ReadPositionsAll()
 
 	; Set up special EI key mappings
 	PA_MapActivateEIKeys()
 
 	; Read ICD code file
 	ICDReadCodeFile()
-
-
-
-	; initialize the PAApps[] global with all of the defined App objects
-	for k, a in App {
-		PAApps.Push(a)
-	}
 
 }
 
@@ -1016,7 +1033,7 @@ PA_Main() {
 	global PACurrentPatient
 
 	; Basic set up
-	PA_Init()
+	PAInit()
 
 	; Set up GUI
 	PAGui_Init()

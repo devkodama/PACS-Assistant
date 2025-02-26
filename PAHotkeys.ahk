@@ -252,7 +252,7 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+			if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 				BlockInput true
 				Click 2
 				BlockInput false
@@ -260,7 +260,7 @@ $Space:: {
 		}
 	} else if Context(Mouse(), "EI d/list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false
@@ -449,11 +449,11 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 
 
 _PA_EIHotkey(key) {
-	global PA_DoubleClickSetting
+	global PADoubleClickSetting
 
 	if Context(Mouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
-		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 			
 			; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
 			if !GetKeyState("LButton") && !GetKeyState("RButton") {

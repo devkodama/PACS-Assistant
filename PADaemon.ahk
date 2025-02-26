@@ -339,13 +339,11 @@ _WatchWindows() {
 
 try{
 	; update the open/visibility status of all windows
-	PAWindows.Update()
+	; PAWindows.Update()
 
 
 	; update all the app windows
-	for app in PAApps {
-		app.Update()
-	}
+	UpdateAll()
 
 	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
 	

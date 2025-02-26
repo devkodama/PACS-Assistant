@@ -200,6 +200,7 @@ class Setting {
         }
         set { 
             global PASettings
+            global CurrentUserCredentials
 
     ; PAToolTip(this.name " = " Value)
             switch this.type {
@@ -475,7 +476,7 @@ PASettings_ReadSettings() {
 ;
 PASettings_WriteSettings() {
     global PASettings
-    global CurrentUserCredentials
+;    global CurrentUserCredentials
 
     ; ensure username has a value
     if PASettings["username"].value {
