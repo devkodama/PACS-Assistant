@@ -946,8 +946,6 @@ PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 
 
 
-
-
 ; Helper functions
 PAToolTip(message, duration := 5000) {
 	static currentmessage := ""
@@ -1015,7 +1013,7 @@ PAInit() {
 		}
 	}
 
-	WinEvent.Close(_PAWindowCloseCallback, App["PS"].Win["logout"].criteria, , App["PS"].Win["logout"].wintext)
+;	WinEvent.Close(_PAWindowCloseCallback, App["PS"].Win["logout"].criteria, , App["PS"].Win["logout"].wintext)
 
 
 	; Update all windows

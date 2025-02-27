@@ -227,6 +227,9 @@ PSOpen_PSlogin() {
 ; Hook function called when PS main window appears
 ;
 PSOpen_PSmain() {
+
+;	PASound("PowerScribe opened")
+
 	; remove the current patient
 	PACurrentPatient.lastfirst := ""
 	PACurrentPatient.dob := ""

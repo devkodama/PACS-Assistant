@@ -623,7 +623,7 @@ EIStop() {
 			if !winitem {
 				; PS successfully closed
 				resultPS := true
-			} else if !pscloseflag && winitem.winkey = "login" {
+			} else if !pscloseflag && winitem.key = "login" {
 				; We're at the login window. Close it.
 				; Don't use PSSend() as it is written to send only to the report or addendum windows
 				; ControlSend("!{F4}", , winitem.hwnd)
