@@ -242,7 +242,7 @@ _RefreshGUI() {
 	}
 
 	; update PS status on GUI
-	visible := App["PS"].Win["main"].visible || App["PS"].Win["report"].visible
+	visible := App["PS"].Win["main"].visible || App["PS"].Win["report"].visible || App["PS"].Win["login"].visible || App["PS"].Win["addendum"].visible
 	if visible {
 		status |= 0x04
 		if PACurState["PS"] != "true" {

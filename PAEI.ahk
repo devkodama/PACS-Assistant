@@ -682,13 +682,13 @@ EIStop() {
 		; After EI desktop is closed, the EI login window persists in a hidden state.
 		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
 		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
-		hwndlogin := PAWindows["EI"]["login"].hwnd
-		hiddenlogin := !PAWindows["EI"]["login"].visible
+		hwndlogin := App["EI"].Win["login"].hwnd
+		hiddenlogin := !App["EI"].Win["login"].visible
 		if hwndlogin && hiddenlogin {
 			pid := WinGetPID(hwndlogin)
 			if pid {
 				ProcessClose(pid)
-				PAWindows.Update("EI")
+				App["EI"].Update()
 			}
 		}
 
