@@ -5,13 +5,16 @@
  *
  * This module defines the following classes:
  *
- *  The AppItem class corresponds to a single application such as Cisco VPN Client,
+ *  AppItem class corresponds to a single application such as Cisco VPN Client,
  *  or EI, or PowerScribe, or Epic. It tracks and returns information
  *  about the status of the application and its windows. Any number of windows
  *  can be managed within one AppItem object.
  * 
- *  The WinItem class tracks and returns information about an individual window that
+ *  WinItem class tracks and returns information about an individual window that
  *  belongs to an AppItem.
+ * 
+ *  WinPos class stores a 4-tuple x, y, w, h that specifies the position and size
+ *  of a window.
  * 
  * 
  * This module defines the functions:

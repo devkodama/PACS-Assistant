@@ -590,19 +590,9 @@ _RefreshGUI2() {
 ;
 _WatchWindows() {
 	global PAActive
-	; global PAWindows
 	global PAWindowInfo
 	
-	; if !PAActive {
-	; 	return
-	; }
-
-; try{
-	; update the open/visibility status of all windows
-	; PAWindows.Update()
-
-
-	; update all the app windows
+	; update all app windows
 	UpdateAll()
 
 	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
@@ -612,14 +602,11 @@ _WatchWindows() {
 	; over a PS window, then close it
 
 
-; } catch {
-
-; }
-
 	; update window info for GUI
 	; PAWindowInfo := PAWindows.Print() . "<br />"
 	
 	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+
 
 }
 

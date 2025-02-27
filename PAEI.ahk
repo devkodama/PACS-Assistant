@@ -35,7 +35,7 @@
 
 
 /**********************************************************
- * Functions to send info to EI
+ * Functions to send commands or info to EI
  * 
  */
 
@@ -49,15 +49,15 @@
 ;
 ; Commands are sent to the images1 window by default.
 ;
-EISend(cmdstring := "", targetwindow := "images1") {
+EISend(cmdstring := "", targetwindow := "i1") {
 	global PAWindowBusy
 	if (cmdstring) {
 		switch targetwindow {
-			case "images1":
+			case "i1":
 				hwndEI := App["EI"].Win["i1"].hwnd
-			case "desktop":
+			case "d":
 				hwndEI := App["EI"].Win["d"].hwnd
-			case "images2":
+			case "i2":
 				hwndEI := App["EI"].Win["i2"].hwnd
 			default:
 				hwndEI := App["EI"].Win["i1"].hwnd
@@ -167,6 +167,7 @@ EIClickImages(buttonname) {
 ; Returns TRUE if EI desktop is running, FALSE if not
 ;
 EIIsRunning() {
+	App["EI"].Update()
 	return App["EI"].Win["d"].hwnd ? true : false
 }
 
@@ -589,7 +590,7 @@ EIStop() {
 	PAWindowBusy := true
 
 	; Close EI desktop
-	EISend("!{F4}", "desktop")
+	EISend("!{F4}", "d")
 
 	; wait for EI desktop to go away
 	while !cancelled && (hwndEI := App["EI"].Win["d"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {

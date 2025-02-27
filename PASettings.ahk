@@ -766,4 +766,3 @@ HandleFormInput(WebView, id, newval) {
     }
 
 }
-
