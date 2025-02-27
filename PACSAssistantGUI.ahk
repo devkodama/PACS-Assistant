@@ -496,17 +496,19 @@ PAGui_Exit(*) {
     win.SavePosition
     win.WritePosition
 
-    ; stop daemons
-    InitDaemons(false)
-    
-    ; Sleep(1000)
 
-; msgbox("About to call WinEvent.Stop()")
 
     ; stop all WinEvent windows event callbacks
-; WinEvent.Stop("Show")    ; this causes crashes on exiting - ???
+    ;WinEvent.Stop()
 
-; msgbox("About to call ExitApp()")
+
+
+    ; stop daemons
+    InitDaemons(false)
+
+
+    ; Sleep(1000)
+
 
     ; terminate the script
     ExitApp()

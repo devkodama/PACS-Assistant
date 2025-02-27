@@ -138,6 +138,8 @@ class WinPos {
 ;   Update()    - Updates properties for the window including hwnd, visible, minimized, opentime
 ;   Print()     - Returns diagnostic info about this window as a string 
 ;
+;   Close()     - Clears the hwnd and other properties, the window no longer exists
+;
 ;	SavePosition()	    - Saves the current x, y, width, and height of a window in its savepos proprety
 ;	RestorePosition() 	- Restores window to the size and position in its savepos property.
 ;
@@ -356,8 +358,16 @@ class WinItem {
                 }
                 
                 ; update the visibility and minimized
-                visible := (WinGetStyle(hwnd) & WS_VISIBLE) ? true : false
-                minimized := WinGetMinMax(hwnd) = -1 ? true : false
+                try {
+                    visible := (WinGetStyle(hwnd) & WS_VISIBLE) ? true : false
+                } catch {
+                    visible := false
+                }
+                try {
+                    minimized := WinGetMinMax(hwnd) = -1 ? true : false
+                } catch {
+                    minimized := false
+                }
 
                 ; call hook_open if window transitions from not visible or minimized to visible and not minimized
                 if !_PAUpdate_Initial && PAActive && this.hook_open && (!this.visible || this.minimized) && (visible && !minimized) {
@@ -428,29 +438,22 @@ class WinItem {
         return output
     }
 
-	; Closes the window.
-	; Calls ahk WinClose() to actually close the window
-	Close() {
+	; Clears the hwnd and other properties, the window no longer exists
+    Close() {
         global _HwndLookup
-		
-		if this.hwnd  {
 
-			; delete the reverse lookup
+        ; if this.hwnd exists, delete its reverse lookup entry
+        if this.hwnd {
             try {
                 _HwndLookup.Delete(this.hwnd)
             }
-
-			; close the actual window
-            try {
-                WinClose(this.hwnd)
-            }
             this.hwnd := 0
-            this.opentime := 0
-            this.visible := false
-            this.minimized := false
-            this.pos := WinPos()
-		}
-	}
+        }
+        this.opentime := 0
+        this.visible := false
+        this.minimized := false
+        this.pos := WinPos()   
+    }
 
     ; Saves the current x, y, width, and height of a window in its savepos proprety
     ; Returns true on success, false on failure.

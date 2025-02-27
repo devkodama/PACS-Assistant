@@ -890,29 +890,27 @@ xxPACheckContext(contexts*) {
 
 
 ; This callback function is called when a window matching specific criteria
-; is shown on screen.
+; is shown on screen. It updates the WinItem object for the window.
 _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 
 	; Figure out which application window was created by searching PAWindows
 	; for matching criteria
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
-	for app in PAWindows["keys"] {
-		for win in PAWindows[app]["keys"] {
-			if crit = PAWindows[app][win].criteria && text = PAWindows[app][win].wintext {
+ 
+PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
 
-				; found the window
-				PAWindows[app][win].Update(hwnd)
-
-				; ToolTip "Window opened: " app "/" win " [" hwnd "] <- " crit "/" text "`n"
-				; SetTimer ToolTip, -7000
-
-				; set up an event trigger for when this window is closed
-;debug				WinEvent.Close(_PAWindowCloseCallback, hwnd, 1)
+	for k, a in App {
+		for , w in a.Win {
+			if crit = w.criteria && text = w.wintext {
+				; found the window, update it with the new hwnd
+				w.Update(hwnd)
+PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 				break 2		; break out of both for loops
 			}
 		}
 	}
+
 }
 
 
@@ -921,14 +919,26 @@ _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 _PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
 
 	; Update the PAWindows and _WindowKeys entries for the closed window.
-	
-	if PAWindows.GetAppWin(hwnd, &app, &win) {
 
-		; ToolTip "Window closed: " app "/" win " [" hwnd "]" 
-		; SetTimer ToolTip, -5000
-		try {
-			PAWindows[app][win].Close(false)
-		} catch {
+	crit := hook.MatchCriteria[1]
+	text := hook.MatchCriteria[2]
+PAToolTip("Close " hwnd ": ('" crit "','" text "') => ?")
+
+	; these for loops are only for debugging	
+	for k, a in App {
+		for , w in a.Win {
+			if crit = w.criteria && text = w.wintext {
+				; found the window, update it with the new hwnd
+PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+				break 2		; break out of both for loops
+			}
+		}
+	}
+	
+	try {
+		win := GetWinItem(hwnd)
+		if win {
+			win.Close()
 		}
 	}
 	
@@ -991,6 +1001,22 @@ PAInit() {
 
 	; Initialize systemwide settings
 	PASettings_Init()
+
+
+	; Register Windows hooks to monitor window open and close events for all the
+	; windows of interest
+	for k, a in App {
+		for , w in a.Win {
+			if w.criteria {
+				; register a hook for this window
+				WinEvent.Show(_PAWindowShowCallback, w.criteria, , w.wintext)
+				; register a hook for this window
+			}
+		}
+	}
+
+	WinEvent.Close(_PAWindowCloseCallback, App["PS"].Win["logout"].criteria, , App["PS"].Win["logout"].wintext)
+
 
 	; Update all windows
 	UpdateAll()
