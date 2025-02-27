@@ -109,7 +109,7 @@ EIClickDesktop(buttonname) {
 				}
 			}
 		case "EI_DesktopStartReading":
-			hwndEI := PAWindows["EI"]["desktop"].hwnd
+			hwndEI := App["EI"].Win["d"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 				if FindText(&x, &y, x0, y0 + 32, x0 + 720, y0 + 80, 0, 0, PAText[buttonname]) {
