@@ -169,7 +169,7 @@ global PAWindowBusy := false
 ; Cancel flag, can be set to signal that long running operations should quit
 global PACancelRequest := false
 
-; This is true at startup and set to false after the first time PAWindows.Update() is called
+; This is true at startup and set to false after the first time UpdateAll() is called
 global _PAUpdate_Initial := true
 
 ; This is false at startup and set to true after the GUI is up and running.

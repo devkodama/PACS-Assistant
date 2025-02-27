@@ -24,7 +24,6 @@
  * Globals
  */
 
-; global PAWindows
 global PAGui
 global DispatchQueue
 
@@ -215,7 +214,6 @@ PAGui_RestoreWindowPositions(*) {
     }
     running := true
   PAToolTip("PAGui_RestoreWindowPositions")
-    ; PAWindows.RestoreWindows()  
     ReadPositionsAll()
     RestorePositionsAll()
 
@@ -235,8 +233,6 @@ PAGui_SaveWindowPositions(*) {
     running := true
 
   PAToolTip("PAGui_SaveWindowPositions")
-    ; PAWindows.SaveWindowPositions()
-    ; PAWindows.SaveSettings()
     SavePositionsAll()
     WritePositionsAll()
 
@@ -490,8 +486,6 @@ PAGui_Exit(*) {
     PAStatus("Closing PACS Assistant...")
 
     ; save PA window position
-    ; PAWindows.SaveWindowPositions("PA")
-    ; PAWindows.SaveSettings("PA")
     win := App["PA"].Win["main"]
     win.SavePosition
     win.WritePosition

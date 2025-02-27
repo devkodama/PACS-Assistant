@@ -74,7 +74,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 ; is shown on screen. It updates the WinItem object for the window.
 _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 
-	; Figure out which application window was created by searching PAWindows
+	; Figure out which application window was created by searching
 	; for matching criteria
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
@@ -98,8 +98,6 @@ PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 ; This callback function is called when a specific window is closed
 ;
 _PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
-
-	; Update the PAWindows and _WindowKeys entries for the closed window.
 
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]

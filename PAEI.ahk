@@ -263,13 +263,11 @@ EIGetStudyMode() {
 ; This gets called either when desktop window is first opened or is restored
 ;
 EIOpen_EIdesktop() {
-	; global PAWindows
 
 	PASound("EI desktop opened")
 
 	if PASettings["EI_restoreatopen"].value {
 		; Restore EI window positions
-		; PAWindows.RestoreWindows("EI")
 		App["EI"].RestorePositions()
 	}
 	
@@ -382,7 +380,6 @@ EIStart(cred := CurrentUserCredentials) {
 
 		; now run EI
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
-		; PAWindows.Update("EI")
 		App["EI"].Update()
 
 		; wait for login window to be exist
@@ -390,7 +387,6 @@ EIStart(cred := CurrentUserCredentials) {
 		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			; PAWindows.Update("EI")
 			App["EI"].Update()
 			if PACancelRequest {
 				cancelled := true
@@ -422,7 +418,6 @@ EIStart(cred := CurrentUserCredentials) {
 		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			; PAWindows.Update("EI")
 			App["EI"].Update()
 			if PACancelRequest {
 				cancelled := true
@@ -468,7 +463,6 @@ EIStart(cred := CurrentUserCredentials) {
 			}
 
 			Sleep(500)
-			; PAWindows.Update("EI")
 			App["EI"].Update()
 
 			if PACancelRequest {
@@ -480,7 +474,6 @@ EIStart(cred := CurrentUserCredentials) {
 			while !cancelled && !(hwnddesktop := App["EI"].Win["d"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
 				PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
-				; PAWindows.Update("EI")
 				App["EI"].Update()
 				if PACancelRequest {
 					cancelled := true
@@ -506,13 +499,11 @@ EIStart(cred := CurrentUserCredentials) {
 		if	hwndlogin := WinExist(App["EI"].Win["login"].searchtitle, App["EI"].Win["login"].wintext) {
 			if pid := WinGetPID(hwndlogin) {
 				ProcessClose(pid)
-				; PAWindows.Update("EI")
 				App["EI"].Update()
 			}
 		} else if hwnddesktop := WinExist(App["EI"].Win["d"].searchtitle, App["EI"].Win["d"].wintext) {
 			if pid := WinGetPID(hwnddesktop) {
 				ProcessClose(pid)
-				; PAWindows.Update("EI")
 				App["EI"].Update()
 			}
 		}
@@ -596,7 +587,6 @@ EIStop() {
 	while !cancelled && (hwndEI := App["EI"].Win["d"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
-		; PAWindows.Update("EI")
 		App["EI"].Update()
 		if PACancelRequest {
 			cancelled := true

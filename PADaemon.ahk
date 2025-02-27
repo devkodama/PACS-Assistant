@@ -13,9 +13,6 @@
 ** Global variables and constants
 */
 
-;global PAWindows
-;global PAGui
-
 
 #Include PAGlobals.ahk
 
@@ -584,7 +581,7 @@ _RefreshGUI2() {
 
 
 
-; Update the status of all PAWindows
+; Update the status of all windows
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
 ;
@@ -603,10 +600,7 @@ _WatchWindows() {
 
 
 	; update window info for GUI
-	; PAWindowInfo := PAWindows.Print() . "<br />"
-	
 	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
-
 
 }
 
