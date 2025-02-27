@@ -39,7 +39,7 @@ GUIREFRESH_INTERVAL := 200
 WATCHMOUSE_UPDATE_INTERVAL := 200
 
 ; interval (ms) for updating window statuses
-WATCHWINDOWS_UPDATE_INTERVAL := 500
+WATCHWINDOWS_UPDATE_INTERVAL := 200
 
 ; interval (ms) for updating dictate button status
 WATCHDICTATE_UPDATE_INTERVAL := 100
