@@ -35,14 +35,20 @@
 ; Directly changing PASettings["active"].value does not work, 
 ; as it does not update the toggle switch on screen.
 ;
-; [todo] what if PA is hidden, verify if ControlClick still works
+; [todo] if PA is minimized, this doesn't work; 
+; might want to check and directly change PASettings["active"].value
+;
+; [todo] should be calling a PAEnable() function rather than doing controlclick here
 ;
 F2:: {
 	;	global PASettings
 	;   PASettings["active"].value := !PAActive
 	
 	if (hwndPA := App["PA"].Win["main"].hwnd) {
-		ControlClick "X25 Y275", hwndPA
+		; click on the on screen toggle switch, which is located in the lower
+		; left corner of the GUI at approx x = 25 and y = WinHeight - 55
+		WinGetPos( , , &w, &h, hwndPA)
+		ControlClick("X25 Y" . (h - 55), hwndPA)
 	}
 }
 
@@ -92,7 +98,8 @@ $^+Tab:: {
 
 ; CapsLock mapping
 ;	CapsLock -> PowerScribe Start/Stop Dictation (F4)
-;	Shift-CapsLock -> PowerScribe Sign Dictation (F12) OR EI Start reading (Ctrl-Enter)
+;	Shift-CapsLock -> PowerScribe Sign Dictation (F12)
+;						or EI Start reading, Resume reading, Start list
 ;	Ctrl-CapsLock -> PowerScribe Draft Dictation (F9)
 ;	Ctrl-Shift-CapsLock -> PowerScribe Prelim Dictation (Alt-F Alt-M (File > Prelim))
 ;
@@ -212,9 +219,9 @@ $^z:: {
 
 ; Space bar key mapping
 ;
-; If pressed while the mouse cursor is on an EI image window,
-; a doubleclick (Click 2) is sent to double click at the current mouse position.
-; Blocks user mouse movement or input while sending doubleclick, for reliability
+; Send a double click (Click 2) at the current mouse position.
+; Blocks user mouse movement or input while sending the double 
+; click, for reliability
 ;
 ; In effect for EI image windows, EI desktop if list area showing
 ;
@@ -252,7 +259,7 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
+			if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 				BlockInput true
 				Click 2
 				BlockInput false
@@ -260,7 +267,7 @@ $Space:: {
 		}
 	} else if Context(Mouse(), "EI d/list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
+		if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false
@@ -422,26 +429,28 @@ _LButton_beep() {
 PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
 
 PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
-	static definedlist := Array()		; remembers all hotkeys which have been defined through this function
+	static definedhklist := Array()		; remembers all hotkeys which have been defined through this function
 
 	if keylist {
-		for k in definedlist {
-			Hotkey(k, "Off")	; disable previously defined hotkeys
+		for hk in definedhklist {
+			Hotkey(hk, "Off")	; disable previously defined hotkeys
 		}
 
 		for key in keylist {
-			hkey := "$" . GetKeyName(key)
+			; (re)define a hotkey for key
+			hkey := "$" . key
 			Hotkey(hkey, _PA_EIHotkey, "On")
 			
+			; if the hotkey is not already in the definedhklist, then add it
 			found := 0
-			for k in definedlist {
-				if k = hkey {
+			for hk in definedhklist {
+				if hk = hkey {
 					found := true
 					break
 				}
 			}
 			if !found {
-				definedlist.Push(hkey)	; remember the new hotkey
+				definedhklist.Push(hkey)	; remember the new hotkey
 			}
 		}
 	}

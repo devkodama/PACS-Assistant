@@ -321,7 +321,6 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 VPNStop() {
 	global PACancelRequest
 	static running := false			; true if the VPNDisconnect is already running
-	static tick0 := A_TickCount
 
 	; if VPNStop() is already running, don't run another instance
 	if running {
@@ -337,6 +336,7 @@ VPNStop() {
 		return 1
 	}
 
+	tick0 := A_TickCount
 	PAStatus("Disconnecting VPN...")
 	PAGui_ShowCancelButton()
 
@@ -344,8 +344,8 @@ VPNStop() {
 	vpnstate := StdoutToVar('"' . EXE_VPNCLI . '" disconnect').Output
 	connected := VPNIsConnected(true)
 	
-	tick0 := A_TickCount
 	while connected && !cancelled && A_TickCount - tick0 < VPN_DISCONNECT_TIMEOUT * 1000 {
+		PAStatus("Disconnecting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
 		connected := VPNIsConnected(true)
 		if PACancelRequest {

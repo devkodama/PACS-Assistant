@@ -15,9 +15,10 @@
 #Include <WebView2>
 #Include <WebViewToo>
 
-#include "Debug.ahk"
+#include Debug.ahk
 
 #Include PAGlobals.ahk
+#Include Utils.ahk
 
 
 /**
@@ -77,15 +78,16 @@ ClickId(WebView, id) {
             DispatchQueue.Push(EIStop)
 
         case "app-PS":
-            PAToolTip("id='" . id . "' was clicked")
+            PAToolTip("This doesn't work yet")
 ;           DispatchQueue.Push(PAGui_ForceClosePS)
         case "app-PS-startup":
-            PAToolTip("id='" . id . "' was clicked")
+            PAToolTip("This doesn't work yet")
 ;            DispatchQueue.Push(PAGui_ForceClosePS)
         case "app-PS-shutdown":
             DispatchQueue.Push(PSStop)
         case "app-PS-forceclose":
-            ; DispatchQueue.Push(PAGui_ForceClosePS)
+            PAToolTip("This doesn't work yet")
+; DispatchQueue.Push(PAGui_ForceClosePS)
 
         case "app-EPIC":
             if !EPICIsRunning() {
@@ -102,7 +104,6 @@ ClickId(WebView, id) {
             DispatchQueue.Push(PAGui_SaveWindowPositions)
 
         case "cancelbutton":
-            ; PAToolTip("id='" . id . "' was clicked")
             DispatchQueue.Push(PAGui_CancelButton)
 
         default:
@@ -124,7 +125,7 @@ HoverMessages["app-EI"] := Map("false", "Press to start EI",
         "true", "Right click to shut down EI")
 HoverMessages["app-PS"] := Map("false", "",
         "true", "Right click to shut down PowerScribe")
-HoverMessages["app-EPIC"] := Map("false", "",
+HoverMessages["app-EPIC"] := Map("false", "Press to start Epic",
         "true", "Right click to shut down Epic")
 
 
@@ -135,7 +136,7 @@ HoverEvent(WebView, id) {
     msg := HoverMessages[id][PACurState[app]]
     if msg {
         ; display tooltip
-        PAToolTip(msg, 500)
+        PAToolTip(msg, 1000)
     }
 }
 
@@ -179,8 +180,33 @@ PAStatus(message := "", duration := 0) {
 }
 
 
+; Displays an alert
+;
+; Alert types:
+;   info
+;   success
+;   warning
+;   danger
+;
+PAAlert(message, type := "info") {
+
+PAToolTip("paalert: " message ", " type)
+
+    ; PAGui.PostWebMessageAsString("")
+
+    ; clean up - remove dismissed alerts
+    PAGui.PostWebMessageAsString("document.querySelectorAll('.alert.dismissed').forEach(elem => {elem.remove();});")
+    
+    ; append new alert
+    alerthtml := "<div class=`"alert " . type . "`"><span class=`"closebtn`" onclick=`"closeAlert(this)`">&times;</span>" . EscapeHTML(message) . "</div>"
+
+    PAGui.PostWebMessageAsString("document.getElementById('alerts').insertAdjacentHTML('beforeend', '" . alerthtml . "');")
+    
+}
+
 
 ; Call this to show the Cancel button on the status bar
+; Resets the global PACancelRequest to false
 PAGui_ShowCancelButton() {
     global PACancelRequest
 
@@ -201,7 +227,6 @@ PAGui_CancelButton() {
     PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').setAttribute('disabled', '');")
     PACancelRequest := true
 }
-
 
 
 ; Restore saved window positions from settings file
@@ -351,6 +376,9 @@ PAGui_PACSShutdown() {
     }
     running := true
 
+	tick0 := A_TickCount
+	PAStatus("Shutting down PACS...")
+
     resultEI := EIStop()
     if resultEI = 1 {
         resultEI := true
@@ -362,13 +390,13 @@ PAGui_PACSShutdown() {
 
 
     if resultEI && resultVPN {
-        PAStatus("PACS shut down successfully")
-        returnresult := 1
+        PAStatus("PACS shut down successfully (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+    returnresult := 1
     } else if !resultEI {
-        PAStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic not shut down")
+        PAStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic was not shut down")
         returnresult := 0
     } else if !resultVPN {
-        PAStatus("PACS shut down not completed - VPN not disconnected")
+        PAStatus("PACS shut down not completed - VPN was not disconnected")
         returnresult := 0
     }
 
