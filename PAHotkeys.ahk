@@ -259,7 +259,7 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+			if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 				BlockInput true
 				Click 2
 				BlockInput false
@@ -267,7 +267,7 @@ $Space:: {
 		}
 	} else if Context(Mouse(), "EI d/list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+		if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false
@@ -487,7 +487,7 @@ _PA_EIHotkey(key) {
 ;	double press ->
 ; (~ prefix keeps the native function of the key)
 ; ~LShift:: {
-; 	if (A_PriorHotkey != "~LShift" or A_TimeSincePriorHotkey > PA_DoubleClickSetting)
+; 	if (A_PriorHotkey != "~LShift" or A_TimeSincePriorHotkey > PADoubleClickSetting)
 ; 	 {
 ; 		 ; Too much time between presses, so this isn't a double-press.
 ; 		 KeyWait "LShift"

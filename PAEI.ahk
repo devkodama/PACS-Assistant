@@ -109,7 +109,7 @@ EIClickDesktop(buttonname) {
 				}
 			}
 		case "EI_DesktopStartReading":
-			hwndEI := PAWindows["EI"]["desktop"].hwnd
+			hwndEI := App["EI"].Win["d"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 				if FindText(&x, &y, x0, y0 + 32, x0 + 720, y0 + 80, 0, 0, PAText[buttonname]) {
@@ -682,13 +682,13 @@ EIStop() {
 		; After EI desktop is closed, the EI login window persists in a hidden state.
 		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
 		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
-		hwndlogin := PAWindows["EI"]["login"].hwnd
-		hiddenlogin := !PAWindows["EI"]["login"].visible
+		hwndlogin := App["EI"].Win["login"].hwnd
+		hiddenlogin := !App["EI"].Win["login"].visible
 		if hwndlogin && hiddenlogin {
 			pid := WinGetPID(hwndlogin)
 			if pid {
 				ProcessClose(pid)
-				PAWindows.Update("EI")
+				App["EI"].Update()
 			}
 		}
 

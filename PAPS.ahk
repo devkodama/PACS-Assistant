@@ -535,7 +535,7 @@ PSStop(sendclose := true) {
 	
 	while !cancelled && winitem && (A_TickCount-tick0 < PS_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		if winitem.winkey == "login" {
+		if winitem.win == "login" {
 			; We're at the login window. Close it.
 			PSSend("!{F4}")
 		}
