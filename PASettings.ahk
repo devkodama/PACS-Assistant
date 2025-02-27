@@ -89,7 +89,7 @@ PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply"
 
 PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center message boxes over the main window")
 
-PASettings["PSspelling_autoclose"] := Setting("PSspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
+PASettings["PSSPspelling_autoclose"] := Setting("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
 
 ; EPIC settings
 PASettings["EPIC_restoreatopen"] := Setting("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
@@ -136,7 +136,7 @@ PASettingsPage.Push("PSlogout_dismiss")
 PASettingsPage.Push("PSsavespeech_dismiss")
 PASettingsPage.Push(">PSsavespeech_dismiss_reply")
 PASettingsPage.Push("PSmicrophone_dismiss")
-PASettingsPage.Push("PSspelling_autoclose")
+PASettingsPage.Push("PSSPspelling_autoclose")
 PASettingsPage.Push("PScenter_dialog")
 
 PASettingsPage.Push("#Epic")

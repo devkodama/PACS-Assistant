@@ -110,19 +110,19 @@ VPNStart(cred := CurrentUserCredentials) {
 	}
 
 	; close OTP window if open, to get back to main vpn window
-	hwndotp := WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)
+	hwndotp := WinExist(App["VPN"].Win["otp"].criteria, App["VPN"].Win["otp"].wintext)
 	if hwndotp {
 		ControlClick("Cancel", hwndotp, , , , "NA")
 		WinWaitClose(hwndotp)
-		PAWindows.Update("VPN")
+		App["VPN"].Update()
 	}
 
 	; close login window if open, to get back to main vpn window
-	hwndlogin := WinExist(PAWindows["VPN"]["login"].criteria, PAWindows["VPN"]["login"].wintext)
+	hwndlogin := WinExist(App["VPN"].Win["login"].criteria, App["VPN"].Win["login"].wintext)
 	if hwndlogin {
 		ControlClick("Cancel", hwndlogin, , , , "NA")
 		WinWaitClose(hwndlogin)
-		PAWindows.Update("VPN")
+		App["VPN"].Update()
 	}
 
 	; don't allow focus following while trying to make a VPN connection
@@ -144,11 +144,11 @@ VPNStart(cred := CurrentUserCredentials) {
 		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 		; look for connected info dialog box
-		hwndconnected := WinExist(PAWindows["VPN"]["connected"].criteria, PAWindows["VPN"]["connected"].wintext)
+		hwndconnected := WinExist(App["VPN"].Win["connected"].criteria, App["VPN"].Win["connected"].wintext)
 		if hwndconnected {
 			; close connection info window
 			WinClose(hwndconnected)
-			PAWindows.Update("VPN")
+			App["VPN"].Update()
 
 			; confirm connection (and update connected status cache)
 			connected := VPNIsConnected(true)
@@ -160,11 +160,11 @@ VPNStart(cred := CurrentUserCredentials) {
 		}
 
 		; look for one time password dialog box
-		hwndotp := WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)
+		hwndotp := WinExist(App["VPN"].Win["otp"].criteria, App["VPN"].Win["otp"].wintext)
 		if hwndotp {
 			; wait for user to enter otp and/or close window
 			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
-			while (WinExist(PAWindows["VPN"]["otp"].criteria, PAWindows["VPN"]["otp"].wintext)) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
+			while (WinExist(App["VPN"].Win["otp"].criteria, App["VPN"].Win["otp"].wintext)) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 				PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
 				try {
@@ -176,7 +176,7 @@ VPNStart(cred := CurrentUserCredentials) {
 					break			; inner while
 				}
 			}
-			PAWindows.Update("VPN")
+			App["VPN"].Update()
 			lastdialog := "otp"
 			continue		; while
 		}
@@ -186,17 +186,17 @@ VPNStart(cred := CurrentUserCredentials) {
 		}
 
 		; look for login dialog box
-		hwndlogin := WinExist(PAWindows["VPN"]["login"].criteria, PAWindows["VPN"]["login"].wintext)
+		hwndlogin := WinExist(App["VPN"].Win["login"].criteria, App["VPN"].Win["login"].wintext)
 		if hwndlogin {
 			; before entering username and password, see if the last login failed
 			; if it failed, we might be on the wrong server, so cancel the login window
 			; and return to the main UI so the correct server can be populated
-			hwndmain := WinExist(PAWindows["VPN"]["main"].criteria, PAWindows["VPN"]["main"].wintext)
+			hwndmain := WinExist(App["VPN"].Win["main"].criteria, App["VPN"].Win["main"].wintext)
 			if hwndmain && ControlGetText("Static2", hwndmain) = "Login failed." {
 				failedlogins++
 				ControlClick("Cancel", hwndlogin, , , , "NA")
 				WinWaitClose(hwndlogin)
-				PAWindows.Update("VPN")
+				App["VPN"].Update()
 			} else {
 				; enter username and password and press OK
 				BlockInput true
@@ -205,14 +205,14 @@ VPNStart(cred := CurrentUserCredentials) {
 				ControlClick("OK", hwndlogin, , , , "NA") 
 				BlockInput false
 				WinWaitClose(hwndlogin)
-				PAWindows.Update("VPN")
+				App["VPN"].Update()
 			}
 			lastdialog := "login"
 			continue
 		}
 
 		; look for VPN UI main window
-		hwndmain := WinExist(PAWindows["VPN"]["main"].criteria, PAWindows["VPN"]["main"].wintext)
+		hwndmain := WinExist(App["VPN"].Win["main"].criteria, App["VPN"].Win["main"].wintext)
 		if hwndmain {
 			; In the VPN UI main window, enter the VPN URL and press connect
 			statustext := ControlGetText("Static2", hwndmain)
@@ -256,14 +256,14 @@ VPNStart(cred := CurrentUserCredentials) {
 				; only want to do this once, we set runflag to true
 				runflag := true		
 				Run(EXE_VPN)
-				PAWindows.Update("VPN")
+				App["VPN"].Update()
 
 				; wait for main window to be appear
 				tick1 := A_TickCount
-				while !(hwndmain := PAWindows["VPN"]["main"].hwnd) && (A_TickCount - tick1 < VPN_DIALOG_TIMEOUT * 1000) {
+				while !(hwndmain := App["VPN"].Win["main"].hwnd) && (A_TickCount - tick1 < VPN_DIALOG_TIMEOUT * 1000) {
 					PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
-					PAWindows.Update("VPN")
+					App["VPN"].Update()
 trace .= "(w:" . A_TickCount-tick1 . ")"
 					if PACancelRequest {
 						cancelled := true
@@ -274,7 +274,7 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 					; failed to open main window
 					break	; exit while loop
 				}
-				PAWindows.Update("VPN")
+				App["VPN"].Update()
 			}
 
 			continue

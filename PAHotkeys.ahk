@@ -41,7 +41,7 @@ F2:: {
 	;	global PASettings
 	;   PASettings["active"].value := !PAActive
 	
-	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
+	if (hwndPA := App["PA"].Win["main"].hwnd) {
 		ControlClick "X25 Y275", hwndPA
 	}
 }
@@ -585,7 +585,7 @@ PAToolTip(winitem.hwnd)
 }
 
 +F8:: {
-	hwndEPIC := PAWindows["EPIC"]["main"].hwnd
+	hwndEPIC := App["EPIC"].Win["main"].hwnd
 	WinClose(hwndEPIC)
 }
 

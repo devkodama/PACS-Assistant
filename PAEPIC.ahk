@@ -45,7 +45,7 @@ EPICSend(cmdstring := "") {
     global PAWindowBusy
 
 	if PAActive && cmdstring {
-		if hwndEPIC := PAWindows["EPIC"]["main"].hwnd {
+		if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 			; at this point hwndPS is non-null and points to the current PS window
 			PAWindowBusy := true
 			BlockInput true				; prevent user input from interfering
@@ -69,8 +69,8 @@ EPICSend(cmdstring := "") {
 ; Returns TRUE if Epic is running, FALSE if not
 ;
 EPICIsRunning() {
-	PAWindows.Update("EPIC")
-	return PAWindows["EPIC"]["main"].hwnd ? true : false
+	App["EPIC"].Update()
+	return App["EPIC"].Win["main"].hwnd ? true : false
 }
 
 
@@ -84,7 +84,7 @@ EPICIsRunning() {
 ; Returns true if the Epic login page is showing
 ;
 EPICIsLogin() {
-	if hwndEPIC := PAWindows["EPIC"]["main"].hwnd {
+	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
@@ -100,7 +100,7 @@ EPICIsLogin() {
 ; Returns true if the Epic time zone confirmation page is showing
 ;
 EPICIsTimezone() {
-	if (hwndEPIC := PAWindows["EPIC"]["main"].hwnd) {
+	if (hwndEPIC := App["EPIC"].Win["main"].hwnd) {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
@@ -117,7 +117,7 @@ EPICIsTimezone() {
 ; Returns true if the Epic main chart page is showing
 ;
 EPICIsChart() {
-	if hwndEPIC := PAWindows["EPIC"]["main"].hwnd {
+	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
@@ -146,7 +146,7 @@ EPICOpened_EPICmain() {
 
 	if PASettings["EPIC_restoreatopen"].value {
 		; Restore EPIC window positions
-		PAWindows.RestoreWindows("EPIC")
+		App["EPIC"].RestorePositions()
 	}
 	
 	if PASettings["EPICtimezone_dismiss"].value {
@@ -236,12 +236,12 @@ EPICStart(cred := CurrentUserCredentials) {
 	PAWindowBusy := true
 
 	Run('"' . EXE_EPIC . '" env="PRD"')
-	PAWindows.Update("EPIC")
+	App["EPIC"].Update()
 
-	while !cancelled && !(hwndEPIC := PAWindows["EPIC"]["main"].hwnd) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
+	while !cancelled && !(hwndEPIC := App["EPIC"].Win["main"].hwnd) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
 		PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
-		PAWindows.Update("EPIC")
+		App["EPIC"].Update()
 		if PACancelRequest {
 				cancelled := true
 				break		; while
@@ -254,7 +254,7 @@ EPICStart(cred := CurrentUserCredentials) {
 		while !cancelled && !(islogin := EPICIsLogin()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			PAWindows.Update("EPIC")
+			App["EPIC"].Update()
 			if PACancelRequest {
 					cancelled := true
 					break		; while
@@ -294,7 +294,7 @@ EPICStart(cred := CurrentUserCredentials) {
 				while !cancelled && !(istimezone := EPICIsTimezone()) && !(ischart := EPICIsChart()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 					PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
-					PAWindows.Update("EPIC")
+					App["EPIC"].Update()
 					if PACancelRequest {
 							cancelled := true
 							break		; while
@@ -304,7 +304,7 @@ EPICStart(cred := CurrentUserCredentials) {
 				while !cancelled && !(ischart := EPICIsChart()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 					PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
-					PAWindows.Update("EPIC")
+					App["EPIC"].Update()
 					if PACancelRequest {
 							cancelled := true
 							break		; while
@@ -378,23 +378,23 @@ EPICStop() {
 	PAWindowBusy := true
 
 	; close Epic
-	hwndEPIC := PAWindows["EPIC"]["main"].hwnd
+	hwndEPIC := App["EPIC"].Win["main"].hwnd
     if hwndEPIC {
         WinClose(hwndEPIC)
     }
 
 	; wait for Epic main window to go away
-	while !cancelled && PAWindows["EPIC"]["main"].hwnd && (A_TickCount-tick0 < EPIC_SHUTDOWN_TIMEOUT * 1000) {
+	while !cancelled && App["EPIC"].Win["main"].hwnd && (A_TickCount-tick0 < EPIC_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
-		PAWindows.Update("EPIC")
+		App["EPIC"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break		; while
 		}
 	}
 
-	if PAWindows["EPIC"]["main"].hwnd {
+	if App["EPIC"].Win["main"].hwnd {
 		failed := true
 	}
 

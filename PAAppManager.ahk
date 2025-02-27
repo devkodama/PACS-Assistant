@@ -167,8 +167,14 @@ class WinItem {
         this.hook_open := hook_open
         this.hook_close := hook_close
         this.validate :=  validate
-
+        
+        this.visible := false
+        this.minimized := false
+        
+        this._pos := WinPos()
         this._savepos := WinPos()
+
+        ; _hwnd, opentime, criteria are set below
 
         ; check if this is a psuedowindow
         if parentwindow {
@@ -177,11 +183,7 @@ class WinItem {
             this.parentwindow := parentwindow
             this.criteria := ""
             this._hwnd := 0
-
             this.opentime := 0
-            this.visible := false
-            this.minimized := false
-            this._pos := WinPos()
 
         } else {
 
@@ -223,25 +225,19 @@ class WinItem {
                 try {
                     this.visible := (WinGetStyle(this.hwnd) & WS_VISIBLE) ? true : false
                 } catch {
-                    this.visible := false
                 }
                 try {
                     this.minimized := WinGetMinMax(this.hwnd) = -1 ? true : false
                 } catch {
-                    this.minimized := false
                 }
                 try {
                     WinGetPos(&x, &y, &w, &h, this.hwnd)
                     this._pos := WinPos(x, y, w, h)
                 } catch {
-                    this._pos := WinPos()
                 }
             } else {
                 ; no existing window at this time
                 this.opentime := 0
-                this.visible := false
-                this.minimized := false
-                this._pos := WinPos()
             }
         }
     }
@@ -261,11 +257,18 @@ class WinItem {
 
     pos {
         get {
-            WinGetPos(&x, &y, &w, &h, this.hwnd)
-            this._pos.x := x
-            this._pos.y := y
-            this._pos.w := w
-            this._pos.h := h
+            try {
+                WinGetPos(&x, &y, &w, &h, this.hwnd)
+                this._pos.x := x
+                this._pos.y := y
+                this._pos.w := w
+                this._pos.h := h
+            } catch {
+                this._pos.x := 0
+                this._pos.y := 0
+                this._pos.w := 0
+                this._pos.h := 0
+            }
             return this._pos
         }
         set {
@@ -356,7 +359,7 @@ class WinItem {
                 visible := (WinGetStyle(hwnd) & WS_VISIBLE) ? true : false
                 minimized := WinGetMinMax(hwnd) = -1 ? true : false
 
-                ; call hook_open if window transitions from not visible or minimzed to visible and not minimized
+                ; call hook_open if window transitions from not visible or minimized to visible and not minimized
                 if !_PAUpdate_Initial && PAActive && this.hook_open && (!this.visible || this.minimized) && (visible && !minimized) {
                     this.hook_open.Call()
                 }
@@ -424,6 +427,30 @@ class WinItem {
 
         return output
     }
+
+	; Closes the window.
+	; Calls ahk WinClose() to actually close the window
+	Close() {
+        global _HwndLookup
+		
+		if this.hwnd  {
+
+			; delete the reverse lookup
+            try {
+                _HwndLookup.Delete(this.hwnd)
+            }
+
+			; close the actual window
+            try {
+                WinClose(this.hwnd)
+            }
+            this.hwnd := 0
+            this.opentime := 0
+            this.visible := false
+            this.minimized := false
+            this.pos := WinPos()
+		}
+	}
 
     ; Saves the current x, y, width, and height of a window in its savepos proprety
     ; Returns true on success, false on failure.
@@ -567,16 +594,16 @@ class WinItem {
 ;   pid         - process ID of this function
 ;   isrunning   - (read only) true if app has been started, false if not
 ;
-;   wincount    - returns total number of windows being tracked
-;   activecount - returns number of windows that are active
+;;;   wincount    - returns total number of windows being tracked
+;;;   activecount - returns number of windows that are active
 ;
 ; AppItem methods:
 ;
-;   Update()    - Searches for all windows associated with this app
-;                   and adds a WinItem object for each window to Win[]
+;   Update()    -  Updates the pid for this app
+;                   If the pid is non-zero, then updates all the windows in Win[]
 ;   Print()     - Returns diagnostic info about the window(s) for this app as a string
 ;
-;   CountOpenWindows()   - Returns the number of open and visible windows that belong to this app
+;   CountOpenWindows()   - Returns the number of open (and visible?) windows that belong to this app
 ; 
 ;	SavePositions()     - For all windows of this app,
 ;                           saves the current x, y, width, and height
@@ -895,7 +922,7 @@ GetAppkey(hwnd) {
     try {
         win := _HwndLookup[hwnd]
     } catch {
-        win := 0
+        return ""
     }
 
     if win && win.parentapp {
@@ -913,7 +940,7 @@ GetWinkey(hwnd) {
     try {
         win := _HwndLookup[hwnd]
     } catch {
-        win := 0
+        return ""
     }
 
     if win {

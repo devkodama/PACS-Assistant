@@ -21,7 +21,6 @@
  * Defaults
  */
 
-
 DetectHiddenWindows true		; look for hidden windows by default
 DetectHiddenText true			; search hidden text by default
 SetDefaultMouseSpeed 0			; 0 = fastest
@@ -32,7 +31,6 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 /**********************************************************
  * Includes
  */
-
 
 #Include <WinEvent>
 #Include <Cred>
@@ -56,7 +54,6 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include PAInfo.ahk
 #Include PASettings.ahk
-
 
 #Include PAICDCode.ahk
 
@@ -995,26 +992,10 @@ PAInit() {
 	; Initialize systemwide settings
 	PASettings_Init()
 
-	; Register Windows hooks to monitor window open events for all the
-	; windows of interest (all of the windows in PAWindows)
-; debugmsg := ""
-; 	for app in PAWindows["keys"] {
-; 		for win in PAWindows[app]["keys"] {
-; 			if PAWindows[app][win].criteria {
-; 				WinEvent.Show(_PAWindowshowCallback, PAWindows[app][win].criteria, ,PAWindows[app][win].wintext)
-; ; debugmsg .= PAWindows[app][win].criteria " / " PAWindows[app][win].wintext "`n"
-; 			}
-; 		}
-; 	}
-
-; MsgBox(debugmsg)
-	;
-
-
-	; PAWindows.Update()
+	; Update all windows
 	UpdateAll()
 
-	; PAWindows.ReadSettings()
+	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()
 
 	; Set up special EI key mappings
@@ -1024,7 +1005,6 @@ PAInit() {
 	ICDReadCodeFile()
 
 }
-
 
 
 ; Main starting point for PACS Assistant

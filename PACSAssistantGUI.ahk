@@ -24,7 +24,7 @@
  * Globals
  */
 
-global PAWindows
+; global PAWindows
 global PAGui
 global DispatchQueue
 
@@ -295,9 +295,9 @@ PAGui_PACSStartup(cred := CurrentUserCredentials) {
         cancelled := false
 
 		tick1 := A_TickCount
-		while !cancelled && !(hwndPS := PAWindows["PS"]["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+		while !cancelled && !(hwndPS := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
             PAStatus("Starting PACS (PowerScribe)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			PAWindows.Update("PS")
+			App["PS"].Update()
 			Sleep(500)
 			if PACancelRequest {
 				cancelled := true
@@ -421,60 +421,36 @@ PAGui_Init(*) {
     PAGui.AddCallbackToScript("ClickId", ClickId)
     PAGui.AddCallbackToScript("HandleFormInput", HandleFormInput)
 
-    ;MyWindow.AddHostObjectToScript("ahkButtonClick", {func:WebButtonClickEvent})
-    
-    ;MyWindow.AddCallBackToScript("CopyGlyphCode", CopyGlyphCodeEvent)
-    ;MyWindow.AddCallBackToScript("Tooltip", WebTooltipEvent)
-    ;MyWindow.AddCallbackToScript("ahkFormSubmit", FormSubmitHandler)
-
-
     PAGui.Title := PAGUI_WINDOWTITLE
 
     ; display the PACS Assistant window
-    ; restore PACS Assistant window position
-    x := PAWindows["PA"]["main"].xpos
-	y := PAWindows["PA"]["main"].ypos
-	w := PAWindows["PA"]["main"].width
-	h := PAWindows["PA"]["main"].height
+    ; and restore PACS Assistant window position
 
     win := App["PA"].Win["main"]
+    win.ReadPosition()
     x := win.savepos.x
     y := win.savepos.y
     w := win.savepos.w
     h := win.savepos.h
 
-	if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
-		PAGui.Show("X" . x . " Y" . y . " W" . w . " H" . h, PAGUI_WINDOWTITLE)
+    if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+        PAGui.Show("x" x " y" y " w" w " h" h)
+        Sleep(300)                      ; need time for GUI to be set up
+        PAGui_Size(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
+    } else {
+        PAGui.Show()
+        Sleep(500)                      ; need time for GUI to be set up
+        PAGui.GetClientPos(, , &w, &h)  ; get actual size of client window
+        PAGui_Size(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
+    }    
 
-;        PAWindows.Update("PA")
-        win.Update()
 
-        ; PAWindows["PA"]["main"].RestorePosition()
+    win.Update()
 
-	} else {
-
-		PAGui.Show()
-
-	}
-
-    ; call resize to calculate and set the height of the main display area
-    ; don't actually change the window size
-    PAGui.GetClientPos(, , &w, &h)
-    PAGui_Size(PAGui, 0, w, h)
-  
-    ; Set up the Settings page, which has dynamically generated HTML
-	; PAGui.PostWebMessageAsString("document.getElementById('settingsform').innerHTML = '" PASettings_HTMLForm() "'")
-    ; form := PASettings_HTMLForm()
-    
-    ; For unknown reasons, need to sleep to give GUI form time to render
-    ; before trying to manipulate DOM. Without the Sleep(), the Settings
-    ; form doesn't get displayed.
-    Sleep(1000)
-    
     ; declare GUI to be up and running
     _PAGUI_Running := true
 
-    ; update GUI to show current user
+    ; update GUI to show current username
     if PASettings["username"].value {
         PAGui_Post("curuser", "innerHTML", " - " . PASettings["username"].value)
     } else {
@@ -489,7 +465,7 @@ PAGui_Init(*) {
 }
 
 
-; Called when GUI is resized
+; Called whenever GUI is resized
 PAGui_Size(thisGui, MinMax, Width, Height) {
 
     if MinMax = -1 {
@@ -523,7 +499,7 @@ PAGui_Exit(*) {
     ; stop daemons
     InitDaemons(false)
     
-    Sleep(2000)
+    ; Sleep(1000)
 
 ; msgbox("About to call WinEvent.Stop()")
 

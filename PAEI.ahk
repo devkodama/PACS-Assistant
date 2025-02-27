@@ -54,13 +54,13 @@ EISend(cmdstring := "", targetwindow := "images1") {
 	if (cmdstring) {
 		switch targetwindow {
 			case "images1":
-				hwndEI := PAWindows["EI"]["images1"].hwnd
+				hwndEI := App["EI"].Win["i1"].hwnd
 			case "desktop":
-				hwndEI := PAWindows["EI"]["desktop"].hwnd
+				hwndEI := App["EI"].Win["d"].hwnd
 			case "images2":
-				hwndEI := PAWindows["EI"]["images2"].hwnd
+				hwndEI := App["EI"].Win["i2"].hwnd
 			default:
-				hwndEI := PAWindows["EI"]["images1"].hwnd
+				hwndEI := App["EI"].Win["i1"].hwnd
 		}
 		if (hwndEI) {
 			PAWindowBusy := true
@@ -88,7 +88,7 @@ EIClickDesktop(buttonname) {
 
 	switch buttonname {
 		case "EISearch", "EIList", "EIText", "EIImage", "EIEpic":
-			hwndEI := PAWindows["EI"]["desktop"].hwnd
+			hwndEI := App["EI"].Win["d"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 				if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText[buttonname]) {
@@ -121,7 +121,7 @@ EIClickImages(buttonname) {
 
 	switch buttonname {
 		case "EI_RemoveFromList":
-			hwndEI := PAWindows["EI"]["images1"].hwnd
+			hwndEI := App["EI"].Win["i1"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 				if FindText(&x, &y, x0, y0, x0 + 1000, y0 + 64, 0, 0, PAText[buttonname]) {
@@ -135,7 +135,7 @@ EIClickImages(buttonname) {
 				}
 			}
 		case "EI_StartReading":
-			hwndEI := PAWindows["EI"]["images1"].hwnd
+			hwndEI := App["EI"].Win["i1"].hwnd
 			if hwndEI {
 				WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 				if FindText(&x, &y, x0, y0, x0 + 1000, y0 + 64, 0, 0, PAText[buttonname]) {
@@ -167,12 +167,7 @@ EIClickImages(buttonname) {
 ; Returns TRUE if EI desktop is running, FALSE if not
 ;
 EIIsRunning() {
-	global PAWindows
-
-	PAWindows.Update("EI")
-	hwnddesktop := PAWindows["EI"]["desktop"].hwnd
-
-	return hwnddesktop ? true : false
+	return App["EI"].Win["d"].hwnd ? true : false
 }
 
 
@@ -183,7 +178,7 @@ EIIsRunning() {
 ; Returns true if the page is showing, false if not.
 ;
 EIIsSearch() {
-	if hwndEI := PAWindows["EI"]["desktop"].hwnd {
+	if hwndEI := App["EI"].Win["d"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EISearchOn"]) {
 			return true
@@ -192,7 +187,7 @@ EIIsSearch() {
 	return false
 }
 EIIsList() {
-	if hwndEI := PAWindows["EI"]["desktop"].hwnd {
+	if hwndEI := App["EI"].Win["d"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EIListOn"]) {
 			return true
@@ -201,7 +196,7 @@ EIIsList() {
 	return false
 }
 EIIsText() {
-	if hwndEI := PAWindows["EI"]["desktop"].hwnd {
+	if hwndEI := App["EI"].Win["d"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EITextOn"]) {
 			return true
@@ -210,7 +205,7 @@ EIIsText() {
 	return false
 }
 EIIsImage() {
-	if hwndEI := PAWindows["EI"]["desktop"].hwnd {
+	if hwndEI := App["EI"].Win["d"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EIImageOn"]) {
 			return true
@@ -232,7 +227,7 @@ EIIsImage() {
 ;
 EIGetStudyMode() {
 
-	if hwndEI := PAWindows["EI"]["desktop"].hwnd {
+	if hwndEI := App["EI"].Win["d"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EITextOn"]) {
 			if ok := FindText(&x, &y, x0, y0 + 80, x0 + w0, y0 + 160, 0, 0, PAText["EI_Mode"]) {
@@ -267,13 +262,14 @@ EIGetStudyMode() {
 ; This gets called either when desktop window is first opened or is restored
 ;
 EIOpen_EIdesktop() {
-	global PAWindows
+	; global PAWindows
 
 	PASound("EI desktop opened")
 
 	if PASettings["EI_restoreatopen"].value {
 		; Restore EI window positions
-		PAWindows.RestoreWindows("EI")
+		; PAWindows.RestoreWindows("EI")
+		App["EI"].RestorePositions()
 	}
 	
 	; this doesn't work for unclear reasons
@@ -368,8 +364,8 @@ EIStart(cred := CurrentUserCredentials) {
 
 	; if EI login window does not exist, then EI has not been run, so run EI
 	; or if EI login window does exist but is hidden, then need to kill EI process then rerun EI
-	hwndlogin := WinExist(PAWindows["EI"]["login"].searchtitle, PAWindows["EI"]["login"].wintext)
-	hiddenlogin := !PAWindows["EI"]["login"].visible
+	hwndlogin := WinExist(App["EI"].Win["login"].searchtitle, App["EI"].Win["login"].wintext)
+	hiddenlogin := !App["EI"].Win["login"].visible
 	if !hwndlogin || (hwndlogin && hiddenlogin) {
 		if hwndlogin {
 			; if EI login window is hidden, likely EI was running then closed
@@ -378,21 +374,23 @@ EIStart(cred := CurrentUserCredentials) {
 			pid := WinGetPID(hwndlogin)
 			if pid {
 				ProcessClose(pid)
-				PAWindows.Update("EI")
+				App["EI"].Update()
 			}
 			hwndlogin := 0
 		}
 
 		; now run EI
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
-		PAWindows.Update("EI")
+		; PAWindows.Update("EI")
+		App["EI"].Update()
 
 		; wait for login window to be exist
 		tick1 := A_TickCount
-		while !(hwndlogin := PAWindows["EI"]["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			PAWindows.Update("EI")
+			; PAWindows.Update("EI")
+			App["EI"].Update()
 			if PACancelRequest {
 				cancelled := true
 				break		; while
@@ -415,22 +413,23 @@ EIStart(cred := CurrentUserCredentials) {
 		; got an EI login window, start the login process
 	
 		; restore the EI login window if it is minimized
-		if PAWindows["EI"]["login"].minimized {
+		if App["EI"].Win["login"].minimized {
 			WinRestore(hwndlogin)
 		}
 
 		; wait for EI login window to be visible (not hidden)
-		while !PAWindows["EI"]["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
+		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			PAWindows.Update("EI")
+			; PAWindows.Update("EI")
+			App["EI"].Update()
 			if PACancelRequest {
 				cancelled := true
 				break		; while
 			}
 		}
 
-		if !PAWindows["EI"]["login"].visible {
+		if !App["EI"].Win["login"].visible {
 			
 			; if EI Login window still not visible after time out, return failure
 			failed := true
@@ -468,7 +467,8 @@ EIStart(cred := CurrentUserCredentials) {
 			}
 
 			Sleep(500)
-			PAWindows.Update("EI")
+			; PAWindows.Update("EI")
+			App["EI"].Update()
 
 			if PACancelRequest {
 				cancelled := true
@@ -476,10 +476,11 @@ EIStart(cred := CurrentUserCredentials) {
 
 			; waits for EI desktop window to appear
 			tick1 := A_TickCount
-			while !cancelled && !(hwnddesktop := PAWindows["EI"]["desktop"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
+			while !cancelled && !(hwnddesktop := App["EI"].Win["d"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
 				PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
-				PAWindows.Update("EI")
+				; PAWindows.Update("EI")
+				App["EI"].Update()
 				if PACancelRequest {
 					cancelled := true
 					break
@@ -501,15 +502,17 @@ EIStart(cred := CurrentUserCredentials) {
 
 		; in this case, EI may have already been started up
 		; if there is an EI process, then need to kill EI process before we exit
-		if	hwndlogin := WinExist(PAWindows["EI"]["login"].searchtitle, PAWindows["EI"]["login"].wintext) {
+		if	hwndlogin := WinExist(App["EI"].Win["login"].searchtitle, App["EI"].Win["login"].wintext) {
 			if pid := WinGetPID(hwndlogin) {
 				ProcessClose(pid)
-				PAWindows.Update("EI")
+				; PAWindows.Update("EI")
+				App["EI"].Update()
 			}
-		} else if hwnddesktop := WinExist(PAWindows["EI"]["desktop"].searchtitle, PAWindows["EI"]["desktop"].wintext) {
+		} else if hwnddesktop := WinExist(App["EI"].Win["d"].searchtitle, App["EI"].Win["d"].wintext) {
 			if pid := WinGetPID(hwnddesktop) {
 				ProcessClose(pid)
-				PAWindows.Update("EI")
+				; PAWindows.Update("EI")
+				App["EI"].Update()
 			}
 		}
 
@@ -589,10 +592,11 @@ EIStop() {
 	EISend("!{F4}", "desktop")
 
 	; wait for EI desktop to go away
-	while !cancelled && (hwndEI := PAWindows["EI"]["desktop"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
+	while !cancelled && (hwndEI := App["EI"].Win["d"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
-		PAWindows.Update("EI")
+		; PAWindows.Update("EI")
+		App["EI"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break
@@ -612,8 +616,8 @@ EIStop() {
 	
 			PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			sleep(500)
-			PAWindows.Update("PS")
-			PAWindows.Update("EPIC")
+			App["PS"].Update()
+			App["EPIC"].Update()
 			
 			winitem := PSParent()
 			if !winitem {
@@ -627,7 +631,7 @@ EIStop() {
 				pscloseflag := true
 			}
 	
-			hwndEPIC := PAWindows["EPIC"]["main"].hwnd
+			hwndEPIC := App["EPIC"].Win["main"].hwnd
 			if !hwndEPIC {
 				resultEPIC := true
 			} else if EPICIsLogin() {
@@ -711,7 +715,7 @@ EIRetrievePatientInfo() {
 	; Create return Patient object
 	patientinfo := Patient()
 
-	if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
+	if EIhwnd := App["EI"].Win["d"].hwnd {
 
 		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 
@@ -862,7 +866,7 @@ EIRetrieveStudyInfo(patient) {
 	; Create return Study object
 	studyinfo := Study()
 
-	if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
+	if EIhwnd := App["EI"].Win["d"].hwnd {
 
 		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 
@@ -1137,12 +1141,12 @@ EICmdStartReading() {
 ;
 EICmdDisplayStudyDetails() {
 	; search images2 window first
-	EIhwnd := PAWindows["EI"]["images2"].hwnd
+	EIhwnd := App["EI"].Win["i2"].hwnd
 	WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 	result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
 	if !result {
 		; if no match on images2 window, then search images1 window
-		EIhwnd := PAWindows["EI"]["images1"].hwnd
+		EIhwnd := App["EI"].Win["i1"].hwnd
 		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		result := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EI_SDOff"], , 0, , , , 1)
 	}
@@ -1187,7 +1191,7 @@ EICmdShowSearch() {
 ; Assumes the Search page is already showing
 ;
 EICmdResetSearch() {
-	if EIhwnd := PAWindows["EI"]["desktop"].hwnd {
+	if EIhwnd := App["EI"].Win["d"].hwnd {
 		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_Clear"], , 0, , , , 1) {
 			WinActivate(EIhwnd)

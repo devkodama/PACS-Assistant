@@ -338,7 +338,7 @@ App["PS"].Win["microphone"] := WinItem(App["PS"], "microphone", "PowerScribe 360
 App["PS"].Win["find"] := WinItem(App["PS"], "find", "Find and Replace", "Find and", , PSOpen_PSfind)
 
 ; for PowerScribe spelling window
-App["PSSP"].Win["spelling"] := WinItem(App["PSSP"], "spelling", "Spelling Window", "Spelling", , "natspeak.exe", PSOpen_PSspelling)
+App["PSSP"].Win["spelling"] := WinItem(App["PSSP"], "spelling", "Spelling Window", "Spelling", , PSOpen_PSspelling)
 
 ; for Epic
 App["EPIC"].Win["main"] := WinItem(App["EPIC"], "main", "Hyperspace – Production (PRD)", "Production", , EPICOpened_EPICmain, EPICClosed_EPICmain)
