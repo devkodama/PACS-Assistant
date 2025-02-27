@@ -44,7 +44,7 @@ F2:: {
 	;	global PASettings
 	;   PASettings["active"].value := !PAActive
 	
-	if (hwndPA := PAWindows["PA"]["main"].hwnd) {
+	if (hwndPA := App["PA"].Win["main"].hwnd) {
 		; click on the on screen toggle switch, which is located in the lower
 		; left corner of the GUI at approx x = 25 and y = WinHeight - 55
 		WinGetPos( , , &w, &h, hwndPA)
@@ -63,21 +63,21 @@ F2:: {
 ;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
 ;
 $Tab:: {
-	if PAContext("PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list") {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if PAContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if PAContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		if A_PriorHotkey = ThisHotkey {
 			PSCmdNextEOL()
 		} else {
@@ -88,7 +88,7 @@ $^Tab:: {
 	}
 }
 $^+Tab:: {
-	if PAContext(["PS main report addendum", "EI images1 images2 4dm desktop/text desktop/list"]) {
+	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdPrevEOL()
 	} else {
 		Send("^+{Tab}")
@@ -107,14 +107,14 @@ $^+Tab:: {
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
 $CapsLock:: {
-	if PAContext(["EI", "PS"]) {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if PAContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -127,14 +127,14 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if PAContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if PAContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -154,21 +154,21 @@ $^+CapsLock:: {
 ; In effect for EI and PS windows.
 ;
 $`:: {
-	if PAContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS") {
 		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if PAContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS") {
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if PAContext("EI", "PS") {
+	if Context(Mouse(), "EI", "PS") {
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -186,7 +186,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $Esc:: {
-	if PAContext("EI images1 images2") {
+	if Context(Mouse(), "EI i1 i2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("{Esc}")
@@ -202,14 +202,14 @@ $Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if PAContext("PS", "EI images1 images2 desktop/text 4dm") {
+	if Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if PAContext("PS", "EI images1 images2 desktop/text 4dm") {
+	if Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -235,7 +235,7 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLocktrigger
 	
-	if PAContext("EI images1 images2") {
+	if Context(Mouse(), "EI i1 i2") {
 		if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
@@ -265,14 +265,14 @@ $Space:: {
 				BlockInput false
 			}
 		}
-	} else if PAContext("EI desktop/list") {
+	} else if Context(Mouse(), "EI d/list") {
 		; avoid double clicking on a window by checking system double click timeout
 		if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
 			BlockInput true
 			Click 2
 			BlockInput false
 		}
-	} else if PAContext("PS report addendum") {
+	} else if Context(Mouse(), "PS report addendum") {
 		; Check to see if there is a text selection in the PS report area
 		; If so, smart delete it
 
@@ -330,7 +330,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 			; 	Click("D")
 			; }
 		} else if PASettings["ClickLock"].value = "Auto" {
-			if PAContext( , , "EI images1 images2") {
+			if Context(Mouse(), "EI i1 i2") {
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
 				if LButton_ClickLockon {
@@ -458,11 +458,11 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 
 
 _PA_EIHotkey(key) {
-	global PA_DoubleClickSetting
+	global PADoubleClickSetting
 
-	if PAContext("EI images1 images2") {
+	if Context(Mouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
-		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting {
+		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 			
 			; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
 			if !GetKeyState("LButton") && !GetKeyState("RButton") {
@@ -502,8 +502,9 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
-	PAAlert("New message here!!!", "info")
-	PAAlert("Another new message here!!!", "success")
+	if Context(Mouse(), "PA") {
+		SoundBeep(440)
+	}
 }
 
 
@@ -564,18 +565,6 @@ F3:: {
 
 ; ^F3:: {
 
-; 	hwndEI := PAWindows["EI"]["images1"].hwnd
-; 	if hwndEI {
-; 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
-; ;msgbox("xywh=" x0 "," y0 "," w0 "," h0 " but=" PAText["EI_RemoveFromList"])
-; 		ok := FindText(&x, &y, x0, y0, x0 + 1280, y0 + 64, 0, 0, PAText["EI_RemoveFromList"])
-; ;		MsgBox("ok: " ok)
-; 		MsgBox("ok[1].1 ok[1].2 ok[1].3 ok[1].4 ok[1].x ok[1].y ok[1].id = " ok[1].1 " " ok[1].2 " " ok[1].3 " " ok[1].4 " " ok[1].x " " ok[1].y " " ok[1].id)
-; 		PAToolTip("xywh0=" x0 "," y0 "," w0 "," h0 "  xy=" x "," y)
-; 		if ok {
-; ; PAToolTip("found close")
-; 		}
-; 	}	
 ; }
 
 
@@ -593,7 +582,7 @@ PAToolTip(winitem.hwnd)
 }
 
 +F8:: {
-	hwndEPIC := PAWindows["EPIC"]["main"].hwnd
+	hwndEPIC := App["EPIC"].Win["main"].hwnd
 	WinClose(hwndEPIC)
 }
 

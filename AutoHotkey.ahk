@@ -1,11 +1,15 @@
-/*
-** Top level script to start AHK
-**
-** Runs script as Admin so cross app communication works on all systems.
-**
-** Just includes PACS Assistant.ahk, which is the main script for PACS Assistant.
-**
-*/
+/************************************************************************
+ * @description Top level script to start AHK
+ * @author Scott Lee
+ * @date 2025/02/25
+ * @version 0.0.0
+ * 
+ * 
+ * Runs script as Admin so cross app communication works on all systems.
+ * 
+ * Just includes PACS Assistant.ahk, which is the main script for PACS Assistant.
+ * 
+ ***********************************************************************/
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -16,9 +20,13 @@
 SetWorkingDir A_ScriptDir
 
 
-; Need to run as Admin in order to interact with other programs that 
-; are running as Admin (https://www.autohotkey.com/docs/v2/lib/Run.htm#RunAs)
 
+/**********************************************************
+ * 
+ */
+
+; Run as Admin in order to interact with other programs that 
+; are running as Admin (https://www.autohotkey.com/docs/v2/lib/Run.htm#RunAs)
 if not (A_IsAdmin)
 {
     try
@@ -32,12 +40,9 @@ if not (A_IsAdmin)
 }
 
 
-/*************************************************************************/
+/**********************************************************
+ * Includes
+ */
 
-/*
-** Includes
-*/
 
 #Include PACSAssistant.ahk
-
-

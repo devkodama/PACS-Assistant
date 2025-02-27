@@ -66,7 +66,7 @@ PSSend(cmdstring := "") {
 		}
 	}
 
-		; if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) && !(hwndPS := PAWindows["PS"]["addendum"].hwnd) {
+		; if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
 		; 	return
 		; }
 
@@ -82,7 +82,7 @@ PSSend(cmdstring := "") {
 
 ; Paste a chunk of text into PowerScribe
 ;
-; Ensures either the PS report window or PS addendum window will be receiving the paste.
+; Ensures either the PS report window, addendum window, or main window will be receiving the paste.
 ;
 ; Uses the clipboard, restoring the previous clipboard contents when finished.
 ;
@@ -90,7 +90,8 @@ PSPaste(text := "") {
     global PAWindowBusy
 
 	if (text) {
-		if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) && !(hwndPS := PAWindows["PS"]["addendum"].hwnd) {
+		; if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
+		if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
 			return
 		}
 
@@ -114,19 +115,19 @@ PSPaste(text := "") {
  */
 
 
-; Returns the WindowItem for either PSmain, PSreport, PSaddendum, or PSlogin, 
+; Returns the WinItem for either PSmain, PSreport, PSaddendum, or PSlogin, 
 ; if they exist (checked in that order).
 ;
 ; Returns 0 if none of them exist.
 PSParent() {
-	if PAWindows["PS"]["main"].hwnd {
-		return PAWindows["PS"]["main"]
-	} else if PAWindows["PS"]["report"].hwnd {
-		return PAWindows["PS"]["report"]
-	} else if PAWindows["PS"]["addendum"].hwnd {
-		return PAWindows["PS"]["addendum"]
-	} else if PAWindows["PS"]["login"].hwnd {
-		return PAWindows["PS"]["login"]
+	if App["PS"].Win["main"].hwnd {
+		return App["PS"].Win["main"]
+	} else if App["PS"].Win["report"].hwnd {
+		return App["PS"].Win["report"]
+	} else if App["PS"].Win["addendum"].hwnd {
+		return App["PS"].Win["addendum"]
+	} else if App["PS"].Win["login"].hwnd {
+		return App["PS"].Win["login"]
 	} else {
 		return 0
 	}
@@ -155,7 +156,7 @@ PSDictateIsOn(forceupdate := false) {
 	static lastcheck := A_TickCount
 
 	; if PS report or addendum or main window does not exist, return false
-	if !(hwndPS := PAWindows["PS"]["report"].hwnd) && !(hwndPS := PAWindows["PS"]["main"].hwnd) && !(hwndPS := PAWindows["PS"]["addendum"].hwnd) {
+	if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
 		dictatestatus := false
 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
 		try {
@@ -194,13 +195,13 @@ PSDictateIsOn(forceupdate := false) {
 ; Returns true if the page is showing, false if not.
 ;
 PSIsLogin() {
-	return PAWindows["PS"]["login"].hwnd ? true : false
+	return App["PS"].Win["login"].hwnd ? true : false
 }
 PSIsMain() {
-	return PAWindows["PS"]["main"].hwnd ? true : false
+	return App["PS"].Win["main"].hwnd ? true : false
 }
 PSIsReport() {
-	return PAWindows["PS"]["report"].hwnd || PAWindows["PS"]["addendum"].hwnd ? true : false
+	return (App["PS"].Win["report"].hwnd || App["PS"].Win["addendum"].hwnd) ? true : false
 }
 
 
@@ -219,7 +220,7 @@ PSOpen_PSlogin() {
 
 	if PASettings["PS_restoreatopen"].value {
 		; Restore PS window positions
-		PAWindows.RestoreWindows("PS")
+		App["PS"].RestorePositions()
 	}
 
 }
@@ -228,6 +229,9 @@ PSOpen_PSlogin() {
 ; Hook function called when PS main window appears
 ;
 PSOpen_PSmain() {
+
+;	PASound("PowerScribe opened")
+
 	; remove the current patient
 	PACurrentPatient.lastfirst := ""
 	PACurrentPatient.dob := ""
@@ -356,14 +360,14 @@ PSClose_PSreport() {
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["logout"].CenterWindow(PSParent())
+		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
 ;PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].key " / " PASettings["PSlogout_dismiss_reply"].value)
 	if PASettings["PSlogout_dismiss"].value {
-		if PAWindows["PS"]["logout"].hwnd {
-;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
+		if App["PS"].Win["logout"].hwnd {
+;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 SetControlDelay -1
-ControlClick(PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout"].hwnd)
+ControlClick(PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 		}
 	}
 }
@@ -372,12 +376,12 @@ ControlClick(PASettings["PSlogout_dismiss_reply"].value, PAWindows["PS"]["logout
 ; Hook function called when PS window appears
 PSOpen_PSsavespeech() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["savespeech"].CenterWindow(PSParent())
+		App["PS"].Win["savespeech"].CenterWindow(PSParent())
 	}
 	if PASettings["PSsavespeech_dismiss"].value {
-		if PAWindows["PS"]["savespeech"].hwnd {
+		if App["PS"].Win["savespeech"].hwnd {
 SetControlDelay -1
-ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["savespeech"].hwnd)
+ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
 		}
 	}
 }
@@ -386,7 +390,7 @@ ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, PAWindows["PS"]["sa
 ; Hook function called when PS window appears
 PSOpen_PSsavereport() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["savereport"].CenterWindow(PSParent())
+		App["PS"].Win["savereport"].CenterWindow(PSParent())
 	}
 }
 
@@ -394,7 +398,7 @@ PSOpen_PSsavereport() {
 ; Hook function called when PS window appears
 PSOpen_PSdeletereport() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["deletereport"].CenterWindow(PSParent())
+		App["PS"].Win["deletereport"].CenterWindow(PSParent())
 	}
 }
 
@@ -402,7 +406,7 @@ PSOpen_PSdeletereport() {
 ; Hook function called when PS window appears
 PSOpen_PSunfilled() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["unfilled"].CenterWindow(PSParent())
+		App["PS"].Win["unfilled"].CenterWindow(PSParent())
 	}
 }
 
@@ -410,12 +414,12 @@ PSOpen_PSunfilled() {
 ; Hook function called when PS window appears
 PSOpen_PSconfirmaddendum() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["confirmaddendum"].CenterWindow(PSParent())
+		App["PS"].Win["confirmaddendum"].CenterWindow(PSParent())
 	}
 	if PASettings["PSconfirmaddendum_dismiss"].value {
-		if PAWindows["PS"]["confirmaddendum"].hwnd {
+		if App["PS"].Win["confirmaddendum"].hwnd {
 SetControlDelay -1
-ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"]["confirmaddendum"].hwnd)
+ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
 		}
 	}
 }
@@ -424,7 +428,7 @@ ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, PAWindows["PS"
 ; Hook function called when PS window appears
 PSOpen_PSconfirmanotheraddendum() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["confirmanotheraddendum"].CenterWindow(PSParent())
+		App["PS"].Win["confirmanotheraddendum"].CenterWindow(PSParent())
 	}
 }
 
@@ -432,7 +436,7 @@ PSOpen_PSconfirmanotheraddendum() {
 ; Hook function called when PS window appears
 PSOpen_PSexisting() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["existing"].CenterWindow(PSParent())
+		App["PS"].Win["existing"].CenterWindow(PSParent())
 	}
 }
 
@@ -440,7 +444,7 @@ PSOpen_PSexisting() {
 ; Hook function called when PS window appears
 PSOpen_PScontinue() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["continue"].CenterWindow(PSParent())
+		App["PS"].Win["continue"].CenterWindow(PSParent())
 	}
 }
 
@@ -448,7 +452,7 @@ PSOpen_PScontinue() {
 ; Hook function called when PS window appears
 PSOpen_PSownership() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["ownership"].CenterWindow(PSParent())
+		App["PS"].Win["ownership"].CenterWindow(PSParent())
 	}
 }
 
@@ -456,12 +460,12 @@ PSOpen_PSownership() {
 ; Hook function called when PS window appears
 PSOpen_PSmicrophone() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["microphone"].CenterWindow(PSParent())
+		App["PS"].Win["microphone"].CenterWindow(PSParent())
 	}
 	if PASettings["PSmicrophone_dismiss"].value {
-		if PAWindows["PS"]["microphone"].hwnd {
+		if App["PS"].Win["microphone"].hwnd {
 			SetControlDelay -1
-			ControlClick(PASettings["PSmicrophone_dismiss_reply"].value, PAWindows["PS"]["microphone"].hwnd)
+			ControlClick(PASettings["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
 		}
 	}
 }
@@ -470,7 +474,7 @@ PSOpen_PSmicrophone() {
 ; Hook function called when PS window appears
 PSOpen_PSfind() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["find"].CenterWindow(PSParent())
+		App["PS"].Win["find"].CenterWindow(PSParent())
 	}
 }
 
@@ -478,7 +482,7 @@ PSOpen_PSfind() {
 ; Hook function called when PS spelling appears
 PSOpen_PSspelling() {
 	if PASettings["PScenter_dialog"].value {
-		PAWindows["PS"]["spelling"].CenterWindow(PSParent())
+		App["PSSP"].Win["spelling"].CenterWindow(PSParent())
 	}
 }
 
@@ -536,7 +540,7 @@ PSStop(sendclose := true) {
 			PSSend("!{F4}")
 		}
 		Sleep(500)
-		PAWindows.Update("PS")
+		App["PS"].Update()
 		winitem := PSParent()
 		if PACancelRequest {
 			cancelled := true
