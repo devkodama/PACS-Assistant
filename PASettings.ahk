@@ -70,7 +70,7 @@ PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", fals
 ; PS settings
 PASettings["PS_restoreatopen"] := Setting("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
 
-PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation messages when you have draft or unsigned reports")
+PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
 PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
@@ -87,7 +87,7 @@ PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num",
 PASettings["PSmicrophone_dismiss"] := Setting("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
 PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
 
-PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center message boxes over the main window")
+PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
 
 PASettings["PSSPspelling_autoclose"] := Setting("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
 

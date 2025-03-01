@@ -48,10 +48,10 @@ WATCHDICTATE_UPDATE_INTERVAL := 100
 WATCHVPN_UPDATE_INTERVAL := 2000
 
 ; interval (ms) for jiggling mouse to keeping screen awake
-JIGGLEMOUSE_UPDATE_INTERVAL := 180000		; 180000 = 3 minutes
+JIGGLEMOUSE_UPDATE_INTERVAL := 120000		; 120000 = 2 minutes
 
 ; timeout (ms) for clearing status bar text
-GUISTATUSBAR_TIMEOUT := 60000	; 60 sec
+GUISTATUSBAR_TIMEOUT := 60000	    ; 60000 = 60 sec
 
 
 ; maximum timeout (seconds) for making VPN connection from start to finish
@@ -81,10 +81,13 @@ EI_SERVER := "mivcsp.adventhealth.com"
 
 ; timeout (seconds) for getting to PS main window after login
 PS_MAIN_TIMEOUT := 120
-; time delay (seconds) for turing off microphone after a report is closed
-PS_DICTATEAUTOOFF_DELAY := 5
 ; timeout (seconds) for shutting down EI
 PS_SHUTDOWN_TIMEOUT := 120
+; time delay (seconds) for turing off microphone after a report is closed
+PS_DICTATEAUTOOFF_DELAY := 5
+; time delay (ms) for allowing window status transition before reporting 
+; microphone off when in between windows
+PS_DICTATETRANSITION_DELAY := 1000
 
 
 ; timeout (seconds) for starting up EPIC to get to login window

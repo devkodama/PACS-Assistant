@@ -1,5 +1,5 @@
 /**
- * PAHotkeys.ahk
+ * Hotkeys.ahk
  * 
  * Hotkey definitions for PACS Assistant
  * 
@@ -504,6 +504,7 @@ _PA_EIHotkey(key) {
 +F2:: {
 	if Context(Mouse(), "PA") {
 		SoundBeep(440)
+		PAShowHome()
 	}
 }
 

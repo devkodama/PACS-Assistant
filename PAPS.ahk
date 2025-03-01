@@ -136,9 +136,10 @@ PSParent() {
 
 ; Returns the state of the PS360 Dictate button by reading the toolbar button
 ; The Dicate button must be visible on screen
-; 
-; If the Dictate button is On, returns true
-; Otherwise returns false
+;
+; If the Dictate button is found and is On, returns true.
+;
+; Otherwise return false.
 ;
 ; Search PS360 client window area from (0,16) to (width, 128). The toolbar
 ; button should be within this area.
@@ -153,11 +154,13 @@ PSParent() {
 ;
 PSDictateIsOn(forceupdate := false) {
 	static dictatestatus := false
-	static lastcheck := A_TickCount
+	static lastcheck := 0
 
-	; if PS report or addendum or main window does not exist, return false
+	; If one of PS report, addendum, or main windows does not exist, return false
 	if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
+
 		dictatestatus := false
+
 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
@@ -175,10 +178,10 @@ PSDictateIsOn(forceupdate := false) {
 						dictatestatus := true
 					}
 				}
+				lastcheck := A_TickCount
 			} else {
 				dictatestatus := false
 			}
-			lastcheck := A_TickCount
 		} catch {
 			dictatestatus := false
 		}
@@ -188,7 +191,7 @@ PSDictateIsOn(forceupdate := false) {
 }
 
 
-; Functions to detect whether a specific PS window is showing. 
+; Detect whether a specific PS window is showing. 
 ;
 ; PS windows are login, main, or report. The addendum window is considered a report window.
 ;
@@ -257,15 +260,11 @@ PSClose_PSmain() {
 }
 
 
-; helper function called by PSOpen_PSreport() and PSClose_PSreport()
+; helper function to turn off mic
+; called by PSOpen_PSreport() and PSClose_PSreport()
 _PSStopDictate() {
-	global _Dictate_autooff
-
-	; only turn off mic if user is report window is not reopened within timeout
-	if _Dictate_autooff {
+	if PSDictateIsOn(true) {
 		PSSend("{F4}")						; Stop Dictation
-;		PASound("PSToggleMic")
-		_Dictate_autooff := false
 	}
 }
 
@@ -274,22 +273,16 @@ _PSStopDictate() {
 PSOpen_PSreport() {
 	global PACurrentPatient
 	global PACurrentStudy
-	global _Dictate_autooff
 
 	PAStatus("Report opened")
 
 	; Automatically turn on microphone when opening a report (and off when closing a report)
 	if PASettings["PS_dictate_autoon"].value {
-PAToolTip("ao")
-		if _Dictate_autooff {
-PAToolTip("ao keep")
-			; mic should already by on, so cancel the autooff timer
-			SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
-			_Dictate_autooff := false
-		}
+		; cancel the autooff timer
+		SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
+
 		; check to ensure the mic is on, turn it on if it isn't
 		if !PSDictateIsOn(true) {			
-PAToolTip("ao on")
 			; mic is not on so turn it on
 			PSSend("{F4}")						; Start Dictation
 			PASound("PSToggleMic")
@@ -341,17 +334,19 @@ PAToolTip("ao on")
 		}
 	}
 
+	; switch PA tab to Home page
+	PAShowHome()
+
 }
 
 
 ; Hook function called when PS report window goes away
 PSClose_PSreport() {
-	global _Dictate_autooff
+	PAStatus("Report closed")
 
-	if PASettings["PS_dictate_autoon"].value && PSDictateIsOn(true) {
+	if PASettings["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
-		_Dictate_autooff := true
 		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after delay
 	}
 }

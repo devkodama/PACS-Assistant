@@ -162,6 +162,14 @@ _RefreshGUI() {
 	; Update window info area
 	PAGui.PostWebMessageAsString("document.getElementById('windowinfo').innerHTML = `"" . PAWindowInfo . "`"")
 
+	; debug - status of all windows
+	; output := ""
+	; for , a in App {
+	; 	for , w in a.Win {
+	; 		output .= a.key "/" w.key "-" w.hwnd " " (w.visible?"v":"h") (w.minimized?"/m":"") "<br />"
+	; 	}
+	; }
+	; PAGui.PostWebMessageAsString("document.getElementById('windowinfo').innerHTML = `"" . output . "`"")
 
 	; Update status bar text
 	if (statusbartext != PAStatusBarText) {
@@ -656,6 +664,7 @@ _WatchMouse() {
 			}
 		}
 	}
+
 	; local function to autoclose the PS spelling window
 	_ClosePSspelling() {
 		if PASettings["PSSPspelling_autoclose"].value && App["PSSP"].Win["spelling"].visible {

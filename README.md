@@ -4,7 +4,7 @@
 
 ## Introduction
 
-PACS Assistant is intended to make the combination of Agfa Enterprise Imaging (EI), PowerScribe, and Epic work together more seamlessly and efficiently.
+PACS Assistant is intended to make the combination of Agfa Enterprise Imaging (EI), PowerScribe, and Epic work together seamlessly and efficiently.
 
 PACS Assistant has multiple funcions which are described below. PACS Assistant is highly customizable--most of its functions can be selectively enabled or disabled.
 
@@ -20,21 +20,26 @@ At the hospital, clicking the **Power** button will start EI, Powerscribe, and E
 
 At startup, PACS Assistant can restore EI, Powerscribe, and Epic windows to previously their saved positions.
 
-EPIC Secure Chat window can auto shrink and enlarge to save space when it is not in use.
+EPIC Secure Chat window can automatically enlarge and shrink itself to save space when it is not in use.
 
 ## Focus following for EI, PowerScribe, and Epic
 
-PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were integrated instead of being separate applications. PACS Assistant follows your mouse pointer on the screen and keeps the proper application window in focus. You no longer need to click with the mouse to change window focus.
+PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were integrated instead of being separate applications. PACS Assistant follows your mouse pointer on the screen and keeps the proper application window in focus. You no longer need to click to change window focus.
 
-PACS Assistant treats key presses differently depending on which window is in focus. In most cases, key presses will be sent to the currently focused application. However, in some cases, keypresses may be sent to a different application.
+PACS Assistant treats key presses differently depending on which window is in focus. In most cases, key presses will be sent to the currently focused application. However, when it is appropriate, key presses may be sent to a different application.
 
-> If the mouse pointer is within the EI image window, pressing the `C` key will trigger the EI Shortcut which is assigned to the `C` key. However, if the mouse pointer is within the PowerScribe window, pressing the `C` key will type the letter *c* into PowerScribe.
+
+
+> When the mouse pointer is within the EI image window, pressing the `C` key triggers the EI Shortcut that is assigned to the `C` key. However, if the mouse pointer is within the PowerScribe window, pressing the `C` key will type the letter *c* into PowerScribe.
 
 > If the Tab key is mapped to the PowerScribe command "Next Field", pressing Tab will send a "Next Field" command to PowerScribe regardless of whether the mouse pointer is within the PowerScribe window or an EI image window.
 
-Within the EI image windows, most EI keyboard shortcuts act on the currently active viewport. This often requires a mouse click to change the active viewport before pressing the shortcut key. PACS Assistant eliminates the extra click by automatically activating the correct viewport before sending the shortcut key to EI.
 
-> For example, if the `1` key is mapped to EI Window/level Preset #1, pressing the `1` key will change the window/level of the series under the mosue pointer rather than the previously active viewport.
+## Viewport activation for EI
+
+Within the EI image windows, most EI keyboard shortcuts act on the currently active viewport. This often requires a mouse click to change the active viewport before pressing the shortcut key. PACS Assistant eliminates the extra click by automatically activating the correct viewport before the shortcut key is sent to EI.
+
+> For example, if the `1` key is mapped to EI Window/level Preset #1, pressing the `1` key will change the window/level of the series under the mouse pointer, rather than the currently active viewport.
 
 In order to enable this functionality, you will need to tell PACS Assistant which shortcut keys you have mapped to which tools in EI.
 
@@ -44,43 +49,43 @@ PACS Assistant provides several new keyboard shortcuts for working with PowerScr
 
 ### CapsLock key
 
-The **CapsLock** key turns the microphone on and off.
+**CapsLock** turns the microphone on and off.
 
-**Shift-CapsLock** signs the currently open report.
+**Shift-CapsLock** signs the report being dictated.
 
-Otherwise if there is an open study ready to start (or resume) dictation, pressing **Shift-CapsLock** begins dictation.
+Otherwise, if there is an open study ready for dictation, pressing **Shift-CapsLock** will start (or resume) dictation.
 
-Otherwise if there are studies selected in th EI worklist that are ready to start (or resume) dictation, pressing **Shift-CapsLock** begins dictation.
+Otherwise, if there are studies selected on the EI worklist page, pressing **Shift-CapsLock** will start (or resume) dictation of those studies. If no studies are selected, pressing **Shift-CapsLock** will start dictation of the entire worklist.
 
-**Ctrl-CapsLock** saves the current report as a Draft.
+**Ctrl-CapsLock** saves the report being dictated as a Draft.
 
-**Shift-Ctrl-CapsLock** signs the current report as Preliminary.
+**Shift-Ctrl-CapsLock** signs the report being dictated as Preliminary.
 
 **Alt-CapsLock** toggles the caps lock state (*i.e.* the original function of the CapsLock key).
 
 ### Tab key
 
-The **Tab** key moves to the next field in a PowerScribe report.
+**Tab** moves to the next field in a PowerScribe report.
 
 **Shift-Tab** moves to the previous field in a PowerScribe report.
 
-**Ctrl-Tab** moves the cursor to the end of the current line in a PowerScribe report. Pressing it again moves the cursor to the end of the line below.
+**Ctrl-Tab** moves the cursor to the end of the current line in a PowerScribe report. Pressing it again moves the cursor down one line then to the end of the line.
 
-> This can be useful to deselect the default text right after tabbing into the next field, positioning the cursor right after the default text and ready for dictation.
+> This can be useful to position the cursor after the default text when tabbing into a field, so that dictation does not replace the default text.
 
-**Shift-Ctrl-Tab** moves the cursor to the end of the line *above* in a PowerScribe report.
+**Shift-Ctrl-Tab** moves the cursor up one line then to the end of the line.
 
 ### ` (Backtick or tilde) key
 
-The **`** key displays the report for the comparison study (similar to clicking on the Display Study Details icon found in the upper right corner of each viewport). In most cases, pressing the **`** key displays the report for the most recent comparison study. Pressing the key again toggles to the report of a second comparison study if displayed on the screen, or otherwise the empty report of the active study. (This works for viewport layouts of 1x1 up to 3x3.)
+The **\`** key brings up the report for the comparison study (same as clicking on the Display Study Details icon in the upper right corner of each viewport), switching the EI desktop to the Text page if necessary. In most cases, pressing the **\`** key displays the report for the most recent comparison study. Pressing the **\`** key again toggles to the report of a second comparison study if displayed on the screen, or otherwise the empty report of the active study.
 
-**Shift-`** toggles between the Worklist and Text pages of the EI Desktop.
+**Shift-\`** toggles between the Worklist and Text pages of the EI Desktop.
 
-**Ctrl-`** brings up the Search page of the EI Desktop. Pressing it a second time resets the search fields and puts the cursor in the Patient last name field, ready to enter a search.
+**Ctrl-\`** brings up the Search page of the EI Desktop. Pressing **Ctrl-\`** a second time resets the search fields and puts the cursor in the Patient last name field, ready to enter a search.
 
 ### Spacebar
 
-The **Spacebar** has a several new functions:
+The **Spacebar** has several new functions:
 
 - When the mouse pointer is within the EI desktop List area, pressing **Spacebar** performs a double-click. This is useful to open a case.
 - When the mouse pointer is within an EI image window, pressing **Spacebar** performs a double-click. This is useful to enlarge or restore the size of a series, or if the mouse pointer is over a series thumbnail to put the series into the active viewport.
@@ -90,11 +95,11 @@ The **Spacebar** has a several new functions:
 
 ### Escape key
 
-The **Esc** key closes the current case in EI (*i.e.* Remove from list) when the mouse is within an EI image window.
+**Esc** closes the current case in EI (*i.e.* Remove from list) when the mouse is within an EI image window.
 
 ### Ctrl-Z / Ctrl-Y
 
-The **Ctrl-Z** and **Ctrl-Y** keys will send Undo and Redo commands to PowerScribe even when the mouse pointer is within an EI window.
+**Ctrl-Z** and **Ctrl-Y** will send Undo and Redo commands to PowerScribe even when the mouse pointer is within an EI window.
 
 > This can be useful when PowerScribe accidentally transcribes noise.
 
@@ -129,7 +134,7 @@ The first time you run it, you'll need to enter your username and password. PACS
 
 ## Comments
 
-PACS Assistant is enables a handsfree setup, with a freestanding microphone (either desktop or headset), the right hand on the mouse, and keyboard shortcuts mapped to the left half of the keyboard. With this setup, almost everything can be done without looking down at the keyboard or away from the screen.
+PACS Assistant is optimized for a handsfree dictation setup, with a handsfree microphone (freestanding desktop mic or headset), right hand on the mouse, and left hand on the keyboard. Keyboard shortcuts are all mapped to the left half of the keyboard. With this setup, almost everything can be done without looking down at the keyboard or away from the screen.
 
 You can use a separate shortcut keypad such as a Tartarus gaming keypad or a Stream Deck and map functions, but 
 

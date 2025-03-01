@@ -1,20 +1,20 @@
 /**
- * PAAppManager.ahk
+ * AppManager.ahk
  *
  * 
  *
  * This module defines the following classes:
  *
- *  AppItem class corresponds to a single application such as Cisco VPN Client,
+ *  WinPos - stores a 4-tuple x, y, w, h that specifies the position and size
+ *  of a window.
+ * 
+ *  WinItem - tracks and returns information about an individual window that
+ *  belongs to an AppItem.
+ * 
+ *  AppItem - corresponds to a single application such as Cisco VPN Client,
  *  or EI, or PowerScribe, or Epic. It tracks and returns information
  *  about the status of the application and its windows. Any number of windows
  *  can be managed within one AppItem object.
- * 
- *  WinItem class tracks and returns information about an individual window that
- *  belongs to an AppItem.
- * 
- *  WinPos class stores a 4-tuple x, y, w, h that specifies the position and size
- *  of a window.
  * 
  * 
  * This module defines the functions:
@@ -23,7 +23,7 @@
  *  GetAppkey(hwnd)     - Returns the application key of the specified window handle
  *  GetWinkey(hwnd)     - Returns the window key of the specified window handle
  * 
- *  Mouse()             - Returns hwnd of window under mouse
+ *  Mouse()             - Returns the hwnd of the window under the mouse
  * 
  *  Context(hwnd, contexts*) - Check whether the passed hwnd matches the passed context(s).
  *                              Returns true if hwnd matches any of the context strings, false otherwise.
@@ -65,13 +65,10 @@
 
 
 
-
-
 /**********************************************************
  * Classes defined by this module
  * 
  */
-
 
 
 ; WinPos class
@@ -129,7 +126,7 @@ class WinPos {
 ;
 ;	visible		- true if window is visible (has WF_VISIBLE style), false if a hidden window
 ;	minimized	- true if window is minimized, false if not
-;	opentime	- tickcount when window was last opened (from A_TickCount)
+;	openclosetime	- tickcount when window was last opened or closed (from A_TickCount)
 ;
 ;   pos         - current WinPos of the window
 ;   savepos     - saved WinPos of the window
@@ -138,10 +135,10 @@ class WinPos {
 ;
 ; WinItem methods:
 ;
-;   Update()    - Updates properties for the window including hwnd, visible, minimized, opentime
+;   Update()    - Updates properties for the window including hwnd, visible, minimized, openclosetime
 ;   Print()     - Returns diagnostic info about this window as a string 
 ;
-;   Close()     - Clears the hwnd and other properties, the window no longer exists
+;   Close()     - Closes the window, clears the hwnd and other properties
 ;
 ;	SavePosition()	    - Saves the current x, y, width, and height of a window in its savepos proprety
 ;	RestorePosition() 	- Restores window to the size and position in its savepos property.
@@ -179,7 +176,7 @@ class WinItem {
         this._pos := WinPos()
         this._savepos := WinPos()
 
-        ; _hwnd, opentime, criteria are set below
+        ; _hwnd, openclosetime, criteria are set below
 
         ; check if this is a psuedowindow
         if parentwindow {
@@ -188,7 +185,7 @@ class WinItem {
             this.parentwindow := parentwindow
             this.criteria := ""
             this._hwnd := 0
-            this.opentime := 0
+            this.openclosetime := 0
 
         } else {
 
@@ -224,9 +221,9 @@ class WinItem {
             if this._hwnd {
                 ; success, update reverse lookup table _HwndLookup
                 _HwndLookup[this._hwnd] := this
-                this.opentime := A_TickCount
+                this.openclosetime := A_TickCount
 
-                ; update the visibility, minimized, and opentime
+                ; update the visibility, minimized, and openclosetime
                 try {
                     this.visible := (WinGetStyle(this.hwnd) & WS_VISIBLE) ? true : false
                 } catch {
@@ -242,7 +239,7 @@ class WinItem {
                 }
             } else {
                 ; no existing window at this time
-                this.opentime := 0
+                this.openclosetime := 0
             }
         }
     }
@@ -306,7 +303,7 @@ class WinItem {
         }
     }
 
-    ; if a non-zero hwnd is passed, it is assumed to be the valid hwnd for this window
+    ; if a non-zero hwnd is passed, it is assumed to be the new valid hwnd for this window
     Update(hwnd := 0) {
         global _HwndLookup
 
@@ -346,7 +343,7 @@ class WinItem {
 
                 if this.hwnd != hwnd {
                     ; the window is new or has a new handle
-                    
+
                     if this.hwnd {
                         ; delete reverse lookup entry
                         try {
@@ -357,7 +354,7 @@ class WinItem {
                     ; assign the new hwnd
                     this.hwnd := hwnd
                     _HwndLookup[hwnd] := this
-                    this.opentime := A_TickCount
+                    this.openclosetime := A_TickCount
                 }
                 
                 ; update the visibility and minimized
@@ -372,33 +369,41 @@ class WinItem {
                     minimized := false
                 }
 
-                ; call hook_open if window transitions from not visible or minimized to visible and not minimized
-                if !_PAUpdate_Initial && PAActive && this.hook_open && (!this.visible || this.minimized) && (visible && !minimized) {
-                    this.hook_open.Call()
-                }
+                ; ; call hook_open if window transitions from not visible or minimized to visible and not minimized
+                ; if !_PAUpdate_Initial && PAActive && this.hook_open && (!this.visible || this.minimized) && (visible && !minimized) {
 
-                ; call hook_close if window transitions from visible and not minimized to not visible or minimzed
-                if PAActive && this.hook_close && (this.visible && !this.minimized) && (!visible || minimized) {
-                    this.hook_close.Call()
+                ; call hook_open if window transitions from not visible to visible
+                if !_PAUpdate_Initial && PAActive && this.hook_open && !this.visible && visible {
+                    this.hook_open.Call()
                 }
 
                 this.visible := visible
                 this.minimized := minimized
 
             } else {
-
                 ; the window no longer exists
-                ; if this.hwnd exists, delete its reverse lookup entry
+
+                ; if this.hwnd exists, delete its reverse lookup entry and call its hook_close
                 if this.hwnd {
+
                     try {
                         _HwndLookup.Delete(this.hwnd)
                     }
+
+                    ; ; call hook_close if window transitions from visible to not visible
+                    ; if PAActive && this.hook_close && this.visible && !visible {
+
+                    if PAActive && this.hook_close {
+;PAToolTip("calling hook_close for " this.key)
+                        this.hook_close.Call()
+                    }
+
                     this.hwnd := 0
-                    this.opentime := 0
+                    this.openclosetime := A_TickCount
+                    this.visible := false
+                    this.minimized := false
+                    this.pos := WinPos()
                 }
-                this.visible := false
-                this.minimized := false
-                this.pos := WinPos()
 
             }
 
@@ -441,21 +446,27 @@ class WinItem {
         return output
     }
 
-	; Clears the hwnd and other properties, the window no longer exists
-    Close() {
-        global _HwndLookup
-
-        ; if this.hwnd exists, delete its reverse lookup entry
+    ; Closes the window (if closeflag is true), also clears 
+    ; the hwnd and other properties and calls hook_close
+    Close(closeflag := true) {
         if this.hwnd {
+            if closeflag {
+                try {
+                    WinClose(this.hwnd)
+                }
+            }
             try {
                 _HwndLookup.Delete(this.hwnd)
             }
+            if PAActive && this.hook_close {
+                this.hook_close.Call()
+            }
             this.hwnd := 0
+            this.openclosetime := A_TickCount
+            this.visible := false
+            this.minimized := false
+            this.pos := WinPos()
         }
-        this.opentime := 0
-        this.visible := false
-        this.minimized := false
-        this.pos := WinPos()   
     }
 
     ; Saves the current x, y, width, and height of a window in its savepos proprety
@@ -490,35 +501,58 @@ class WinItem {
         return false
     }
 
-    ; Centers this window over another (parent) window (parentwindow is a WinItem)
+    ; Centers this window over the passed parent window (WinItem) or winpos (WinPos)
     ; Returns true on success, false on failure.
-    CenterWindow(parentwindow) {
+    CenterWindow(parent) {
 
-		if parentwindow {
-			cw := 0
-			pw := 0
+        if parent {
+            if parent.HasOwnProp("parentapp") {
+                ; parent is a WinItem object
+                try {
+                    cw := 0
+                    pw := 0
+                    ; get child and parent window positions and dimensions
+                    if this.hwnd {
+                        WinGetPos( , , &cw, &ch, this.hwnd)
+                    }
+                    if parent.hwnd {
+                        WinGetPos(&px, &py, &pw, &ph, parent.hwnd)
+                    }
+                    if cw = 0 || pw = 0 {
+                        return false
+                    }
+                    ; calculate new position
+                    nx := px + (pw - cw) / 2
+                    ny := py + (ph - ch) / 2
 
-            try {
-                ; get child and parent window positions and dimensions
-                if this.hwnd {
-                    WinGetPos( , , &cw, &ch, this.hwnd)
+                    ; move child window to center of parentwindow
+                    WinMove(nx, ny, , , this.hwnd)
+                
+                    return true
                 }
-                if parentwindow.hwnd {
-                    WinGetPos(&px, &py, &pw, &ph, parentwindow.hwnd)
-                }
-                if cw = 0 || pw = 0 {
-                    return false
-                }
-                ; calculate new position
-                nx := px + (pw - cw) / 2
-                ny := py + (ph - ch) / 2
+            } else {
+                ; parent is assumed to be a WinPos object
+                try {
+                    cw := 0
+                    ; get child window position and dimensions
+                    if this.hwnd {
+                        WinGetPos( , , &cw, &ch, this.hwnd)
+                    }
+                    if cw = 0 {
+                        return false
+                    }
+                    ; calculate new position
+                    nx := parent.x + (parent.w - cw) / 2
+                    ny := parent.y + (parent.h - ch) / 2
 
-                ; move child window
-                WinMove(nx, ny, , , this.hwnd)
-			
-    			return true
+                    ; move child window to center of parentwindow
+                    WinMove(nx, ny, , , this.hwnd)
+
+                    return true
+                }
             }
         }
+
         return false
     }
 
@@ -899,6 +933,7 @@ return
 ; 		}
 ; 	}
 }
+
 
 
 

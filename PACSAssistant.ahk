@@ -1,12 +1,25 @@
 /************************************************************************
- * PACSAssistant.ahk
- * 
  * @description Main script for PACS Assistant
- * @author 
+ * @author Scott Lee
  * @date 2025/02/25
  * @version 0.0.0
  * 
  * 
+ * This module defines the functions:
+ * 
+ * 	PAToolTip()
+ *	PAEnable()
+ * 	PAToggle()
+ * 
+ * 	PAShowHome()
+ * 	PAShowSettings()
+ * 	PAShowWindows()
+ *	
+ * 	PAInit()
+ * 	PAMain()
+ * 
+ * 
+ *  
  ***********************************************************************/
 
 #Requires AutoHotkey v2.0
@@ -50,7 +63,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include PAPS.ahk
 #Include PAEPIC.ahk
 
-#Include PAHotkeys.ahk
+#Include Hotkeys.ahk
 
 #Include PAInfo.ahk
 #Include PASettings.ahk
@@ -59,13 +72,24 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include PACSAssistantGUI.ahk
 
-#Include PAAppManager.ahk
+#Include AppManager.ahk
 
 
 ; for debugging use
 #Include Debug.ahk
 
 
+
+
+
+
+
+
+
+/**********************************************************
+ * Functions defined by this module
+ * 
+ */
 
 
 
@@ -78,15 +102,15 @@ _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 	; for matching criteria
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
- 
-PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
+
+; PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
 
 	for k, a in App {
 		for , w in a.Win {
 			if crit = w.criteria && text = w.wintext {
 				; found the window, update it with the new hwnd
 				w.Update(hwnd)
-PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+; PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 				break 2		; break out of both for loops
 			}
 		}
@@ -101,27 +125,41 @@ _PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
 
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
-PAToolTip("Close " hwnd ": ('" crit "','" text "') => ?")
 
-	; these for loops are only for debugging	
+; PAToolTip("Close " hwnd ": ('" crit "','" text "') => ?")
+
+	; Figure out which application window was created by searching
+	; for matching criteria
 	for k, a in App {
 		for , w in a.Win {
 			if crit = w.criteria && text = w.wintext {
-				; found the window, update it with the new hwnd
-PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+				; found the window, reset the window's properties and call its hook_close
+; PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+				w.Close(false)
 				break 2		; break out of both for loops
 			}
 		}
 	}
 	
-	try {
-		win := GetWinItem(hwnd)
-		if win {
-			win.Close()
-		}
-	}
+	; try {
+	; 	win := GetWinItem(hwnd)
+	; 	if win {
+	; 		win.Clear()		; Clears the hwnd and other properties
+	; 	}
+	; }
 	
 }
+
+
+
+
+
+
+/**********************************************************
+ * Functions defined by this module
+ * 
+ */
+
 
 
 
@@ -146,9 +184,6 @@ PAEnable(state) {
 
 	PAActive := state
 	InitDaemons(state)
-	
-	; PAToolTip(PAActive . " [" . !PAActive . "]")
-
 }
 
 
@@ -160,6 +195,22 @@ PAToggle() {
 }
 
 
+; Switches PACS Assistant to Home tab
+PAShowHome() {
+    PAGui.PostWebMessageAsString("document.getElementById('tab-home').click()")
+}
+
+
+; Switches PACS Assistant to Settings tab
+PAShowSettings() {
+    PAGui.PostWebMessageAsString("document.getElementById('tab-settings').click()")
+}
+
+
+; Switches PACS Assistant to Window Manager tab
+PAShowWindows() {
+    PAGui.PostWebMessageAsString("document.getElementById('tab-windows').click()")
+}
 
 
 ; Called once at startup to do necessary initialization
@@ -179,7 +230,6 @@ PAInit() {
 	; Initialize systemwide settings
 	PASettings_Init()
 
-
 	; Register Windows hooks to monitor window open and close events for all the
 	; windows of interest
 	for k, a in App {
@@ -192,11 +242,8 @@ PAInit() {
 		}
 	}
 
-
 ;	This causes PA to crash on exit
 ;	WinEvent.Close(_PAWindowCloseCallback, App["PS"].Win["logout"].criteria, , App["PS"].Win["logout"].wintext)
-
-
 
 	; Update all windows
 	UpdateAll()
@@ -213,9 +260,20 @@ PAInit() {
 }
 
 
+
+
+
+/**********************************************************
+ * Functions defined by this module
+ * 
+ */
+
+
+
+
 ; Main starting point for PACS Assistant
 ;
-PA_Main() {
+PAMain() {
 	global PACurrentPatient
 
 	; Basic set up
@@ -232,7 +290,6 @@ PA_Main() {
 
 
 
-; Start up PACS Assistant
+; Start up PACS Assistant by calling PAMain()
 
-PA_Main()
-
+PAMain()
