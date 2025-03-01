@@ -172,6 +172,7 @@ PSDictateIsOn(forceupdate := false) {
 					if dictatestatus && A_TimeIdlePhysical > (PASettings["PS_dictate_idletimeout"].value * 60000) {
 						; microphone is currently on and we have idled for greater than timeout, so turn off the mic
 						PSSend("{F4}")		; Stop Dictation
+						PAStatus("Microphone turned off")
 						dictatestatus := false
 					} else {
 						; haven't idled long enough, don't turn off mic
@@ -499,8 +500,147 @@ PSOpen_PSspelling() {
 ;
 ; Returns 1 if successful at starting PS, 0 if not
 ; 
-PSStart() {
-	return 0
+PSStart(cred := CurrentUserCredentials) {
+	global PAWindowBusy
+	global PACancelRequest
+	static running := false			; true if PSStart is already running
+
+	; if PSStart() is already running, don't run another instance
+	if running {
+		return -1
+	}
+	running := true
+
+	; if EI is aleady up and running, return 1 (true)
+	if App["PS"].isrunning {
+		PAStatus("PowerScribe is already running")
+	 	running := false
+	 	return 1
+	}
+
+	cancelled := false
+	failed := false
+	tick0 := A_TickCount
+	PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+
+	PAGui_ShowCancelButton()
+
+	; prevent focus following
+	PAWindowBusy := true
+
+	; run PS
+	Run('"' . EXE_PS . '"')
+	App["PS"].Update()
+
+	; wait for login window to exist
+	tick1 := A_TickCount
+	while !(hwndlogin := App["PS"].Win["login"].hwnd) && (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
+		PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		Sleep(500)
+		App["PS"].Update()
+		if PACancelRequest {
+			cancelled := true
+			break		; while
+		}
+	}
+
+	if !cancelled {
+		if !App["PS"].Win["login"].visible {
+			
+			; if PS Login window still not visible after time out, return failure
+			failed := true
+
+		} else {
+			; PS login window is visible
+
+			WinActivate(hwndlogin)
+
+			; delay to allow display of the username and password edit fields
+			; sleep(1000)
+
+			; enter username and password and press OK
+			; the r7 is the PS version number, probably requires updating with version upgrades
+			BlockInput true
+			ControlSetText(cred.username, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad12", hwndlogin)
+			ControlSetText(cred.password, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad11", hwndlogin)
+			ControlClick("WindowsForms10.BUTTON.app.0.26ac0ad_r7_ad12", hwndlogin, , , , "NA") 
+			BlockInput false
+			
+			Sleep(500)
+			App["PS"].Update()
+
+			if PACancelRequest {
+				cancelled := true
+			}
+			
+			; waits for PS main window to appear
+			tick1 := A_TickCount
+			while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+				PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				Sleep(500)
+				App["PS"].Update()
+				if PACancelRequest {
+					cancelled := true
+					break
+				}
+			}
+			if !hwndmain {
+				; if PS main window still not visible after time out, return failure
+				failed := true
+			}
+		}
+	}
+
+	if !cancelled && !failed {
+
+		; got a PS login window, start the login process
+
+	}
+
+
+
+	PAGui_HideCancelButton()
+
+	if cancelled {
+
+		; user cancelled
+		PAStatus("PowerScribe startup cancelled - cleaning up...")
+
+		; in this case, PS may have already been started up
+		; if there is a PS process, then need to kill PS process before we exit
+		if	hwndlogin := WinExist(App["PS"].Win["login"].searchtitle, App["PS"].Win["login"].wintext) {
+			if pid := WinGetPID(hwndlogin) {
+				ProcessClose(pid)
+				App["PS"].Update()
+			}
+		} else if hwndmain := WinExist(App["PS"].Win["main"].searchtitle, App["PS"].Win["main"].wintext) {
+			if pid := WinGetPID(hwndmain) {
+				ProcessClose(pid)
+				App["PS"].Update()
+			}
+		}
+
+		PAStatus("PowerScribe startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+
+	} else if failed {
+
+		; if failure, or if no main window by now, return as failure
+		PAStatus("Could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+
+	} else {
+
+		; success
+		PAStatus("PowerScribe startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 1
+
+	}
+
+	PAWindowBusy := false	; restore focus following
+	running := false
+
+	return result
 }
 
 
@@ -530,7 +670,7 @@ PSStop(sendclose := true) {
 	
 	while !cancelled && winitem && (A_TickCount-tick0 < PS_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		if winitem.win == "login" {
+		if winitem.key == "login" {
 			; We're at the login window. Close it.
 			PSSend("!{F4}")
 		}

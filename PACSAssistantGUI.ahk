@@ -78,11 +78,10 @@ ClickId(WebView, id) {
             DispatchQueue.Push(EIStop)
 
         case "app-PS":
-            PAToolTip("This doesn't work yet")
-;           DispatchQueue.Push(PAGui_ForceClosePS)
+            DispatchQueue.Push(PSStart)
         case "app-PS-startup":
-            PAToolTip("This doesn't work yet")
-;            DispatchQueue.Push(PAGui_ForceClosePS)
+            DispatchQueue.Push(PSStart)
+;            PAToolTip("This doesn't work yet")
         case "app-PS-shutdown":
             DispatchQueue.Push(PSStop)
         case "app-PS-forceclose":

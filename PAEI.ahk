@@ -359,7 +359,7 @@ EIClose_EIdesktop() {
 EIStart(cred := CurrentUserCredentials) {
 	global PAWindowBusy
 	global PACancelRequest
-	static running := false			; true if the EIStartup is already running
+	static running := false			; true if the EIStart is already running
 
 	; if EIStart() is already running, don't run another instance
 	if running {
@@ -412,7 +412,7 @@ EIStart(cred := CurrentUserCredentials) {
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
 		App["EI"].Update()
 
-		; wait for login window to be exist
+		; wait for login window to exist
 		tick1 := A_TickCount
 		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")

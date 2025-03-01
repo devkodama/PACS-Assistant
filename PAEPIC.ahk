@@ -58,6 +58,47 @@ EPICSend(cmdstring := "") {
 }
 
 
+; Helper function to look for and dismiss timezone window,
+; setting the time zone to America/Chicago
+;
+_EPIC_DismissTimezone(initial := false) {
+	static tick0 := 0
+
+	if initial {
+		tick0 := A_TickCount
+		return
+	}
+
+	if EPICIsTimezone() {
+		EPICSend(EPIC_TIMEZONE . "{Enter}")				; dismiss Timezone dialog with Continue (Alt-O)
+		SetTimer(_EPIC_DismissTimezone, 0)
+	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
+		; timed out, stop checking
+		SetTimer(_EPIC_DismissTimezone, 0)
+	}
+
+}
+
+
+; Helper function to look for and dismmiss Break the Glass dialog window.
+; Reason is Direct Patient Care.
+; Requires password to be set
+_EPICBreakTheGlass() {
+
+	; look for the window
+
+
+	; Alt-R goes to the Reason field
+	; Send the keys "d{Tab}" to put "Direct Patient Care" into the field
+
+	; Alt-P goes to the Password field
+	; Send the user's password, followed by "{Enter}" to complete the dialog.
+
+
+}
+
+
+
 
 /**********************************************************
  * Functions to retrieve info about Epic
@@ -161,28 +202,6 @@ EPICOpened_EPICmain() {
 ;
 EPICClosed_EPICmain() {
 	PASound("Epic closed")
-}
-
-
-; Helper function to look for and dismiss timezone window,
-; setting the time zone to America/Chicago
-;
-_EPIC_DismissTimezone(initial := false) {
-	static tick0 := 0
-
-	if initial {
-		tick0 := A_TickCount
-		return
-	}
-
-	if EPICIsTimezone() {
-		EPICSend(EPIC_TIMEZONE . "{Enter}")				; dismiss Timezone dialog with Continue (Alt-O)
-		SetTimer(_EPIC_DismissTimezone, 0)
-	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
-		; timed out, stop checking
-		SetTimer(_EPIC_DismissTimezone, 0)
-	}
-
 }
 
 

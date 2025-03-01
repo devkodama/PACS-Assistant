@@ -79,6 +79,8 @@ EI_SHUTDOWN_TIMEOUT := 60
 EI_SERVER := "mivcsp.adventhealth.com"
 
 
+; timeout (seconds) for starting up PS to get to login window
+PS_LOGIN_TIMEOUT := 60
 ; timeout (seconds) for getting to PS main window after login
 PS_MAIN_TIMEOUT := 120
 ; timeout (seconds) for shutting down EI
@@ -121,6 +123,8 @@ EXE_VPN := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client
 EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe"
 
 EXE_EI := "C:\Program Files (x86)\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
+
+EXE_PS := "C:\Users\PACS\Desktop\Nuance.PowerScribe360.application"
 
 EXE_EPIC := "C:\Program Files (x86)\Epic\Hyperdrive\VersionIndependent\hyperspace.exe"
 

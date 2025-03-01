@@ -71,7 +71,7 @@ Otherwise, if there are studies selected on the EI worklist page, pressing **Shi
 
 **Ctrl-Tab** moves the cursor to the end of the current line in a PowerScribe report. Pressing it again moves the cursor down one line then to the end of the line.
 
-> This can be useful to position the cursor after the default text when tabbing into a field, so that dictation does not replace the default text.
+> This can be useful to position the cursor *after* the default text when tabbing into a field, so that dictation does not replace the default text.
 
 **Shift-Ctrl-Tab** moves the cursor up one line then to the end of the line.
 
@@ -87,15 +87,16 @@ The **\`** key brings up the report for the comparison study (same as clicking o
 
 The **Spacebar** has several new functions:
 
-- When the mouse pointer is within the EI desktop List area, pressing **Spacebar** performs a double-click. This is useful to open a case.
+
 - When the mouse pointer is within an EI image window, pressing **Spacebar** performs a double-click. This is useful to enlarge or restore the size of a series, or if the mouse pointer is over a series thumbnail to put the series into the active viewport.
 > Known issue: The spacebar no longer works to type a space, for example when creating a text annotation on an image. It will send a double-click instead which leads to unwanted side effects. If you need to type a space, you can press **Shift-Spacebar** to enter a space, or press `F2` to temporarily disable PACS Assistant while you are typing.
-- When scrolling through a stack of images in EI by holding down the left mouse button, pressing **Spacebar** engages Click Lock, allowing the left mouse button to be physically released. Pressing **Spacebar** again, or clicking either mouse button, disengages Click Lock.
-- When the mouse pointer is within the PowerScribe window and text is currently selected, pressing **Spacebar** deletes the selected text.
+- When scrolling through images in EI with the left mouse button held down, pressing **Spacebar** engages Click Lock, allowing the left mouse button to be physically released. Pressing **Spacebar** again, or clicking either mouse button, disengages Click Lock.
+- [WIP] When the mouse pointer is within the PowerScribe window and text is currently selected, pressing **Spacebar** deletes the selected text.
+- When the mouse pointer is within the EI desktop List page, pressing **Spacebar** performs a double-click. This is useful to open a case.
 
 ### Escape key
 
-**Esc** closes the current case in EI (*i.e.* Remove from list) when the mouse is within an EI image window.
+**Shift-Esc** closes the current case in EI (*i.e.* Remove from list) when the mouse pointer is within an EI image window.
 
 ### Ctrl-Z / Ctrl-Y
 

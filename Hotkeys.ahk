@@ -181,15 +181,15 @@ $^`:: {
 
 
 ; Esc key mapping
-;	Esc -> Close current study (Remove from list)
+;	Shift-Esc -> Close current study (Remove from list)
 ;
 ; In effect for EI images1 and images2 windows.
 ;
-$Esc:: {
+$+Esc:: {
 	if Context(Mouse(), "EI i1 i2") {
 		EICmdRemoveFromList()
 	} else {
-		Send("{Esc}")
+		Send("+{Esc}")
 	}
 }
 

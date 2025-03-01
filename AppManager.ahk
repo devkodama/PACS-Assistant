@@ -412,7 +412,7 @@ class WinItem {
     }
 
     ; Returns diagnostic info about this window as a string
-    ; does not show non-existing windows or pseudowindows unless showall is set to true
+    ; returns empty string for non-existing windows or pseudowindows unless showall is set to true
     Print(showall := false) {
 
         if showall || (this.hwnd && !this.parentwindow) {
@@ -426,7 +426,9 @@ class WinItem {
                 output .= ") - "
             }
 
-            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ") / (" this.savepos.x ", " this.savepos.y ", " this.savepos.w ", " this.savepos.h ")"
+;            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ") / (" this.savepos.x ", " this.savepos.y ", " this.savepos.w ", " this.savepos.h ")"
+
+            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ")"
 
             ; output .= this.fulltitle " (= '" this.criteria "'"  
             ; if this.wintext {
@@ -758,7 +760,9 @@ class AppItem {
 
         if this.pid {
 
-            output .= this.key " (pid " this.pid ") - " this.appname " (= '" this.criteria "')<br />"
+            ; output .= this.key " (pid " this.pid ") - " this.appname " (= '" this.criteria "')<br />"
+
+            output .= this.key " (pid " this.pid ") - " this.appname "<br />"
             
             if winkey {
                 ; return info just for one window of this app
