@@ -26,7 +26,7 @@ function ahkFormSubmit(Event) {
 
 const contextmenus = new Map();
 contextmenus.set("app-power", {menu: document.querySelector("#context-menu-power"), visible: false} );
-contextmenus.set("app-VPN", {menu: document.querySelector("#context-menu-VPN"), visible: false} );
+contextmenus.set("app-Network", {menu: document.querySelector("#context-menu-Network"), visible: false} );
 contextmenus.set("app-EI", {menu: document.querySelector("#context-menu-EI"), visible: false} );
 contextmenus.set("app-PS", {menu: document.querySelector("#context-menu-PS"), visible: false} );
 contextmenus.set("app-EPIC", {menu: document.querySelector("#context-menu-EPIC"), visible: false} );

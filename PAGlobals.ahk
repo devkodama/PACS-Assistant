@@ -44,8 +44,11 @@ WATCHWINDOWS_UPDATE_INTERVAL := 400
 ; interval (ms) for updating dictate button status
 WATCHDICTATE_UPDATE_INTERVAL := 100
 
-; interval (ms) for updating VPN connection status
-WATCHVPN_UPDATE_INTERVAL := 2000
+; interval (ms) for updating network connection status
+WATCHNETWORK_UPDATE_INTERVAL := 1000
+
+; interval (ms) for updating workstation status
+WATCHNETWORK_UPDATE_INTERVAL := 60000       ; 60000 = 1 minute
 
 ; interval (ms) for jiggling mouse to keeping screen awake
 JIGGLEMOUSE_UPDATE_INTERVAL := 120000		; 120000 = 2 minutes
@@ -153,6 +156,13 @@ PAGUI_HOMEPAGE := "pages/PACSAssistant.html"
 ; Used in PAInfo.ahk. Format for returning DOB from Patient object.
 INFO_DOB_FORMAT := "M/d/yyyy"
 
+; Hospital workstation names
+; HOSPITAL_WORKSTATIONNAMES := ["ACIDPACRRMA01", "ACIDPACRRMA02", "ACIDPACRRDS02", "BOLDPACRRDS1", "BOLDPACWCMA1", "GLEDPACRDS1", "HINDPACRRDS01", "HINDPACRRDS02", "HINDPACRRDS03", "HINDPACRRDS05", "HINXNMOFFMA01", "HICDPACRRMA02", "HINXRRDS03", "HINXRRMA02", "HINXRRMA03", "LAGXRRDS02", "LAGXRRDS03", "LAGDPACRRDS01", "LAGDPACRRMA02", "LAGDPACRRDS03", "WMDPACRRDS01"]
+
+; Hospital workstation prefixes
+HOSPITAL_WORKSTATIONPREFIXES := ["ACIDP", "BOLDP", "GLEDP", "HINXR", "HINDP", "HINXN", "HICDP", "LAGXR", "LAGDP", "WMDPA"]
+
+
 
 
 
@@ -238,7 +248,7 @@ global PA_MouseSpeedSetting := 10
 ;
 global PACurState := Map(
     "PA", "",
-    "VPN", "",
+    "Network", "",
     "EI", "",
     "PS", "",
     "EPIC", "",

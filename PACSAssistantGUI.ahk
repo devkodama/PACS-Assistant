@@ -59,15 +59,18 @@ ClickId(WebView, id) {
         case "app-power-shutdown":
             DispatchQueue.Push(PAGui_PACSShutdown)
         
-        case "app-VPN":
-            if !VPNIsConnected() {
+        case "app-Network":
+            if !WorkstationIsHospital() && !VPNIsConnected() {
                 DispatchQueue.Push(VPNStart)
             }
-        case "app-VPN-connect":
-            DispatchQueue.Push(VPNStart)
-        case "app-VPN-disconnect":
-            DispatchQueue.Push(VPNStop)
-        
+        case "app-Network-connect":
+            if !WorkstationIsHospital() && !VPNIsConnected() {
+                DispatchQueue.Push(VPNStart)
+            }
+        case "app-Network-disconnect":
+            if !WorkstationIsHospital() && VPNIsConnected() {
+                DispatchQueue.Push(VPNStop)
+            }
         case "app-EI":
             if !EIIsRunning() {
                 DispatchQueue.Push(EIStart)
@@ -118,8 +121,8 @@ HoverMessages := Map()
 HoverMessages["app-power"] := Map("off", "Press to start PACS",
         "yellow", "",
         "green", "Right click to shut down PACS")
-HoverMessages["app-VPN"] := Map("false", "Press to connect VPN",
-        "true", "Right click to disconnect VPN")
+HoverMessages["app-Network"] := Map("false", "Press to connect Network",
+        "true", "Right click to disconnect Network")
 HoverMessages["app-EI"] := Map("false", "Press to start EI",
         "true", "Right click to shut down EI")
 HoverMessages["app-PS"] := Map("false", "",

@@ -192,6 +192,14 @@ PSDictateIsOn(forceupdate := false) {
 }
 
 
+; Returns TRUE if PS is running, FALSE if not
+;
+PSIsRunning() {
+	App["PS"].Update()
+	return (PSIsLogin() || PSIsMain() || PSIsReport()) ? true : false
+}
+
+
 ; Detect whether a specific PS window is showing. 
 ;
 ; PS windows are login, main, or report. The addendum window is considered a report window.
@@ -355,6 +363,7 @@ PSClose_PSreport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
+PAToolTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if PASettings["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
@@ -362,7 +371,7 @@ PSOpen_PSlogout() {
 	if PASettings["PSlogout_dismiss"].value {
 		if App["PS"].Win["logout"].hwnd {
 ;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
-SetControlDelay -1
+;SetControlDelay -1
 ControlClick(PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 		}
 	}
@@ -376,7 +385,7 @@ PSOpen_PSsavespeech() {
 	}
 	if PASettings["PSsavespeech_dismiss"].value {
 		if App["PS"].Win["savespeech"].hwnd {
-SetControlDelay -1
+;SetControlDelay -1
 ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
 		}
 	}
@@ -545,6 +554,7 @@ PSStart(cred := CurrentUserCredentials) {
 	}
 
 	if !cancelled {
+
 		if !App["PS"].Win["login"].visible {
 			
 			; if PS Login window still not visible after time out, return failure
@@ -553,51 +563,58 @@ PSStart(cred := CurrentUserCredentials) {
 		} else {
 			; PS login window is visible
 
-			WinActivate(hwndlogin)
+			; WinActivate(hwndlogin)
 
-			; delay to allow display of the username and password edit fields
-			; sleep(1000)
+			; delay to allow enabling of Log On button
+			sleep(1000)
 
-			; enter username and password and press OK
-			; the r7 is the PS version number, probably requires updating with version upgrades
-			BlockInput true
-			ControlSetText(cred.username, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad12", hwndlogin)
-			ControlSetText(cred.password, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad11", hwndlogin)
-			ControlClick("WindowsForms10.BUTTON.app.0.26ac0ad_r7_ad12", hwndlogin, , , , "NA") 
-			BlockInput false
-			
-			Sleep(500)
-			App["PS"].Update()
-
-			if PACancelRequest {
-				cancelled := true
-			}
-			
-			; waits for PS main window to appear
-			tick1 := A_TickCount
-			while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+			; Need to wait until "Loading system components..." has completed
+			; so Log On button will be enabled
+			while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
 				PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				if !InStr(WinGetText(hwndlogin), "Loading system components", true) {
+					; success, exit while
+					break		; while
+				}
 				Sleep(500)
-				App["PS"].Update()
 				if PACancelRequest {
 					cancelled := true
-					break
+					break		; while
 				}
 			}
-			if !hwndmain {
-				; if PS main window still not visible after time out, return failure
-				failed := true
+
+			if !cancelled {
+
+				; enter username and password and press OK
+				; the r7 is the PS version number, probably requires updating with version upgrades
+				BlockInput true
+				ControlSetText(cred.username, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad12", hwndlogin)
+				ControlSetText(cred.password, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad11", hwndlogin)
+				ControlClick("WindowsForms10.BUTTON.app.0.26ac0ad_r7_ad12", hwndlogin, , , , "NA") 
+				BlockInput false
+				
+				Sleep(500)
+				App["PS"].Update()
+						
+				; waits for PS main window to appear
+				tick1 := A_TickCount
+				while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+					PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+					Sleep(500)
+					App["PS"].Update()
+					if PACancelRequest {
+						cancelled := true
+						break
+					}
+				}
+
+				if !cancelled && !hwndmain {
+					; if PS main window still not visible after time out, return failure
+					failed := true
+				}
 			}
 		}
 	}
-
-	if !cancelled && !failed {
-
-		; got a PS login window, start the login process
-
-	}
-
-
 
 	PAGui_HideCancelButton()
 
@@ -654,10 +671,25 @@ PSStart(cred := CurrentUserCredentials) {
 ; Returns 1 if successful, 0 if not
 ; 
 PSStop(sendclose := true) {
+	global PACancelRequest
+	static running := false			; true if the EIStop is already running
 
+	; if PSStop() is already running, don't run another instance
+	if running {
+		return -1
+	}
+	running := true
+
+	; if PS is not running, immediately return success
+	if !PSIsRunning() {
+		PAStatus("PowerScribe is not running")
+		running := false
+		return 1
+	}
+
+	PAStatus("Shutting down PowerScribe...")
 	tick0 := A_TickCount
 
-	PAStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	PAGui_ShowCancelButton()
 
 	if sendclose {

@@ -1,9 +1,29 @@
 /**
- * PAVPN.ahk
+ * Network.ahk
  * 
- * Functions for working with Cisco AnyConnect VPN
+ * Functions for detecting and making network connections, including VPN connections
+ * 
+ * Detects the environment, either hospital network or home network.
+ *
+ * On a hospital workstation, requires a direct connection (bypass VPN).
+ * On a home workstation, requires a VPN connection.
  *
  *
+ * This module defines the functions:
+ * 
+ *  NetworkGetHostName(forceupdate := false)	- Returns the host name (computer name) of this workstation
+ *  NetworkGetIP(forceupdate := false)			- Returns the current IPv4 address of this workstation
+ * 
+ *  WorkstationIsHospital(forceupdate := false)	- Returns whether we are on a hospital workstation
+ * 	VPNIsConnected(forceupdate := false)		- Returns the connection status of the Cisco VPN
+ * 
+ *  NetworkIsConnected(forceupdate := false)	- Returns whether we have an appropriate network connection,
+ * 													either direct (hospital) or VPN (home)
+ *
+ * 	VPNStart(cred := CurrentUserCredentials)	- Connects the Cisco AnyConnect VPN
+ * 	VPNStop()									- Disconnects the Cisco AnyConnect VPN
+ * 
+ * 
  */
 
 
@@ -18,11 +38,7 @@
  */
 
 
-#Include <FindText>
-#Include PAFindTextStrings.ahk
-
 #Include PAGlobals.ahk
-#Include PASound.ahk
 
 
 
@@ -35,7 +51,7 @@
 
 
 /**********************************************************
- * Functions to send info
+ * Functions to send info to VPN
  * 
  */
 
@@ -47,22 +63,127 @@
  */
 
 
+; Returns the host name (computer name) of this workstation
+;
+; Host name is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
+; unless forceupdate is true.
+;
+NetworkGetHostName(forceupdate := false) {
+	hostname := ""				; cached host name
+	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
+
+	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
+		hostname := StrUpper(Trim(StdoutToVar('hostname').Output))
+	}
+	return hostname
+}
+
+
+; Returns the current IPv4 address of this workstation
+;
+; IP address is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
+; unless forceupdate is true.
+;
+NetworkGetIP(forceupdate := false) {
+	ipv4 := ""					; cached ip addr
+	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
+
+	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
+		cmdout := StdoutToVar('ipconfig').Output
+
+		; there can be multiple host adapters
+		; use the first ipv4 address found, this seems to be the correct one
+		if RegExMatch(cmdout, "IPv4 Address.+:\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", &regout) {
+			ipv4 := regout[1]
+		} else {
+			ipv4 := ""
+		}
+	}
+	return ipv4
+}
+ 
+
+; Returns whether we are on a hospital workstation.
+;
+; Connected status is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
+; unless forceupdate is true.
+;
+WorkstationIsHospital(forceupdate := false) {
+	static ishospital := false		; cached status
+	static lastcheck := 0			; setting lastcheck to 0 initially forces an update on the first call
+
+	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
+		ishospital := false
+
+		ip := NetworkGetIP(forceupdate)
+		if RegExMatch(ip, "([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+", &regout) {			
+			if regout[1] == "172.30.198" {
+				ishospital := true
+			}
+		} else {
+			; check for matching hostname
+			host := NetworkGetHostName(forceupdate)
+			if host {
+				for prefix in HOSPITAL_WORKSTATIONPREFIXES {
+					if InStr(host, prefix, true) {
+						; found a match
+						ishospital := true
+						break			; for
+					}
+				}
+			}
+		}
+	}
+	return ishospital
+}
+
+
 ; Returns the connection status of the Cisco VPN
 ;
 ; Returns TRUE if connected, FALSE if not
 ;
-; Connected status is cached, checked every WATCHVPN_UPDATE_INTERVAL,
+; Connected status is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
 ; unless forceupdate is true.
 ;
 VPNIsConnected(forceupdate := false) {
-	static vpnstatus := false
+	static vpnstatus := false	; cached status
 	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
 
-	if forceupdate || ((A_TickCount - lastcheck) > WATCHVPN_UPDATE_INTERVAL) {
+	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
 		vpnstatus := InStr(StdoutToVar('"' . EXE_VPNCLI . '" state').Output, "state: Connected") ? true : false
 		lastcheck := A_TickCount
 	}
 	return vpnstatus
+}
+
+
+; Returns whether we have an appropriate network connection,
+; either direct (hospital) or VPN (home).
+;
+; Returns TRUE if so, FALSE if not.
+;
+; Connected status is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
+; unless forceupdate is true.
+;
+NetworkIsConnected(forceupdate := false) {
+	static networkstatus := false	; cached status
+	static lastcheck := 0			; setting lastcheck to 0 initially forces an update on the first call
+
+	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
+
+		if WorkstationIsHospital(forceupdate) {
+			if NetworkGetIP(forceupdate) {
+				networkstatus := true
+			} else {
+				networkstatus := false
+			}
+		} else {
+			networkstatus := VPNIsConnected()
+		}
+
+		lastcheck := A_TickCount
+	}
+	return networkstatus
 }
 
 
@@ -110,7 +231,7 @@ VPNStart(cred := CurrentUserCredentials) {
 	}
 
 	; close OTP window if open, to get back to main vpn window
-	hwndotp := WinExist(App["VPN"].Win["otp"].criteria, App["VPN"].Win["otp"].wintext)
+	hwndotp := App["VPN"].Win["otp"].WinExist()
 	if hwndotp {
 		ControlClick("Cancel", hwndotp, , , , "NA")
 		WinWaitClose(hwndotp)
@@ -118,7 +239,7 @@ VPNStart(cred := CurrentUserCredentials) {
 	}
 
 	; close login window if open, to get back to main vpn window
-	hwndlogin := WinExist(App["VPN"].Win["login"].criteria, App["VPN"].Win["login"].wintext)
+	hwndlogin := App["VPN"].Win["login"].WinExist()
 	if hwndlogin {
 		ControlClick("Cancel", hwndlogin, , , , "NA")
 		WinWaitClose(hwndlogin)
@@ -128,6 +249,7 @@ VPNStart(cred := CurrentUserCredentials) {
 	; don't allow focus following while trying to make a VPN connection
 	PAWindowBusy := true
 
+	; allow user to cancel long running operation
 	PAGui_ShowCancelButton()
 
 	; loop until connected, timed out, cancelled, or failed too many times
@@ -144,27 +266,26 @@ VPNStart(cred := CurrentUserCredentials) {
 		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 		; look for connected info dialog box
-		hwndconnected := WinExist(App["VPN"].Win["connected"].criteria, App["VPN"].Win["connected"].wintext)
+		hwndconnected := App["VPN"].Win["connected"].WinExist()
 		if hwndconnected {
 			; close connection info window
 			WinClose(hwndconnected)
 			App["VPN"].Update()
 
-			; confirm connection (and update connected status cache)
+			; confirm connection (and update connected status)
 			connected := VPNIsConnected(true)
 			if connected {
 				break		; exit while loop
 			}
-
 			; lastdialog := "connected"
 		}
 
 		; look for one time password dialog box
-		hwndotp := WinExist(App["VPN"].Win["otp"].criteria, App["VPN"].Win["otp"].wintext)
+		hwndotp := App["VPN"].Win["otp"].WinExist()
 		if hwndotp {
 			; wait for user to enter otp and/or close window
 			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
-			while (WinExist(App["VPN"].Win["otp"].criteria, App["VPN"].Win["otp"].wintext)) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
+			while (App["VPN"].Win["otp"].WinExist()) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 				PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
 				try {
@@ -183,15 +304,16 @@ VPNStart(cred := CurrentUserCredentials) {
 
 		if PACancelRequest {
 			cancelled := true
+			break			; while
 		}
 
 		; look for login dialog box
-		hwndlogin := WinExist(App["VPN"].Win["login"].criteria, App["VPN"].Win["login"].wintext)
+		hwndlogin := App["VPN"].Win["login"].WinExist()
 		if hwndlogin {
 			; before entering username and password, see if the last login failed
 			; if it failed, we might be on the wrong server, so cancel the login window
 			; and return to the main UI so the correct server can be populated
-			hwndmain := WinExist(App["VPN"].Win["main"].criteria, App["VPN"].Win["main"].wintext)
+			hwndmain := App["VPN"].Win["main"].hwnd
 			if hwndmain && ControlGetText("Static2", hwndmain) = "Login failed." {
 				failedlogins++
 				ControlClick("Cancel", hwndlogin, , , , "NA")
@@ -212,7 +334,7 @@ VPNStart(cred := CurrentUserCredentials) {
 		}
 
 		; look for VPN UI main window
-		hwndmain := WinExist(App["VPN"].Win["main"].criteria, App["VPN"].Win["main"].wintext)
+		hwndmain := App["VPN"].Win["main"].WinExist()
 		if hwndmain {
 			; In the VPN UI main window, enter the VPN URL and press connect
 			statustext := ControlGetText("Static2", hwndmain)
@@ -223,6 +345,7 @@ VPNStart(cred := CurrentUserCredentials) {
 					cancelled := true
 					break		; exit while
 				}
+				; user didn't cancel, enter the vpn url
 				BlockInput true
 				ControlSetText("", "Edit1", hwndmain)
 				ControlSendText(VPN_URL, "Edit1", hwndmain)
@@ -256,15 +379,12 @@ VPNStart(cred := CurrentUserCredentials) {
 				; only want to do this once, we set runflag to true
 				runflag := true		
 				Run(EXE_VPN)
-				App["VPN"].Update()
 
 				; wait for main window to be appear
 				tick1 := A_TickCount
-				while !(hwndmain := App["VPN"].Win["main"].hwnd) && (A_TickCount - tick1 < VPN_DIALOG_TIMEOUT * 1000) {
+				while !(hwndmain := App["VPN"].Win["main"].WinExist()) && (A_TickCount - tick1 < VPN_DIALOG_TIMEOUT * 1000) {
 					PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
-					App["VPN"].Update()
-trace .= "(w:" . A_TickCount-tick1 . ")"
 					if PACancelRequest {
 						cancelled := true
 						break			; inner while
@@ -276,8 +396,8 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 				}
 				App["VPN"].Update()
 			}
-
 			continue
+
 		}
 
 	}	; while
@@ -293,8 +413,6 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 	} else {
 		PAStatus("Timeout - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
-
-;	MsgBox(trace)
 
 	; restore focus following
 	PAWindowBusy := false
@@ -316,7 +434,7 @@ trace .= "(w:" . A_TickCount-tick1 . ")"
 ; Periodically checks PACancelRequest to see if it should cancel the 
 ; connection attempt and quit.
 ;
-; Returns 1 if disconnected, 0 if disconnection fails
+; Returns 1 if disconnection successful, 0 if disconnection fails
 ; 
 VPNStop() {
 	global PACancelRequest
@@ -338,6 +456,11 @@ VPNStop() {
 
 	tick0 := A_TickCount
 	PAStatus("Disconnecting VPN...")
+
+	; don't allow focus following
+	PAWindowBusy := true
+
+	; allow user to cancel long running operation
 	PAGui_ShowCancelButton()
 
 	; run CLI command to disconnect the VPN
@@ -346,7 +469,7 @@ VPNStop() {
 	
 	while connected && !cancelled && A_TickCount - tick0 < VPN_DISCONNECT_TIMEOUT * 1000 {
 		PAStatus("Disconnecting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		Sleep(500)
+		Sleep(300)
 		connected := VPNIsConnected(true)
 		if PACancelRequest {
 			cancelled := true
@@ -363,8 +486,10 @@ VPNStop() {
 		PAStatus("Timeout-  VPN could not be disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
+	; restore focus following
+	PAWindowBusy := false
+
 	; done
 	running := false
 	return !connected ? 1 : 0
 }
-

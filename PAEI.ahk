@@ -374,9 +374,16 @@ EIStart(cred := CurrentUserCredentials) {
 	 	return 1
 	}
 
-	; require VPN to be connected, if not quit and return 0 (failure)
-	if !VPNIsConnected(true) {
-		PAStatus("Could not start EI - VPN is not connected")
+	; require appropriate network connection
+	; if not quit and return 0 (failure)
+	if !NetworkIsConnected(true) {
+		if WorkstationIsHospital() {
+			PAStatus("Could not start EI - Network is not connected")
+		} else {
+			PAStatus("Could not start EI - VPN is not connected")
+			
+			; [todo] ask user if they want to connect the vpn
+		}
 		running := false
 		return 0
 	}
@@ -640,15 +647,16 @@ EIStop() {
 			App["PS"].Update()
 			App["EPIC"].Update()
 			
-			winitem := PSParent()
-			if !winitem {
+			; winitem := PSParent()
+			if !PSIsRunning() {
 				; PS successfully closed
 				resultPS := true
-			} else if !pscloseflag && winitem.key = "login" {
+			} else if !pscloseflag && PSIsLogin() {
 				; We're at the login window. Close it.
 				; Can't use PSSend() as it is written to send only to the report or addendum windows
 				; ControlSend("!{F4}", , winitem.hwnd)
-				WinClose(winitem.hwnd)
+;				WinClose(winitem.hwnd)
+				PSSend("!{F4}")
 				pscloseflag := true
 			}
 	

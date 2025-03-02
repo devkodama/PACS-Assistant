@@ -215,21 +215,41 @@ _RefreshGUI() {
 	; Update app icon indicators
 	status := 0x00
 
-	; update VPN status on GUI
-	connected := VPNIsConnected()
-	if connected {
-		status |= 0x01
-		if PACurState["VPN"] != "true" {
-			PAGui.PostWebMessageAsString("document.getElementById('app-VPN').style = `"background-image: url('images/VPN-connected.png');`"")
-			PAGui.PostWebMessageAsString("document.getElementById('app-VPN-connect').style = `"display: none;`"")
-			PAGui.PostWebMessageAsString("document.getElementById('app-VPN-disconnect').style = `"display: block;`"")
-			PACurState["VPN"] := "true"
+	; update Network/VPN status on GUI
+	hospital := WorkstationIsHospital()
+	connected := NetworkIsConnected()
+	if hospital {
+		if connected {
+			status |= 0x01
+			if PACurState["Network"] != "true" {
+				PAGui.PostWebMessageAsString("document.getElementById('app-Network').style = `"background-image: url('images/Network-connected.png');`"")
+				PAGui.PostWebMessageAsString("document.getElementById('app-Network-connect').style = `"display: none;`"")
+				PAGui.PostWebMessageAsString("document.getElementById('app-Network-disconnect').style = `"display: block;`"")
+				PACurState["Network"] := "true"
+			}
+		} else if !connected && PACurState["Network"] != "false" {
+			PAGui.PostWebMessageAsString("document.getElementById('app-Network').style = `"background-image: url('images/Network-off.png');`"")
+			PAGui.PostWebMessageAsString("document.getElementById('app-Network-connect').style = `"display: block;`"")
+			PAGui.PostWebMessageAsString("document.getElementById('app-Network-disconnect').style = `"display: none;`"")
+			PACurState["Network"] := "false"
 		}
-	} else if !connected && PACurState["VPN"] != "false" {
-		PAGui.PostWebMessageAsString("document.getElementById('app-VPN').style = `"background-image: url('images/VPN-off.png');`"")
-		PAGui.PostWebMessageAsString("document.getElementById('app-VPN-connect').style = `"display: block;`"")
-		PAGui.PostWebMessageAsString("document.getElementById('app-VPN-disconnect').style = `"display: none;`"")
-		PACurState["VPN"] := "false"
+	} else {
+		; update VPN status on GUI
+		connected := VPNIsConnected()
+		if connected {
+			status |= 0x01
+			if PACurState["Network"] != "true" {
+				PAGui.PostWebMessageAsString("document.getElementById('app-Network').style = `"background-image: url('images/VPN-connected.png');`"")
+				PAGui.PostWebMessageAsString("document.getElementById('app-Network-connect').style = `"display: none;`"")
+				PAGui.PostWebMessageAsString("document.getElementById('app-Network-disconnect').style = `"display: block;`"")
+				PACurState["Network"] := "true"
+			}
+		} else if !connected && PACurState["Network"] != "false" {
+			PAGui.PostWebMessageAsString("document.getElementById('app-Network').style = `"background-image: url('images/VPN-off.png');`"")
+			PAGui.PostWebMessageAsString("document.getElementById('app-Network-connect').style = `"display: block;`"")
+			PAGui.PostWebMessageAsString("document.getElementById('app-Network-disconnect').style = `"display: none;`"")
+			PACurState["Network"] := "false"
+		}
 	}
 
 	; update EI desktop status on GUI

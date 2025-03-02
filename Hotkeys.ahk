@@ -21,6 +21,8 @@
 
 #Include PAGlobals.ahk
 
+#Include Network.ahk
+
 
 
 
@@ -570,21 +572,15 @@ F3:: {
 
 
 F8:: {
-	; PSStop()
-	winitem := PSParent()
-PAToolTip(winitem.hwnd)
-
-		 PAWindowBusy := true
-		 WinClose(winitem.hwnd)
-;		 Send("{Alt down}{F4}{Alt up}")
-		 PAWindowBusy := false
-
-;	ControlSend("{Alt down}{F4}{Alt up}", , winitem.hwnd)
+	MsgBox(WorkstationIsHospital())
 }
 
 +F8:: {
-	hwndEPIC := App["EPIC"].Win["main"].hwnd
-	WinClose(hwndEPIC)
+	MsgBox(VPNIsConnected())
+}
+
+^F8:: {
+	MsgBox(NetworkGetIP())
 }
 
 

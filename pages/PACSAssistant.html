@@ -27,6 +27,8 @@
 
   <!-- Title bar -->
   <div id="titlebar">
+    <div><img src="images/PA.png"></div>
+
     <div class="ahk-titleBar" onmousedown="ahk.DragWindow()">
       <span>PACS Assistant</span>
       <span id="curuser"></span>
@@ -61,7 +63,7 @@
     <div class="app-icon context-menu-target" id="app-power" onmouseenter="ahk.Hover(this.id)"
       onclick="ahk.ClickId(this.id)"></div>
     <div class="app-group">
-      <div class="app-icon context-menu-target" id="app-VPN" onmouseenter="ahk.Hover(this.id)"
+      <div class="app-icon context-menu-target" id="app-Network" onmouseenter="ahk.Hover(this.id)"
         onclick="ahk.ClickId(this.id)"></div>
       <div class="app-icon context-menu-target" id="app-EI" onmouseenter="ahk.Hover(this.id)"
         onclick="ahk.ClickId(this.id)"></div>
@@ -166,10 +168,10 @@
     </ul>
   </div>
 
-  <div id="context-menu-VPN" class="context-menu">
+  <div id="context-menu-Network" class="context-menu">
     <ul class="context-menu-list">
-      <li class="context-menu-item" id="app-VPN-connect" onclick="ahk.ClickId(this.id)">Connect VPN</li>
-      <li class="context-menu-item" id="app-VPN-disconnect" onclick="ahk.ClickId(this.id)">Disconnect VPN</li>
+      <li class="context-menu-item" id="app-Network-connect" onclick="ahk.ClickId(this.id)">Connect VPN</li>
+      <li class="context-menu-item" id="app-Network-disconnect" onclick="ahk.ClickId(this.id)">Disconnect VPN</li>
     </ul>
   </div>
 

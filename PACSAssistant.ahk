@@ -58,7 +58,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include PADaemon.ahk
 
-#Include PAVPN.ahk
+#Include Network.ahk
 #Include PAEI.ahk
 #Include PAPS.ahk
 #Include PAEPIC.ahk
@@ -218,6 +218,10 @@ PAShowWindows() {
 PAInit() {
 	global PAApps
 	global App
+
+	; set PACS Assistant application icon
+	TraySetIcon("PA.ico")
+
 
 	; Get Windows system double click setting
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")

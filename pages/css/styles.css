@@ -282,12 +282,12 @@ body.ahk-maximized .ahk-title-btn-maximize {
   margin: 8px 0;
   transition: background-image 0.5s;
 }
-#app-VPN {
-  background-image: url('../images/VPN-off.png');
+#app-Network {
+  background-image: url('../images/Network-off.png');
   transition: background-image 0.5s;
 }
-#app-VPN:hover {
-  background-image: url('../images/VPN.png');
+#app-Network:hover {
+  background-image: url('../images/Network-connected.png');
   transition: background-image 0.2s;
 }
 #app-EI {

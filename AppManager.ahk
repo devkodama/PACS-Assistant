@@ -135,6 +135,7 @@ class WinPos {
 ;
 ; WinItem methods:
 ;
+;   WinExist()  - Searches for the window (using ahk WinExist()) and returns the hwnd, or 0 if doesn't exist
 ;   Update()    - Updates properties for the window including hwnd, visible, minimized, openclosetime
 ;   Print()     - Returns diagnostic info about this window as a string 
 ;
@@ -301,6 +302,13 @@ class WinItem {
                 return ""
             }
         }
+    }
+
+    ; Searches for the window (using ahk WinExist()) and returns the hwnd, 
+    ; or 0 if doesn't exist
+    WinExist() {
+        DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+        return WinExist(this.criteria, this.wintext)
     }
 
     ; if a non-zero hwnd is passed, it is assumed to be the new valid hwnd for this window
