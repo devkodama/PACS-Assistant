@@ -572,15 +572,17 @@ F3:: {
 
 
 F8:: {
-	MsgBox(WorkstationIsHospital())
+	MsgBox(MonitorCount())
 }
 
 +F8:: {
-	MsgBox(VPNIsConnected())
+	CoordMode("Mouse", "Screen")
+	MouseGetPos(&x, &y)
+	PAToolTip("x, y: " x ", " y " -> " MonitorNumber(x, y))
 }
 
 ^F8:: {
-	MsgBox(NetworkGetIP())
+	
 }
 
 

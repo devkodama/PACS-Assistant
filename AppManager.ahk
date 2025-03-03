@@ -1,6 +1,7 @@
 /**
  * AppManager.ahk
  *
+ * This module defines classes and function for managing apps, windows, and monitors.
  * 
  *
  * This module defines the following classes:
@@ -22,6 +23,7 @@
  *  GetWinItem(hwnd)    - Returns the WinItem for the specified window handle
  *  GetAppkey(hwnd)     - Returns the application key of the specified window handle
  *  GetWinkey(hwnd)     - Returns the window key of the specified window handle
+ *  GetMonitor(hwnd)    - Returns the monitor number that this window is on (upper left corner)
  * 
  *  Mouse()             - Returns the hwnd of the window under the mouse
  * 
@@ -35,6 +37,9 @@
  *  WritePositionsAll()     - For all windows of all apps, write window's savepos to user specific settings.ini file.
  *  ReadPositionsAll()      - For all windows of all apps, reads window's savepos from user specific settings.ini file.
  * 
+ *  MonitorCount()          - Returns the system monitor count
+ *  MonitorNumber(x, y)     - Returns the monitor number that contains the x, y coordinates
+ *  MonitorPos(N)           - For monitor N, returns the monitor position and size (WinPos).
  * 
  */
 
@@ -61,6 +66,14 @@
 /**********************************************************
  * Global variables and constants used in this module
  */
+
+
+; The number of system monitors
+global _monitorcount := 0
+
+; The static local monitors holds each monitor's coordinates
+; as objects of {l, t, r, b}
+global _monitors := Array()
 
 
 
@@ -144,7 +157,7 @@ class WinPos {
 ;	SavePosition()	    - Saves the current x, y, width, and height of a window in its savepos proprety
 ;	RestorePosition() 	- Restores window to the size and position in its savepos property.
 ;
-;	CenterWindow(parentwindow)	- Centers a window over a parent window (WinItem)
+;	CenterWindow(parentwindow)	- Centers a window over a parent window or specific monitor
 ;
 ;	WritePosition()	- Write window's savepos to user specific settings.ini file.
 ;	ReadPosition()	- Reads window's savepos from user specific settings.ini file.
@@ -511,11 +524,15 @@ class WinItem {
         return false
     }
 
-    ; Centers this window over the passed parent window (WinItem) or winpos (WinPos)
+    ; Centers this window over the passed parent window (WinItem),
+    ; window position (WinPos), or monitor (integer).
+    ;
+    ; If no parameter is passed, then centers within the monitor which the window is in.
+    ;
     ; Returns true on success, false on failure.
-    CenterWindow(parent) {
+    CenterWindow(parent := 0) {
 
-        if parent {
+        if IsObject(parent) {
             if parent.HasOwnProp("parentapp") {
                 ; parent is a WinItem object
                 try {
@@ -560,6 +577,29 @@ class WinItem {
 
                     return true
                 }
+            }
+        } else {
+            ; parent is assumed to be an integer specifying a monitor number
+            if parent >= 1 && parent <= MonitorCount() {
+                cw := 0
+                ; get child window position and dimensions
+                if this.hwnd {
+                    WinGetPos( , , &cw, &ch, this.hwnd)
+                }
+                if cw = 0 {
+                    return false
+                }
+                ; get position of monitor N (parent)
+                monpos := MonitorPos(parent)
+
+                ; calculate new position
+                nx := monpos.x + (monpos.w - cw) / 2
+                ny := monpos.y + (monpos.h - ch) / 2
+
+                ; move child window to center of parentwindow
+                WinMove(nx, ny, , , this.hwnd)
+
+                return true
             }
         }
 
@@ -1004,6 +1044,19 @@ GetWinkey(hwnd) {
 }
 
 
+; Returns the monitor number that this window is on (upper left corner).
+; Returns 0 on failure.
+GetMonitor(hwnd) {
+    try {
+        win := _HwndLookup[hwnd]
+        n := MonitorNumber(win.pos.x, win.pos.y)
+    } catch {
+        n := 0
+    }
+    return n
+}
+
+
 ; Returns hwnd of window under mouse
 Mouse() {
     MouseGetPos( , , &hwnd)
@@ -1173,3 +1226,62 @@ ReadPositionsAll() {
     }
 }
 
+
+; Returns the system monitor count
+MonitorCount() {
+    global _monitorcount
+
+    if !_monitorcount {
+        _monitorcount := MonitorGetCount()
+    }
+    return _monitorcount
+}
+
+
+; Returns the monitor number that contains the passed x, y coordinates.
+;
+; Returns 0 if coordinates are not on any monitor.
+;
+MonitorNumber(x, y) {
+    global _monitorcount
+    global _monitors
+
+    ; if first time, get and cache info about the montors
+    if !_monitorcount {
+        _monitorcount := MonitorGetCount()
+        n := 1
+        while n <= _monitorcount {
+            MonitorGetWorkArea(n, &left, &top, &right, &bottom)
+            _monitors.Push({l: left, t: top, r: right, b: bottom})
+            n++
+        }
+    }
+
+    ; determine which monitor the passed x, y coordinates falls on
+    monitorN := 0
+    for mon in _monitors {
+        if x >= mon.l && x < mon.r && y >= mon.t && y < mon.b {
+            monitorN := A_Index
+            break               ; for
+        }
+    }
+
+    return monitorN
+}
+
+
+; For monitor N, returns the monitor position and size (WinPos).
+;
+; Returns 0 if an invalid monitor number is passed.
+;
+MonitorPos(N) {
+    global _monitorcount
+    global _monitors
+
+    if N < 1 || N > _monitorcount {
+        return 0
+    }
+
+    mon := _monitors[N]
+    return WinPos(mon.l, mon.t, (mon.r - mon.l), (mon.b - mon.t))
+}

@@ -20,6 +20,8 @@
  *  NetworkIsConnected(forceupdate := false)	- Returns whether we have an appropriate network connection,
  * 													either direct (hospital) or VPN (home)
  *
+ * 	VPNOpen_VPNmain()							- Callback
+ * 
  * 	VPNStart(cred := CurrentUserCredentials)	- Connects the Cisco AnyConnect VPN
  * 	VPNStop()									- Disconnects the Cisco AnyConnect VPN
  * 
@@ -184,6 +186,20 @@ NetworkIsConnected(forceupdate := false) {
 		lastcheck := A_TickCount
 	}
 	return networkstatus
+}
+
+
+
+
+/**********************************************************
+ * Hook functions called on Network window events
+ */
+
+
+; Hook function called when VPN main window appears
+VPNOpen_VPNmain() {
+	; center on the current monitor
+	App["VPN"].Win["main"].CenterWindow()
 }
 
 
