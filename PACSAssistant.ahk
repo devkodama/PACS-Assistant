@@ -243,6 +243,15 @@ PACSStart(cred := CurrentUserCredentials) {
     }
     running := true
 
+	; if no password, ask user before proceeding
+	if !cred.Password && !GUIGetPassword() {
+		; couldn't get a password from the user, return failure (0)
+        GUIStatus("PACS not started - password needed")
+		running := false
+		return 0
+	}
+	cred.password := CurrentUserCredentials.password
+
 	GUIStatus("Starting PACS...")
     tick0 := A_TickCount
 
@@ -360,7 +369,7 @@ PAInit() {
 	}
 
 	; Initialize systemwide settings
-	PASettings_Init()
+	SettingsInit()
 
 	; Register Windows hooks to monitor window open and close events for all the
 	; windows of interest
@@ -399,13 +408,13 @@ PAMain() {
 	; set PACS Assistant application icon
 	TraySetIcon("PA.ico")
 
-	; Basic set up
+	; PACS Assistant basic set up
 	PAInit()
 
-	; Set up GUI
-	GUIInit()
+	; Set up and show GUI
+	GUIMain()
 
     ; Start daemons
-    DaemonInit(true)
+    DaemonInit()
 
 }

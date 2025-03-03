@@ -263,6 +263,15 @@ EPICStart(cred := CurrentUserCredentials) {
 		return 1
 	}
 
+	; if no password, ask user before proceeding
+	if !cred.Password && !GUIGetPassword() {
+		; couldn't get a password from the user, return failure (0)
+        GUIStatus("Could not start Epic - password needed")
+		running := false
+		return 0
+	}
+	cred.password := CurrentUserCredentials.password
+
 	; Start Epic
 	GUIStatus("Starting Epic...")
 	tick0 := A_TickCount

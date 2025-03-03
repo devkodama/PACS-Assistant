@@ -51,7 +51,12 @@ if (A_IsCompiled) {
  */
 
 
-global PAGui
+; the main PACS Assistant GUI
+global PAGUI
+
+global pwdGUI
+
+; queue of callback functions to be called
 global DispatchQueue
 
 
@@ -66,10 +71,10 @@ global DispatchQueue
 ;
 ClickId(WebView, id) {
     global DispatchQueue
-;    PAToolTip("id='" . id . "' was clicked")
 
     switch id {
 
+        ; Power button
         case "app-power":
             if PAStatus_PowerButton="off" {
                 DispatchQueue.Push(PACSStart)
@@ -79,6 +84,7 @@ ClickId(WebView, id) {
         case "app-power-shutdown":
             DispatchQueue.Push(PACSStop)
         
+        ; Network/VPN button
         case "app-Network":
             if !WorkstationIsHospital() && !VPNIsConnected() {
                 DispatchQueue.Push(VPNStart)
@@ -91,6 +97,7 @@ ClickId(WebView, id) {
             if !WorkstationIsHospital() && VPNIsConnected() {
                 DispatchQueue.Push(VPNStop)
             }
+        ; EI button
         case "app-EI":
             if !EIIsRunning() {
                 DispatchQueue.Push(EIStart)
@@ -100,6 +107,7 @@ ClickId(WebView, id) {
         case "app-EI-shutdown":
             DispatchQueue.Push(EIStop)
 
+        ; PS button
         case "app-PS":
             if !PSIsRunning() {
                 DispatchQueue.Push(PSStart)
@@ -112,6 +120,7 @@ ClickId(WebView, id) {
             TTip("This doesn't work yet")
             ; DispatchQueue.Push(GUIForceClosePS)
 
+        ; EPIC button
         case "app-EPIC":
             if !EPICIsRunning() {
                 DispatchQueue.Push(EPICstart)
@@ -121,11 +130,13 @@ ClickId(WebView, id) {
         case "app-EPIC-shutdown":
             DispatchQueue.Push(EPICStop)
 
+        ; Window save and restore buttons
         case "button-restorewindows":
             DispatchQueue.Push(GUIRestoreWindowPositions)
         case "button-savewindows":
             DispatchQueue.Push(GUISaveWindowPositions)
 
+        ; Cancel buttons
         case "cancelbutton":
             DispatchQueue.Push(GUICancelButton)
 
@@ -139,7 +150,7 @@ ClickId(WebView, id) {
 
 ; Hover messages and hover function
 ;
-; [todo] Plan to replace this with js
+; [todo] Plan to replace this hover system with js or something else
 ;
 HoverMessages := Map()
 HoverMessages["app-power"] := Map("off", "Press to start PACS",
@@ -174,13 +185,18 @@ HoverEvent(WebView, id) {
  */
 
 
-; GUIPost() simplifies changes to the DOM.
+; GUIPost() sets the property propname of an element with the given id in javascript.
 ;
-; e.g. GUIPost("patientname", "innerHTML", "John Smith")
-; will replace the innerHTML property of the DOM element having id="patientname" with "John Smith"
+;   GUIPost(id, propname, propval)  -->  document.getElementById('id').propname = 'propval';
+;
+; It does so by calling the WebViewToo().PostWebMessageAsString() method.
+;
+; e.g. GUIPost("patientname", "innerHTML", "John Smith") will replace the innerHTML property 
+; of the DOM element having id="patientname" with "John Smith"
+;
 GUIPost(id, propname, propval) {
-    if _GUIRunning {
-	    PAGui.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "';")
+    if _GUIIsRunning {
+	    PAGUI.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "';")
     }
 }
 
@@ -211,18 +227,14 @@ GUIStatus(message := "", duration := 0) {
 ;
 GUIAlert(message, type := "info") {
 
-TTip("paalert: " message ", " type)
-
-    ; PAGui.PostWebMessageAsString("")
+; TTip("paalert: " message ", " type)
 
     ; clean up - remove dismissed alerts
-    PAGui.PostWebMessageAsString("document.querySelectorAll('.alert.dismissed').forEach(elem => {elem.remove();});")
+    PAGUI.PostWebMessageAsString("document.querySelectorAll('.alert.dismissed').forEach(elem => {elem.remove();});")
     
-    ; append new alert
+    ; append new alert after existing alerts
     alerthtml := "<div class=`"alert " . type . "`"><span class=`"closebtn`" onclick=`"closeAlert(this)`">&times;</span>" . EscapeHTML(message) . "</div>"
-
-    PAGui.PostWebMessageAsString("document.getElementById('alerts').insertAdjacentHTML('beforeend', '" . alerthtml . "');")
-    
+    PAGUI.PostWebMessageAsString("document.getElementById('alerts').insertAdjacentHTML('beforeend', '" . alerthtml . "');")
 }
 
 
@@ -231,7 +243,7 @@ TTip("paalert: " message ", " type)
 GUIShowCancelButton() {
     global PACancelRequest
 
-    PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').removeAttribute('disabled', '');")
+    PAGUI.PostWebMessageAsString("document.getElementById('cancelbutton').removeAttribute('disabled', '');")
     GUIPost("cancelbutton", "style.display", "flex")
     PACancelRequest := false
 }
@@ -247,7 +259,8 @@ GUIHideCancelButton() {
 GUICancelButton() {
     global PACancelRequest
 
-    PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').setAttribute('disabled', '');")
+    ; disable the cancel button so it can't get clicked again
+    PAGUI.PostWebMessageAsString("document.getElementById('cancelbutton').setAttribute('disabled', '');")
     PACancelRequest := true
 }
 
@@ -261,6 +274,7 @@ GUIRestoreWindowPositions(*) {
         return
     }
     running := true
+
   TTip("GUIRestoreWindowPositions")
     ReadPositionsAll()
     RestorePositionsAll()
@@ -293,20 +307,27 @@ GUISaveWindowPositions(*) {
 
 
 
+/**********************************************************
+ * Main GUI functions
+ * 
+ */
 
 
-
-
-; Called when GUI window is first started (opened)
-GUIInit(*) {
-    global PAGui
-    global _GUIRunning
+; Called to create and show main GUI window
+;
+GUIMain(*) {
+    global PAGUI
+    global _GUIIsRunning
 
     ; Create the GUI
-    PAGui := WebViewToo(,,, true)
+    PAGUI := WebViewToo( , , , true)
+    PAGUI.Opt("+Resize -MaximizeBox")
 
-    ;PAGui.Debug()
-    PAGui.Opt("+Resize -MaximizeBox")
+    ; other options?   +MinSize640x480 +MaxSize1280x960 +OwnDialogs
+
+    ; load the GUI page
+    PAGUI.Load(GUIHOMEPAGE)
+    PAGUI.Title := GUIWINDOWTITLE
 
     /**
 	 * In order to use PostWebMessageAsJson() or PostWebMessageAsString(), you'll need to setup your webpage to listen to messages
@@ -317,52 +338,47 @@ GUIInit(*) {
 	 * 			console.log(Msg);
 	 * 		}
 	**/
-    PAGui.Settings.IsWebMessageEnabled := true
-
-    ; load the page
-    PAGui.Load(GUIHOMEPAGE)
+    PAGUI.Settings.IsWebMessageEnabled := true
     
     ; set up resize handler
-    PAGui.OnEvent("Size", GUISize)
+    PAGUI.OnEvent("Size", GUISize)
     
     ; set up exit handler
-    PAGui.OnEvent("Close", (*) => GUIExit())
+    PAGUI.OnEvent("Close", (*) => GUIExit())
     
     ; set up event handlers for web page
     ; parameters are "<function name for html>", <ahk function name>
-    PAGui.AddCallbackToScript("ClickId", ClickId)
-    PAGui.AddCallbackToScript("HandleFormInput", HandleFormInput)
+    PAGUI.AddCallbackToScript("ClickId", ClickId)
+    PAGUI.AddCallbackToScript("HandleFormInput", HandleFormInput)
 
-    PAGui.AddCallbackToScript("Hover", HoverEvent)  ; don't want to use this for hovers
+    PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; don't want to continue to use this for hovers
 
-    PAGui.Title := GUIWINDOWTITLE
 
     ; display the PACS Assistant window
     ; and restore PACS Assistant window position
 
-    win := App["PA"].Win["main"]
-    win.ReadPosition()
-    x := win.savepos.x
-    y := win.savepos.y
-    w := win.savepos.w
-    h := win.savepos.h
+    winPA := App["PA"].Win["main"]
+    winPA.ReadPosition()
+    x := winPA.savepos.x
+    y := winPA.savepos.y
+    w := winPA.savepos.w
+    h := winPA.savepos.h
 
     if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
-        PAGui.Show("x" x " y" y " w" w " h" h)
-        Sleep(300)                      ; need time for GUI to be set up
-        GUISize(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
-    } else {
-        PAGui.Show()
+        PAGUI.Show("x" x " y" y " w" w " h" h)
         Sleep(500)                      ; need time for GUI to be set up
-        PAGui.GetClientPos(, , &w, &h)  ; get actual size of client window
-        GUISize(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
-    }    
+    } else {
+        ; invalid position, don't use to show
+        PAGUI.Show()
+        Sleep(500)                      ; need time for GUI to be set up
+        PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
+    }
+    GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
 
-
-    win.Update()
+    winPA.Update()
 
     ; declare GUI to be up and running
-    _GUIRunning := true
+    _GUIIsRunning := true
 
     ; update GUI to show current username
     if Setting["username"].value {
@@ -371,55 +387,137 @@ GUIInit(*) {
         GUIPost("curuser", "innerHTML", "")
     }
 
-    ; display the settings page
-    PASettings_HTMLForm()
-
-    ; GUIPost("log", "innerHTML", CurrentUserCredentials.username "/" CurrentUserCredentials.password (PASettings.Has("inifile") ? "/" PASettings["inifile"].value : ""))
+    ; initialize the settings page
+    SettingsGeneratePage()
 
 }
 
 
+; helper function to set a gui window to dark mode
+;
+SetDarkWindowFrame(hwnd, boolEnable:=1) {
+    hwnd := WinExist(hwnd)
+    if VerCompare(A_OSVersion, "10.0.17763") >= 0
+        attr := 19
+    if VerCompare(A_OSVersion, "10.0.18985") >= 0
+        attr := 20
+    DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "int", attr, "int*", boolEnable, "int", 4)
+}
+
+
+; Shows a modal dialog to ask for the user's password.
+;
+; Can optionally specify a text prompt.
+;
+; If non-empty, the password is stored in Setting["password"]
+;
+; Returns true on success (non-empty password), false on cancel or failure.
+;
+GUIGetPassword(prompt := "Please enter your password") {
+    global Setting
+    local pwd
+    local done
+
+    _GUIProcessCancel(*) {
+        pwdGUI.Hide()
+        pwd := ""
+        done := true
+    }
+    _GUIProcessPassword(*) {
+        pwd := pwdGUI.Submit().password
+        done := true
+    }
+
+    ; create the password GUI (ahk style gui)
+    pwdGUI := Gui("+AlwaysOnTop -SysMenu +Owner +0x80880000", "Password")
+    SetDarkWindowFrame(pwdGui)
+
+    pwdGUI.SetFont("s10")
+    pwdGUI.Add("Text", "x20 y40", prompt)
+    pwdGUI.Add("Edit", "yp vpassword Password Limit" . PA_PASSWORD_MAXLENGTH)
+    pwdGUI.Add("Button", "x120 y80", "Cancel").OnEvent("Click", _GUIProcessCancel)
+    pwdGUI.Add("Button", "yp default", "Ok").OnEvent("Click", _GUIProcessPassword)
+    pwdGUI.OnEvent("Close", _GUIProcessPassword)
+
+    ; show the gui
+    pwdGUI.Show("w380 h140" )
+
+    ; wait for the user to enter a password or cancel
+    done := false
+    while !done {
+        Sleep(500)
+    }
+
+    if pwd {
+        ; we got a non-empty password, store it
+        Setting["password"].value := pwd
+        ; update the GUI Settings page
+        SettingsGeneratePage()
+        return true
+    } else {
+        ; didn't get a password, don't save anything
+        return false
+    }
+}
+
+
+
+/**********************************************************
+ * GUI event handlers
+ * 
+ */
+
+
 ; Called whenever GUI is resized
+;
+; It calculates the height of the useful display area, which is the window height
+; minus the height of the title and status bars (currently 24px + 24px)
+;
+; This allows the main display area to be given a definite height so it will
+; display a vertical scroll bar when contents exceed its height.
+;
 GUISize(thisGui, MinMax, Width, Height) {
 
+    ; (-1 = minimized, 1 = maximized, 0 = neither minimized nor maximized)
     if MinMax = -1 {
         ; The window has been minimized. No action needed.
         return
     }
 
-    ; Otherwise, the window has been resized or maximized.
+    ; Otherwise, the window has been resized or maximized
     ; Recalculate the height of the main display area and change the height of div#main
 
 ;    PAGui.GetClientPos(&x, &y, &w, &h)
 ;    PAToolTip(x ", " y ", " w ", " h)
-    h := Height - 54
-    PAGui.PostWebMessageAsString("document.getElementById('main').style = `"height: " . h . "px;`"")
+
+    h := Height - 50
+    PAGUI.PostWebMessageAsString("document.getElementById('main').style = `"height: " . h . "px;`"")
+;    GUIPost("main", "style", "`"height: " . h . "px;`"")
 
 }
 
 
-; Called when GUI window is closed
+; Called when the main GUI window is closed
 GUIExit(*) {
 
     GUIStatus("Closing PACS Assistant...")
 
     ; save PA window position
-    win := App["PA"].Win["main"]
-    win.SavePosition
-    win.WritePosition
-
-
-
-    ; stop all WinEvent windows event callbacks
-    ;WinEvent.Stop()
-
-
+    winPA := App["PA"].Win["main"]
+    winPA.SavePosition()
+    winPA.WritePosition()
 
     ; stop daemons
     DaemonInit(false)
 
-
-    ; Sleep(1000)
+    ; If this is not a hospital workstation, because 
+    ; password might not have been written to local store because
+    ; Setting["storepassword"] may not have existed when Setting["password"]
+    ; was updated, or may have been changed after Setting["password"]
+    ; was updated, we update the local password storage now.
+    if !WorkstationIsHospital() {
+        Setting["password"].SaveSetting()
+    }
 
 
     ; terminate the script

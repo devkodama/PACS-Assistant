@@ -266,6 +266,14 @@ VPNStart(cred := CurrentUserCredentials) {
 	; allow user to cancel long running operation
 	GUIShowCancelButton()
 
+	; if no password, ask user before proceeding
+	if !cred.Password && !GUIGetPassword() {
+		; couldn't get a password from the user, return failure (0)
+        GUIStatus("Could not start VPN - password needed")
+		running := false
+		return 0
+	}
+
 	; loop until connected, timed out, cancelled, or failed too many times
 	tick0 := A_TickCount
 	connected := false
@@ -327,15 +335,24 @@ VPNStart(cred := CurrentUserCredentials) {
 		App["VPN"].Win["login"].Update()
 		hwndlogin := App["VPN"].Win["login"].hwnd
 		if hwndlogin {
-			; before entering username and password, see if the last login failed
-			; if it failed, we might be on the wrong server, so cancel the login window
-			; and return to the main UI so the correct server can be populated
+			; Before entering username and password, see if the last login failed.
+			; If it failed, we might be on the wrong server, so cancel the login window
+			; and return to the main UI so the correct server can be populated.
+			; If we've already tried thrice, ask the user for another password.
 			hwndmain := App["VPN"].Win["main"].hwnd
 			if hwndmain && ControlGetText("Static2", hwndmain) = "Login failed." {
 				failedlogins++
 				ControlClick("Cancel", hwndlogin, , , , "NA")
 				WinWaitClose(hwndlogin)
 				App["VPN"].Update()
+				; if failed 3 times already, ask user for another password before proceeding
+				if failedlogins >= 3 {
+					if GUIGetPassword("Re-enter your password") {
+						cred.password := CurrentUserCredentials.password
+					} else {
+						cancelled := true
+					}
+				}
 			} else {
 				; enter username and password and press OK
 				BlockInput true
