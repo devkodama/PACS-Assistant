@@ -463,7 +463,7 @@ _WatchMouse() {
 	; only activate window if another window is not busy
 	; and Lshift is not being held down
 	; and if not already active
-	if !PAWindowBusy && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
+	if !PAWindowBusy && Setting["FocusFollow"].on && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
 
 		appkey := GetAppkey(hwnd)
 		winkey := GetWinkey(hwnd)
@@ -537,7 +537,7 @@ _JiggleMouse() {
 		return
 	}
 
-	if Setting["MouseJiggler"].value {
+	if Setting["MouseJiggler"].on {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
 	}

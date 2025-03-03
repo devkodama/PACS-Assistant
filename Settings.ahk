@@ -31,12 +31,12 @@
 */
 
 
-; Program-wide modifiable settings are defined here in the PASettings[] Map
+; Program-wide modifiable settings are defined here in the Setting[] Map
 ; object. Not all of these settings have to be exposed to the user on the
 ; GUI Settings page.
 ;
 ; Note that username, password, and inifile are special cases, even
-; though they are stored in the PASettings[] map. They are treated differently 
+; though they are stored in the Setting[] map. They are treated differently 
 ; by functions that handle changes to the settings (e.g. HandleFormInput(), and 
 ; by the value property setter and getter).
 ;
@@ -54,6 +54,7 @@ Setting["inifile"] := SetItem("inifile", "special", "", 0, "Current user-specifi
 ; General settings
 Setting["MouseJiggler"] := SetItem("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
 Setting["MouseJiggler_timeout"] := SetItem("MouseJiggler_timeout", "num", 240, [0, 1440], "Disable mouse jiggler after this many minutes of inactivity (0 = never disable)")
+Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus following to keep the window under the mouse active")
 
 Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
@@ -90,12 +91,11 @@ Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "
 
 Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
 
-Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
+Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except when within the PowerScribe window")
 
 ; EPIC settings
 Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
 Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
-
 
 
 
@@ -111,9 +111,6 @@ Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", true, , "Enable Spa
 
 
 
-
-
-
 ; PASettingsPage is an ordered array of keys that determines which settings
 ; are shown and the order in which they are shown on the GUI Settings page. 
 ;
@@ -123,48 +120,58 @@ Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", true, , "Enable Spa
 ; When a key is prefixed with ">", as in ">MouseJiggler_timeout", then
 ; the key is indented when displayed. A double indent ">>" can also be used.
 ;
-PASettingsPage := Array()
+SettingsPage := Array()
 
 ; The settings to be displayed on the GUI Settings page are defined here in 
-; the PASettingsPage[] Array object.
+; the SettingsPage[] Array object.
 
-PASettingsPage.Push("#Account")
-PASettingsPage.Push("username")
-PASettingsPage.Push("password")
+SettingsPage.Push("#Account")
+SettingsPage.Push("username")
+SettingsPage.Push("password")
 
-PASettingsPage.Push("#General")
-PASettingsPage.Push("MouseJiggler")
-PASettingsPage.Push(">MouseJiggler_timeout")
-PASettingsPage.Push("UseVoice")
-PASettingsPage.Push(">Voice")
+SettingsPage.Push("#General")
+SettingsPage.Push("FocusFollow")
+SettingsPage.Push("MouseJiggler")
+; SettingsPage.Push(">MouseJiggler_timeout")
+SettingsPage.Push("UseVoice")
+SettingsPage.Push(">Voice")
 
-PASettingsPage.Push("#EI")
-PASettingsPage.Push("EI_restoreatopen")
-PASettingsPage.Push("ClickLock")
+SettingsPage.Push("#VPN")
+SettingsPage.Push("VPN_center")
+
+SettingsPage.Push("#EI")
+SettingsPage.Push("EI_restoreatopen")
+SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
 
-PASettingsPage.Push("#PowerScribe")
-PASettingsPage.Push("PS_restoreatopen")
-PASettingsPage.Push("PS_dictate_autoon")
-PASettingsPage.Push("PS_dictate_idleoff")
-PASettingsPage.Push(">PS_dictate_idletimeout")
-PASettingsPage.Push("PSconfirmaddendum_dismiss")
-PASettingsPage.Push("PSlogout_dismiss")
-PASettingsPage.Push("PSsavespeech_dismiss")
-PASettingsPage.Push(">PSsavespeech_dismiss_reply")
-PASettingsPage.Push("PSmicrophone_dismiss")
-PASettingsPage.Push("PSSPspelling_autoclose")
-PASettingsPage.Push("PScenter_dialog")
+SettingsPage.Push("#PowerScribe")
+SettingsPage.Push("PS_restoreatopen")
+SettingsPage.Push("PS_dictate_autoon")
+SettingsPage.Push("PS_dictate_idleoff")
+SettingsPage.Push(">PS_dictate_idletimeout")
+SettingsPage.Push("PSconfirmaddendum_dismiss")
+SettingsPage.Push("PSlogout_dismiss")
+SettingsPage.Push("PSsavespeech_dismiss")
+SettingsPage.Push(">PSsavespeech_dismiss_reply")
+SettingsPage.Push("PSmicrophone_dismiss")
+SettingsPage.Push("PSSPspelling_autoclose")
+SettingsPage.Push("PScenter_dialog")
 
-PASettingsPage.Push("#Epic")
-PASettingsPage.Push("EPIC_restoreatopen")
-PASettingsPage.Push("EPICtimezone_dismiss")
+SettingsPage.Push("#Epic")
+SettingsPage.Push("EPIC_restoreatopen")
+SettingsPage.Push("EPICtimezone_dismiss")
 
-PASettingsPage.Push("#VPN")
-PASettingsPage.Push("VPN_center")
+SettingsPage.Push("#Hotkeys")
+SettingsPage.Push("hkTab")
+SettingsPage.Push("hkCapsLock")
+SettingsPage.Push("hkBacktick")
+SettingsPage.Push("hkEsc")
+SettingsPage.Push("hkCtrlYZ")
+SettingsPage.Push("hkSpaceClick")
+SettingsPage.Push("hkSpaceDelete")
 
-PASettingsPage.Push("#Beta - Experimental, may not work")
-PASettingsPage.Push("EIcollaborator_show")
+SettingsPage.Push("#Beta - Experimental, may not work")
+SettingsPage.Push("EIcollaborator_show")
 
 
 
@@ -585,7 +592,7 @@ PASettings_HTMLForm(show := true) {
 
     in_cat := false     ; track whether we are inside a category section so we remember to close it
 
-    for i, optname in PASettingsPage {
+    for i, optname in SettingsPage {
 
         if (SubStr(optname, 1, 1) == "#") {
             ; this is a Category heading
