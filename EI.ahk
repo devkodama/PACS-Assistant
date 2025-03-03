@@ -428,7 +428,8 @@ EIStart(cred := CurrentUserCredentials) {
 	PAStatus("Starting EI...")
 	tick0 := A_TickCount
 	cancelled := false
-	failed := false
+	failed := false				; EI
+	PSfailed := false			; PS
 
 	; prevent focus following
 	PAWindowBusy := true
@@ -525,11 +526,13 @@ EIStart(cred := CurrentUserCredentials) {
 				CoordMode("Mouse", "Screen")
 				BlockInput true				; prevent user input from interfering
 				MouseGetPos(&savex, &savey)
+
 				Click(ok[1].x, ok[1].y + 8)
 				Send("^a" . cred.username)
 				Click(ok[2].x, ok[2].y + 8)
 				Send("^a" . cred.password)
 				Send("!o")					; Presses OK key (Alt-O) to start login
+				
 				MouseMove(savex, savey)
 				BlockInput false
 			}
@@ -557,6 +560,25 @@ EIStart(cred := CurrentUserCredentials) {
 				; if EI desktop window still not visible after time out, return failure
 				failed := true
 			}
+
+			; EI desktop is running
+			; now wait for EPIC and PS to complete loading
+			; in practice we can just wait for PS since it normally takes much longer then EPIC
+			tick1 := A_TickCount
+			while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+				PAStatus("Waiting for PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				Sleep(500)
+				App["PS"].Win["main"].Update()
+				if PACancelRequest {
+					cancelled := true
+					break		; while
+				}
+			}
+			if !hwndmain {
+				; if PS main window still not visible after time out, return failure
+				PSfailed := true
+			}
+
 		}
 	}
 
@@ -586,8 +608,12 @@ EIStart(cred := CurrentUserCredentials) {
 		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
+	} else if PSfailed {
+	
+		PAStatus("EI started, but could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+	
 	} else {
-		; [todo] wait for EPIC and PS to complete loading
 
 		; success
 		PAStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")

@@ -25,12 +25,14 @@
 
 
 ; Start or stop daemons
-
+;
 InitDaemons(start := true) {
 
+	; these daemons run regardless of PAActive
 	SetTimer(_Dispatcher, (start ? DISPATCH_INTERVAL : 0))
 	SetTimer(_RefreshGUI, (start ? GUIREFRESH_INTERVAL : 0))
 
+	; these daemons only act if PAActive is true
 	SetTimer(_WatchWindows, (start ? WATCHWINDOWS_UPDATE_INTERVAL : 0))
 	SetTimer(_WatchMouse, (start ? WATCHMOUSE_UPDATE_INTERVAL : 0))
 	SetTimer(_JiggleMouse, (start ? JIGGLEMOUSE_UPDATE_INTERVAL : 0))
@@ -370,7 +372,7 @@ _WatchWindows() {
 
 
 	; update window info for GUI
-	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 
@@ -396,17 +398,6 @@ _WatchMouse() {
 	static running := false
 	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
 
-	if !PAActive {
-		return
-	}
-
-	; don't allow reentry
-	if running {
-		return
-	}
-	running := true
-
-; try {
 	; local function to restore windows that have been enlarged
 	_RestoreSaved() {
 		if restore_EPICchat {
@@ -434,6 +425,17 @@ _WatchMouse() {
 		}
 	}
 
+
+	if !PAActive {
+		return
+	}
+
+	; don't allow reentry
+	if running {
+		return
+	}
+	running := true
+
 	; get the handle of the window under the mouse
 	hwnd := Mouse()
 
@@ -443,8 +445,8 @@ _WatchMouse() {
 	; activate window under the mouse, if appropriate
 	;
 	; only activate window if another window is not busy
-	; and if not already active
 	; and Lshift is not being held down
+	; and if not already active
 	if !PAWindowBusy && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
 
 		appkey := GetAppkey(hwnd)
@@ -506,10 +508,6 @@ _WatchMouse() {
 			}
 		}
 	}
-
-; } catch {
-; }
-
 
 	running := false
 	return

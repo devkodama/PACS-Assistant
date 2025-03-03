@@ -60,7 +60,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include Network.ahk
 #Include EI.ahk
 #Include PS.ahk
-#Include PAEPIC.ahk
+#Include EPIC.ahk
 
 #Include Hotkeys.ahk
 

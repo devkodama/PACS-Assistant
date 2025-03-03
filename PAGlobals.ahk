@@ -85,18 +85,15 @@ EI_SERVER := "mivcsp.adventhealth.com"
 ; timeout (seconds) for starting up PS to get to login window
 PS_LOGIN_TIMEOUT := 60
 ; timeout (seconds) for getting to PS main window after login
-PS_MAIN_TIMEOUT := 120
-; timeout (seconds) for shutting down EI
-PS_SHUTDOWN_TIMEOUT := 120
+PS_MAIN_TIMEOUT := 180
+; timeout (seconds) for shutting down PS
+PS_SHUTDOWN_TIMEOUT := 180
 ; time delay (seconds) for turing off microphone after a report is closed
-PS_DICTATEAUTOOFF_DELAY := 5
-; time delay (ms) for allowing window status transition before reporting 
-; microphone off when in between windows
-PS_DICTATETRANSITION_DELAY := 1000
+PS_DICTATEAUTOOFF_DELAY := 3
 
 
 ; timeout (seconds) for starting up EPIC to get to login window
-EPIC_LOGIN_TIMEOUT := 60
+EPIC_LOGIN_TIMEOUT := 120
 ; timeout (seconds) for shutting down EPIC
 EPIC_SHUTDOWN_TIMEOUT := 30
 ; timezone string for Epic
@@ -129,7 +126,8 @@ EXE_EI := "C:\Program Files (x86)\Agfa\Enterprise Imaging\EnterpriseImagingLaunc
 
 EXE_PS := "C:\Users\PACS\Desktop\Nuance.PowerScribe360.application"
 
-EXE_EPIC := "C:\Program Files (x86)\Epic\Hyperdrive\VersionIndependent\hyperspace.exe"
+EXE_EPIC := "C:\Program Files (x86)\Epic\Hyperdrive\VersionIndependent\Hyperspace.exe"
+EPIC_CLIOPTIONS := "Id=605 Env=PRD TZ=America/Chicago enableGPU=false"
 
 ; Base filneame used to derive settings.ini and setting.username.ini filenames
 FILE_SETTINGSBASE := "settings"
@@ -337,7 +335,7 @@ App["EI"].Win["image"] := WinItem(App["EI"], "image", "Desktop Image page", , , 
 App["EICLIN"].Win["mpr"] := WinItem(App["EICLIN"], "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
 
 ; for PowerScribe
-App["PS"].Win["login"] := WinItem(App["PS"], "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin)
+App["PS"].Win["login"] := WinItem(App["PS"], "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin, PSClose_PSlogin)
 App["PS"].Win["main"] := WinItem(App["PS"], "main", "PowerScribe 360 | Reporting", "PowerScribe", "Signing queue", PSOpen_PSmain, PSClose_PSmain)
 App["PS"].Win["report"] := WinItem(App["PS"], "report", "PowerScribe 360 | Reporting", "PowerScribe", "Report -", PSOpen_PSreport, PSClose_PSreport)
 App["PS"].Win["addendum"] := WinItem(App["PS"], "addendum", "PowerScribe 360 | Reporting", "PowerScribe", "Addendum -", PSOpen_PSreport, PSClose_PSreport)

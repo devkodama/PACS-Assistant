@@ -83,11 +83,14 @@
 ; This is used internally by _PSStopDictate() to determine whether to turn off the mic
 global _Dictate_autooff := false
 
+; This holds the most recent parent window (login, main, report, or addendum) before the current one.
+; If PS was not running, holds a blank string.
+global _PSlastparent := ""
 
 
 
 /**********************************************************
- * Functions to send info to PS
+ * Functions to send data to PS
  * 
  */
 
@@ -276,13 +279,30 @@ PSIsReport() {
 ; Hook function called when PS login window appears
 ;
 PSOpen_PSlogin() {
+	global _PSlastparent
 
 	; [todo] determine if PS was just opened or just closed
 
 	if PASettings["PS_restoreatopen"].value {
-		; Restore PS window positions
+		; Restore PS window position
 		App["PS"].RestorePositions()
 	}
+
+	if _PSlastparent = "main" {
+		; main window was closed, go ahead and close the login window
+		if PSIsLogin() {
+			; We're at the login window. Close it.
+			; PSSend("!{F4}")
+			App["PS"].Win["login"].Close()
+		}
+	}
+	_PSlastparent := "login"
+}
+
+
+; Hook function called when PS login window goes away
+;
+PSClose_PSlogin() {
 
 }
 
@@ -290,6 +310,7 @@ PSOpen_PSlogin() {
 ; Hook function called when PS main window appears
 ;
 PSOpen_PSmain() {
+	global _PSlastparent
 
 ;	PASound("PowerScribe opened")
 
@@ -308,6 +329,8 @@ PSOpen_PSmain() {
 	PACurrentStudy.referringmd := ""
 	PACurrentStudy.reason := ""
 	PACurrentStudy.techcomments := ""
+
+	_PSlastparent := "main"
 }
 
 
@@ -327,8 +350,9 @@ _PSStopDictate() {
 }
 
 
-; Hook function called when PS report window appears
+; Hook function called when PS report or addendum window appears
 PSOpen_PSreport() {
+	global _PSlastparent
 	global PACurrentPatient
 	global PACurrentStudy
 
@@ -395,10 +419,11 @@ PSOpen_PSreport() {
 	; switch PA tab to Home page
 	PAShowHome()
 
+	_PSlastparent := "report"
 }
 
 
-; Hook function called when PS report window goes away
+; Hook function called when PS report or addendum window goes away
 PSClose_PSreport() {
 	PAStatus("Report closed")
 
@@ -647,7 +672,7 @@ PSStart(cred := CurrentUserCredentials) {
 				
 				Sleep(500)
 				App["PS"].Update()
-						
+
 				; waits for PS main window to appear
 				tick1 := A_TickCount
 				while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
@@ -656,7 +681,7 @@ PSStart(cred := CurrentUserCredentials) {
 					App["PS"].Win["main"].Update()
 					if PACancelRequest {
 						cancelled := true
-						break
+						break		; while
 					}
 				}
 
@@ -755,11 +780,13 @@ PSStop() {
 	; wait for PS to close
 	while !cancelled && PSIsRunning() && (A_TickCount-tick0 < PS_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		Sleep(500)
+		; the login window should close automatically when going from main to login
+		; if it doesn't, we can close it here
 		if PSIsLogin() {
 			; We're at the login window. Close it.
 			PSSend("!{F4}")
 		}
-		Sleep(500)
 		App["PS"].Update()
 		if PACancelRequest {
 			cancelled := true
