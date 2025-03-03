@@ -320,7 +320,6 @@ class WinItem {
     ; Searches for the window (using ahk WinExist()) and returns the hwnd, 
     ; or 0 if doesn't exist
     WinExist() {
-        DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
         return WinExist(this.criteria, this.wintext)
     }
 
@@ -343,7 +342,7 @@ class WinItem {
 
                 ; search for the window by criteria, get its hwnd
                 if this.criteria {
-                    DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+                    ; DetectHiddenText(true)
                     hwnd := WinExist(this.criteria, this.wintext)
                 } else {
                     ; do nothing, hwnd already = 0
@@ -736,7 +735,6 @@ class AppItem {
         }
 
         ; check whether the app is running, get its PID
-        DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
         try {
             ; found a running process
             this.pid := WinGetPID(this.criteria)
@@ -762,7 +760,6 @@ class AppItem {
     isrunning {
         get {
             ; look for a running app, get its PID
-            DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
             try {
                 this.pid := WinGetPID(this.criteria)
             } catch {
@@ -779,14 +776,13 @@ class AppItem {
     ;
     Update() {
 
-
         if !this.criteria {
             ; can't update
             return
         }
 
         ; check whether the app is running, get its PID
-        DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
+        ; DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
         try {
             ; found a running process
             this.pid := WinGetPID(this.criteria)
@@ -795,18 +791,18 @@ class AppItem {
             this.pid := 0
         }
 
-        if this.pid {
+        ; if this.pid {
             for , win in this.Win {
                 win.Update()
             }
-        }
+        ; }
     }
 
     ; Returns diagnostic info about the window(s) for this app as a string
     ; omits non-existing windows or pseudowindows unless showall is set to true
     Print(winkey := "", showall := false) {
 
-        if this.pid {
+        if showall || this.pid {
 
             ; output .= this.key " (pid " this.pid ") - " this.appname " (= '" this.criteria "')<br />"
 
@@ -1158,8 +1154,8 @@ Context(hwnd, contexts*) {
 UpdateAll() {
     global _PAUpdate_Initial
 
-	for app in PAApps {
-		app.Update()
+    for , a in App {
+		a.Update()
 	}
 
     _PAUpdate_Initial := false
@@ -1167,7 +1163,7 @@ UpdateAll() {
 
 
 
-; Returns diagnostic info about a window(s) for an app (or all apps)
+; Returns diagnostic info about a window (or all windows) for an app (or all apps)
 ; as a string
 ;
 ; omits non-existing windows or pseudowindows unless showall is set to true

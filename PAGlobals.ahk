@@ -113,7 +113,7 @@ WINDOWPOSITION_MINHEIGHT := 100
 ; Windows constant (style of visible windows)
 WS_VISIBLE := 0x10000000
 
-; Windows constants used in PAPS.ahk module.
+; Windows constants used in PS.ahk module.
 WM_SETTEXT := 0x000C
 WM_GETTEXT := 0x000D
 EM_GETSEL := 0x00B0

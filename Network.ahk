@@ -280,7 +280,8 @@ VPNStart(cred := CurrentUserCredentials) {
 		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 		; look for connected info dialog box
-		hwndconnected := App["VPN"].Win["connected"].WinExist()
+		App["VPN"].Win["connected"].Update()
+		hwndconnected := App["VPN"].Win["connected"].hwnd
 		if hwndconnected {
 			; close connection info window
 			WinClose(hwndconnected)
@@ -295,7 +296,8 @@ VPNStart(cred := CurrentUserCredentials) {
 		}
 
 		; look for one time password dialog box
-		hwndotp := App["VPN"].Win["otp"].WinExist()
+		App["VPN"].Win["otp"].Update()
+		hwndotp := App["VPN"].Win["otp"].hwnd
 		if hwndotp {
 			; wait for user to enter otp and/or close window
 			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
@@ -311,7 +313,7 @@ VPNStart(cred := CurrentUserCredentials) {
 					break			; inner while
 				}
 			}
-			App["VPN"].Update()
+			App["VPN"].Win["otp"].Update()
 			lastdialog := "otp"
 			continue		; while
 		}
@@ -322,7 +324,8 @@ VPNStart(cred := CurrentUserCredentials) {
 		}
 
 		; look for login dialog box
-		hwndlogin := App["VPN"].Win["login"].WinExist()
+		App["VPN"].Win["login"].Update()
+		hwndlogin := App["VPN"].Win["login"].hwnd
 		if hwndlogin {
 			; before entering username and password, see if the last login failed
 			; if it failed, we might be on the wrong server, so cancel the login window
@@ -348,7 +351,8 @@ VPNStart(cred := CurrentUserCredentials) {
 		}
 
 		; look for VPN UI main window
-		hwndmain := App["VPN"].Win["main"].WinExist()
+		App["VPN"].Win["main"].Update()
+		hwndmain := App["VPN"].Win["main"].hwnd
 		if hwndmain {
 			; In the VPN UI main window, enter the VPN URL and press connect
 			statustext := ControlGetText("Static2", hwndmain)
@@ -388,7 +392,9 @@ VPNStart(cred := CurrentUserCredentials) {
 			; so we wait briefly then continue.
 
 			if runflag {
+				; already executed Run() so just wait
 				Sleep(300)
+
 			} else {
 				; only want to do this once, we set runflag to true
 				runflag := true		
@@ -411,7 +417,6 @@ VPNStart(cred := CurrentUserCredentials) {
 				App["VPN"].Update()
 			}
 			continue
-
 		}
 
 	}	; while
@@ -420,10 +425,8 @@ VPNStart(cred := CurrentUserCredentials) {
 
 	if connected {
 		PAStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		; if VPN main window is not minimized, then minimize it
-		if !App["VPN"].Win["main"].minimized {
-			WinMinimize(App["VPN"].Win["main"].hwnd)
-		}
+		; if VPN main window is not closed, then close it (to windows tray)
+		App["VPN"].Win["main"].Close()
 	} else if cancelled {
 		PAStatus("VPN startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else if failedlogins >= VPN_FAILEDLOGINS_MAX {

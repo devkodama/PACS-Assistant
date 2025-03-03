@@ -1,9 +1,57 @@
 /**
- * PAPS.ahk
+ * PS.ahk
  *
- * Functions for working with PowerScribe 360
+ * Functions for working with PowerScribe
  *
  *
+ * This module defines the functions:
+ * 
+ * 	PSSend(cmdstring := "")					- Send keystroke to PowerScribe
+ * 	PSPaste(text := "")						- Paste a chunk of text into PowerScribe
+ * 
+ * 	PSParent()								- Returns the WinItem for either PSmain, PSreport, PSaddendum, or PSlogin, if one exists
+ * 
+ * 	PSDictateIsOn(forceupdate := false)		- Returns the state of the PS360 Dictate (mic) button
+ * 	PSIsRunning()							- Returns TRUE if PS is running, FALSE if not
+ * 	PSIsLogin()
+ * 	PSIsMain()
+ * 	PSIsReport()
+ * 	
+ * 	PSOpen_PSlogin()						- Hook functions
+ * 	PSOpen_PSmain()
+ * 	PSClose_PSmain()
+ * 	PSOpen_PSreport()
+ * 	PSClose_PSreport()
+ * 	PSOpen_PSlogout()
+ * 	PSOpen_PSsavespeech()
+ * 	PSOpen_PSsavereport()
+ * 	PSOpen_PSdeletereport()
+ * 	PSOpen_PSunfilled()
+ * 	PSOpen_PSconfirmaddendum()
+ * 	PSOpen_PSconfirmanotheraddendum()
+ * 	PSOpen_PSexisting()
+ * 	PSOpen_PScontinue()
+ * 	PSOpen_PSownership()
+ * 	PSOpen_PSmicrophone()
+ * 	PSOpen_PSfind()
+ * 	PSOpen_PSspelling()
+ * 
+ * 	PSStart(cred := CurrentUserCredentials)	- Start up PowerScribe
+ * 	PSStop()								- Shut down PowerScribe
+ * 
+ * 	RetrieveDataPS()						- Retrieves obtainable data from PowerScribe main reporting window
+ * 
+ * 	PSCmdNextField()						- Send the Next field command (Tab) to PS
+ * 	PSCmdPrevField()						- Send the Prev field command (Shift-Tab) to PS
+ * 	PSCmdEOL()								- Move the cursor to the End of Line in PS
+ * 	PSCmdNextEOL()							- Move the cursor down one line then to the End of Line in PS
+ * 	PSCmdPrevEOL()							- Move the cursor up one line then to the End of Line in PS
+ * 	PSCmdToggleMic()						- Start/Stop Dictation (Toggle Microphone) => F4 in PS
+ * 	PSCmdSignReport()						- Sign report => F12 in PS
+ * 	PSCmdDraftReport()						- Save as Draft => F9 in PS
+ * 	PSCmdPreliminary()						- Save as Prelim => File > Prelim in PS
+ * 
+ * 
  */
 
 
@@ -23,8 +71,6 @@
 
 #Include PAGlobals.ahk
 #Include PASound.ahk
-
-#Include PACSAssistant.ahk
 
 
 
@@ -134,7 +180,7 @@ PSParent() {
 }
 
 
-; Returns the state of the PS360 Dictate button by reading the toolbar button
+; Returns the state of the PS360 Dictate (mic) button by reading the toolbar button
 ; The Dicate button must be visible on screen
 ;
 ; If the Dictate button is found and is On, returns true.
@@ -195,8 +241,7 @@ PSDictateIsOn(forceupdate := false) {
 ; Returns TRUE if PS is running, FALSE if not
 ;
 PSIsRunning() {
-	App["PS"].Update()
-	return (PSIsLogin() || PSIsMain() || PSIsReport()) ? true : false
+	return App["PS"].isrunning
 }
 
 
@@ -207,12 +252,16 @@ PSIsRunning() {
 ; Returns true if the page is showing, false if not.
 ;
 PSIsLogin() {
+	App["PS"].Win["login"].Update()
 	return App["PS"].Win["login"].hwnd ? true : false
 }
 PSIsMain() {
+	App["PS"].Win["main"].Update()
 	return App["PS"].Win["main"].hwnd ? true : false
 }
 PSIsReport() {
+	App["PS"].Win["report"].Update()
+	App["PS"].Win["addendum"].Update()
 	return (App["PS"].Win["report"].hwnd || App["PS"].Win["addendum"].hwnd) ? true : false
 }
 
@@ -363,7 +412,7 @@ PSClose_PSreport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
-TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
+;TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if PASettings["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
@@ -500,7 +549,7 @@ PSOpen_PSspelling() {
  */
 
 
-; [todo]
+; Start up PowerScribe
 ;
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
@@ -521,24 +570,27 @@ PSStart(cred := CurrentUserCredentials) {
 	running := true
 
 	; if EI is aleady up and running, return 1 (true)
-	if App["PS"].isrunning {
+	if PSIsRunning() {
 		PAStatus("PowerScribe is already running")
 	 	running := false
 	 	return 1
 	}
 
+	; start up PS
+	PAStatus("Starting PowerScribe...")
+	tick0 := A_TickCount
 	cancelled := false
 	failed := false
-	tick0 := A_TickCount
-	PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-
-	PAGui_ShowCancelButton()
 
 	; prevent focus following
 	PAWindowBusy := true
 
+	; allow user to cancel long running operation
+	PAGui_ShowCancelButton()
+
 	; run PS
 	Run('"' . EXE_PS . '"')
+	Sleep(500)
 	App["PS"].Update()
 
 	; wait for login window to exist
@@ -546,7 +598,7 @@ PSStart(cred := CurrentUserCredentials) {
 	while !(hwndlogin := App["PS"].Win["login"].hwnd) && (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
 		PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
-		App["PS"].Update()
+		App["PS"].Win["login"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break		; while
@@ -569,7 +621,7 @@ PSStart(cred := CurrentUserCredentials) {
 			sleep(1000)
 
 			; Need to wait until "Loading system components..." has completed
-			; so Log On button will be enabled
+			; so that Log On button will be enabled
 			while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
 				PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				if !InStr(WinGetText(hwndlogin), "Loading system components", true) {
@@ -601,7 +653,7 @@ PSStart(cred := CurrentUserCredentials) {
 				while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
 					PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
-					App["PS"].Update()
+					App["PS"].Win["main"].Update()
 					if PACancelRequest {
 						cancelled := true
 						break
@@ -625,16 +677,12 @@ PSStart(cred := CurrentUserCredentials) {
 
 		; in this case, PS may have already been started up
 		; if there is a PS process, then need to kill PS process before we exit
-		if	hwndlogin := WinExist(App["PS"].Win["login"].searchtitle, App["PS"].Win["login"].wintext) {
-			if pid := WinGetPID(hwndlogin) {
-				ProcessClose(pid)
-				App["PS"].Update()
+		if App["PS"].pid {
+			try {
+				ProcessClose(App["PS"].pid)
 			}
-		} else if hwndmain := WinExist(App["PS"].Win["main"].searchtitle, App["PS"].Win["main"].wintext) {
-			if pid := WinGetPID(hwndmain) {
-				ProcessClose(pid)
-				App["PS"].Update()
-			}
+			Sleep(500)
+			App["PS"].Update()
 		}
 
 		PAStatus("PowerScribe startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -654,14 +702,15 @@ PSStart(cred := CurrentUserCredentials) {
 
 	}
 
-	PAWindowBusy := false	; restore focus following
-	running := false
+	; restore focus following
+	PAWindowBusy := false
 
+	running := false
 	return result
 }
 
 
-; Shut down PS
+; Shut down PowerScribe
 ;
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
@@ -670,7 +719,7 @@ PSStart(cred := CurrentUserCredentials) {
 ;
 ; Returns 1 if successful, 0 if not
 ; 
-PSStop(sendclose := true) {
+PSStop() {
 	global PACancelRequest
 	static running := false			; true if the EIStop is already running
 
@@ -687,28 +736,31 @@ PSStop(sendclose := true) {
 		return 1
 	}
 
+	; shut down PS
 	PAStatus("Shutting down PowerScribe...")
 	tick0 := A_TickCount
 
+	; prevent focus following
+	PAWindowBusy := true
+
+	; allow user to cancel long running operation
 	PAGui_ShowCancelButton()
 
-	if sendclose {
-		PSSend("!{F4}")
-	}
+	; close PS
+	PSSend("!{F4}")
 
 	result := false
 	cancelled := false
-	winitem := PSParent()
 	
-	while !cancelled && winitem && (A_TickCount-tick0 < PS_SHUTDOWN_TIMEOUT * 1000) {
+	; wait for PS to close
+	while !cancelled && PSIsRunning() && (A_TickCount-tick0 < PS_SHUTDOWN_TIMEOUT * 1000) {
 		PAStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		if winitem.key == "login" {
+		if PSIsLogin() {
 			; We're at the login window. Close it.
 			PSSend("!{F4}")
 		}
 		Sleep(500)
 		App["PS"].Update()
-		winitem := PSParent()
 		if PACancelRequest {
 			cancelled := true
 			break
@@ -720,7 +772,7 @@ PSStop(sendclose := true) {
 	if cancelled {
 		PAStatus("PowerScribe shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := false
-	} else if winitem {
+	} else if PSIsRunning() {
 		; PS still didn't close (timed out)
 		PAStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := false
@@ -729,6 +781,11 @@ PSStop(sendclose := true) {
 		result := true
 	}
 
+	; restore focus following
+	PAWindowBusy := false
+
+	; done
+	running := false
 	return result
 }
 
@@ -741,6 +798,8 @@ PSStop(sendclose := true) {
  */
 
 
+; [wip]
+;
 ; Retrieves obtainable data from PowerScribe main reporting window
 ; Returns parsed data in data map:
 ;	["firstname"] = Last name
@@ -794,14 +853,14 @@ RetrieveDataPS() {
  */
 
 
-; Sends the Next field command (Tab) to PS
+; Send the Next field command (Tab) to PS
 PSCmdNextField() {
 	PSSend("{Tab}")
 	PASound("PSTab")
 }
 
 
-; Sends the Prev field command (Shift-Tab) to PS
+; Send the Prev field command (Shift-Tab) to PS
 PSCmdPrevField() {
 	PSSend("{Blind}+{Tab}")
 	PASound("PSTab")
@@ -855,4 +914,3 @@ PSCmdPreliminary() {
 	PSSend("{Alt down}fm{Alt up}")			; save as Prelim
 	PASound("PSSPreliminary")
 }
-

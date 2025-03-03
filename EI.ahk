@@ -33,8 +33,9 @@
  * 	EICmdResetSearch()								- Resets the Search page on the EI desktop, places cursor in the patient last name field
  * 	EICmdRemoveFromList()							- Sends the Remove from list command (click on the close icon)
  * 
- * On a hospital workstation, requires a direct connection (bypass VPN).
- * On a home workstation, requires a VPN connection.
+ * 
+ * On a hospital workstation, EI start up requires a working network connection (no VPN).
+ * On a home workstation, EI start up requires a VPN connection.
  * 
  * 
  */
@@ -435,23 +436,23 @@ EIStart(cred := CurrentUserCredentials) {
 	; allow user to cancel long running operation
 	PAGui_ShowCancelButton()
 
-	; check if we already have a visible truee login window
-	if !((hwndlogin := App["EI"].Win["login"].WinExist()) && App["EI"].Win["login"].visible) {
-
+	; check if we already have a visible true login window
+	;
+	; Note that there are two windows that will match the criteria for the login window.
+	; Both match the criteria for App["EI"].Win["login"] but have different HWNDs.
+	;
+	; The first is a hidden window that bootstraps the login procedure and monitors the shut
+	; down procedure. This window is detected if DetectHiddenWindows is set to true. 
+	; This hidden window persists after EI desktop is closed, and must be killed before EI 
+	; can be run again.
+	;
+	; The second is the true login window that becomes visible and shows the username/password fields.
+	; This is the window we want for logging in.
+	App["EI"].Update()
+	if !((hwndlogin := App["EI"].Win["login"].hwnd) && App["EI"].Win["login"].visible) {
 		; no visible true login window
 
 		; EI desktop window isn't showing, so kill any existing EI process then (re)run EI.
-		;
-		; Note that there are two windows that will match the criteria for the login window.
-		; Both match the criteria for App["EI"].Win["login"] but have different HWNDs.
-		;
-		; The first is a hidden window that bootstraps the login procedure and monitors the shut
-		; down procedure. This window will only be detected if DetectHiddenWindows is set to true. 
-		; This hidden window persists after EI desktop is closed, and must be killed before EI 
-		; can be run again.
-		;
-		; The second is the true login window that becomes visible and shows the username/password fields.
-		; This is the window we want for logging in.
 		App["EI"].Update()
 		if App["EI"].pid {
 			try {
@@ -459,7 +460,6 @@ EIStart(cred := CurrentUserCredentials) {
 			}
 		}
 
-TTip("run EI")
 		; now run EI
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
 		Sleep(500)
@@ -467,10 +467,10 @@ TTip("run EI")
 
 		; wait for true login window to exist
 		tick1 := A_TickCount
-		while !(hwndlogin := App["EI"].Win["login"].WinExist()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			App["EI"].Update()
+			App["EI"].Win["login"].Update()
 			if PACancelRequest {
 				cancelled := true
 				break		; while
@@ -484,16 +484,13 @@ TTip("run EI")
 	}
 
 	if !cancelled && !failed {
-
 		; got a true EI login window, start the login process
-;		hwndlogin := App["EI"].Win["login"].hwnd
-TTip("hwndlogin=" hwndlogin)
 
-		; wait for EI login window to be visible (likely already is)
+		; wait for EI login window to be visible (should already be)
 		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			App["EI"].Update()
+			App["EI"].Win["login"].Update()
 			if PACancelRequest {
 				cancelled := true
 				break		; while
@@ -507,8 +504,7 @@ TTip("hwndlogin=" hwndlogin)
 
 		} else {
 
-MsgBox("hwndlogin=" hwndlogin)
-			; EI login window is visible, use it
+			; EI login window is visible, can use it
 			WinActivate(hwndlogin)
 
 			; delay to allow display of the username and password edit fields
@@ -550,7 +546,7 @@ MsgBox("hwndlogin=" hwndlogin)
 			while !cancelled && !(hwnddesktop := App["EI"].Win["d"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
 				PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
-				App["EI"].Update()
+				App["EI"].Win["d"].Update()
 				if PACancelRequest {
 					cancelled := true
 					break
@@ -591,6 +587,7 @@ MsgBox("hwndlogin=" hwndlogin)
 		result := 0
 
 	} else {
+		; [todo] wait for EPIC and PS to complete loading
 
 		; success
 		PAStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -692,9 +689,6 @@ EIStop() {
 				resultPS := true
 			} else if !pscloseflag && PSIsLogin() {
 				; We're at the login window. Close it.
-				; Can't use PSSend() as it is written to send only to the report or addendum windows
-				; ControlSend("!{F4}", , winitem.hwnd)
-;				WinClose(winitem.hwnd)
 				PSSend("!{F4}")
 				pscloseflag := true
 			}
@@ -733,6 +727,8 @@ EIStop() {
 		if App["EI"].pid {
 			try {
 				ProcessClose(App["EI"].pid)
+				sleep(500)
+				App["EI"].Update()
 			}
 		}
 
@@ -1293,4 +1289,3 @@ EICmdResetSearch() {
 EICmdRemoveFromList() {
 	EIClickImages("EI_RemoveFromList")
 }
-

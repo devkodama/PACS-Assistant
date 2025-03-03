@@ -134,12 +134,13 @@ HoverMessages["app-EPIC"] := Map("false", "Press to start Epic",
 HoverEvent(WebView, id) {
 
     ; strip "app-" prefix to get app name
-    app := SubStr(id,5)
-    msg := HoverMessages[id][PACurState[app]]
-    if msg {
-        ; display tooltip
-        TTip(msg, 1000)
-    }
+    ; app := SubStr(id,5)
+    ; msg := HoverMessages[id][PACurState[app]]
+    ; if msg {
+    ;     ; display tooltip
+    ;     TTip(msg, 1000)
+    ; }
+
 }
 
 
@@ -445,7 +446,8 @@ PAGui_Init(*) {
     ; parameters are "<function name for html>", <ahk function name>
     PAGui.AddCallbackToScript("ClickId", ClickId)
     PAGui.AddCallbackToScript("HandleFormInput", HandleFormInput)
-;    PAGui.AddCallbackToScript("Hover", HoverEvent) -- don't want to use this for now
+
+    PAGui.AddCallbackToScript("Hover", HoverEvent)  ; don't want to use this for hovers
 
     PAGui.Title := PAGUI_WINDOWTITLE
 
@@ -484,7 +486,7 @@ PAGui_Init(*) {
     }
 
     ; display the settings page
-    PAGui_Post("settingsform", "innerHTML", PASettings_HTMLForm())
+    PASettings_HTMLForm()
 
     ; PAGui_Post("log", "innerHTML", CurrentUserCredentials.username "/" CurrentUserCredentials.password (PASettings.Has("inifile") ? "/" PASettings["inifile"].value : ""))
 

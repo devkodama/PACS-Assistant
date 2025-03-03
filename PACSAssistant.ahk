@@ -32,8 +32,9 @@
 
 #MaxThreads 64
 
-DetectHiddenWindows false		; don't look for hidden windows by default
+DetectHiddenWindows true		; this needs to be true so we can detect hidden windows
 DetectHiddenText false			; don't search hidden text by default
+
 SetDefaultMouseSpeed 0			; 0 = fastest
 
 
@@ -57,8 +58,8 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include PADaemon.ahk
 
 #Include Network.ahk
-#Include PAEI.ahk
-#Include PAPS.ahk
+#Include EI.ahk
+#Include PS.ahk
 #Include PAEPIC.ahk
 
 #Include Hotkeys.ahk
