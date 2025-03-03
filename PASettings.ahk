@@ -1,5 +1,5 @@
 /**
- * PASettings.ahk
+ * Settings.ahk
  *
  * Settings functions for PACS Assistant
  *
@@ -40,61 +40,77 @@
 ; by functions that handle changes to the settings (e.g. HandleFormInput(), and 
 ; by the value property setter and getter).
 ;
-PASettings := Map()
+Setting := Map()
 
 ; PASettings["active"] is the top level on/off--it defines whether many
 ; PACS Assistant functions are active.
-PASettings["active"] := Setting("active", "bool", true, , "Top level switch for many PACS Assistant functions")
+Setting["active"] := SetItem("active", "bool", true, , "Top level switch for many PACS Assistant functions")
 
 ; Special settings
-PASettings["username"] := Setting("username", "special", "", 20, "Username")
-PASettings["password"] := Setting("password", "special", "", 20, "Password")
-PASettings["inifile"] := Setting("inifile", "special", "", 0, "Current user-specific .ini file")
+Setting["username"] := SetItem("username", "special", "", 20, "Username")
+Setting["password"] := SetItem("password", "special", "", 20, "Password")
+Setting["inifile"] := SetItem("inifile", "special", "", 0, "Current user-specific .ini file")
 
 ; General settings
-PASettings["MouseJiggler"] := Setting("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
-PASettings["MouseJiggler_timeout"] := Setting("MouseJiggler_timeout", "num", 240, [0, 1440], "Disable mouse jiggler after this many minutes of inactivity (0 = never disable)")
+Setting["MouseJiggler"] := SetItem("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
+Setting["MouseJiggler_timeout"] := SetItem("MouseJiggler_timeout", "num", 240, [0, 1440], "Disable mouse jiggler after this many minutes of inactivity (0 = never disable)")
 
-PASettings["UseVoice"] := Setting("UseVoice", "bool", true, , "Enable synthesized voice feedback")
-PASettings["Voice"] := Setting("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
+Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
+Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
-PASettings["ClickLock"] := Setting("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
-PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
+Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
+Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 ; VPN settings
-PASettings["VPN_center"] := Setting("VPN_center", "bool", true, , "When VPN window appears, center it on the screen")
+Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When VPN window appears, center it on the screen")
 
 ; EI settings
-PASettings["EI_restoreatopen"] := Setting("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
-PASettings["EIcollaborator_show"] := Setting("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
+Setting["EI_restoreatopen"] := SetItem("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
+Setting["EIcollaborator_show"] := SetItem("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
 
 ; PS settings
-PASettings["PS_restoreatopen"] := Setting("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
 
-PASettings["PSlogout_dismiss"] := Setting("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
-PASettings["PSlogout_dismiss_reply"] := Setting("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
+Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PSsavespeech_dismiss"] := Setting("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
-PASettings["PSsavespeech_dismiss_reply"] := Setting("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSsavespeech_dismiss"] := SetItem("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
+Setting["PSsavespeech_dismiss_reply"] := SetItem("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PSconfirmaddendum_dismiss"] := Setting("PSconfirmaddendum_dismiss", "bool", true, , "Automatically answer Yes to 'Create addendum?' message")
-PASettings["PSconfirmaddendum_dismiss_reply"] := Setting("PSconfirmaddendum_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSconfirmaddendum_dismiss"] := SetItem("PSconfirmaddendum_dismiss", "bool", true, , "Automatically answer Yes to 'Create addendum?' message")
+Setting["PSconfirmaddendum_dismiss_reply"] := SetItem("PSconfirmaddendum_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
-PASettings["PS_dictate_autoon"] := Setting("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
+Setting["PS_dictate_autoon"] := SetItem("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
 
-PASettings["PS_dictate_idleoff"] := Setting("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
-PASettings["PS_dictate_idletimeout"] := Setting("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
+Setting["PS_dictate_idleoff"] := SetItem("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
+Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
 
-PASettings["PSmicrophone_dismiss"] := Setting("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
-PASettings["PSmicrophone_dismiss_reply"] := Setting("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
+Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
+Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
 
-PASettings["PScenter_dialog"] := Setting("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
+Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
 
-PASettings["PSSPspelling_autoclose"] := Setting("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
+Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except within the PowerScribe window")
 
 ; EPIC settings
-PASettings["EPIC_restoreatopen"] := Setting("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
-PASettings["EPICtimezone_dismiss"] := Setting("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
+Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
+Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
+
+
+
+
+; Hotkey settings
+Setting["hkTab"] := SetItem("hkTab", "bool", true, , "Enable Tab key mappings")
+Setting["hkCapsLock"] := SetItem("hkCapsLock", "bool", true, , "Enable CapsLock key mappings")
+Setting["hkBacktick"] := SetItem("hkBacktick", "bool", true, , "Enable Backtick (``) key mappings")
+Setting["hkEsc"] := SetItem("hkEsc", "bool", true, , "Enable Escape key mappings")
+Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Enable Ctrl-Y & Ctrl-Z key mappings")
+Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Enable Spacebar double click function")
+Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", true, , "Enable Spacebar PowerScribe delete text function")
+
+
+
+
 
 
 
@@ -167,7 +183,7 @@ PASettingsPage.Push("EIcollaborator_show")
 ;   "select"    - possiblevalues is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
 ;   "special"   - possiblevalues is a string defining what type of special value this is
 ;
-class Setting {
+class SetItem {
     name := ""              ; Name of this setting. Should match the key used in 
 	type := ""              ; Type of this setting.
     default := ""           ; Default value for this setting. For select type, this corresponds to the key, not the actual mapped value.
@@ -203,7 +219,7 @@ class Setting {
             ; }
         }
         set { 
-            global PASettings
+            global Setting
             global CurrentUserCredentials
 
     ; PAToolTip(this.name " = " Value)
@@ -239,10 +255,10 @@ class Setting {
                                 }
                                 ; update the user-specific .ini filename
                                 if newval = "" {
-                                    PASettings["inifile"].value := ""
+                                    Setting["inifile"].value := ""
                                 } else {
-                                    PASettings["inifile"].value := FILE_SETTINGSBASE "." newval ".ini"
-                                    if FileExist(PASettings["inifile"].value) {
+                                    Setting["inifile"].value := FILE_SETTINGSBASE "." newval ".ini"
+                                    if FileExist(Setting["inifile"].value) {
                                         ; Read the new user's saved settings
                                         PASettings_ReadSettings()
                                     } else {
@@ -253,9 +269,9 @@ class Setting {
                                 ; try to get the password from local storage
                                 cred := CredRead("PA_cred_" . newval)
                                 if cred {
-                                    PASettings["password"].value := cred.password
+                                    Setting["password"].value := cred.password
                                 } else {
-                                    PASettings["password"].value := ""
+                                    Setting["password"].value := ""
                                 }
                                 ; Update the displayed form
                                 PASettings_HTMLForm()
@@ -291,6 +307,11 @@ class Setting {
         }
     }
 
+    on {
+        get {
+            return this._value ? true : false 
+        }
+    }
     ; Call to save the current Setting object to the current settings.ini file(s).
     ;
     ; There is a master settings.ini file used by PACS Assistant. Each user also
@@ -331,7 +352,7 @@ class Setting {
                         ; Don't save to disk
                         ; Save to local store if non-empty
                         if this._value {
-                                CredWrite("PA_cred_" . PASettings["username"].value, PASettings["username"].value, this._value)
+                                CredWrite("PA_cred_" . Setting["username"].value, Setting["username"].value, this._value)
                         }
                     case "inifile":
                         ; don't save this anywhere
@@ -339,13 +360,13 @@ class Setting {
                 }
             case "select":
                 ; in this case, save this._key instead of this._value)
-                if PASettings.Has("inifile") && PASettings["inifile"].value {
-                    IniWrite(this._key, PASettings["inifile"].value, "PASettings", this.name) 
+                if Setting.Has("inifile") && Setting["inifile"].value {
+                    IniWrite(this._key, Setting["inifile"].value, "PASettings", this.name) 
                 }
             default:
                 ; save this._value
-                if PASettings.Has("inifile") && PASettings["inifile"].value {
-                    IniWrite(this._value, PASettings["inifile"].value, "PASettings", this.name) 
+                if Setting.Has("inifile") && Setting["inifile"].value {
+                    IniWrite(this._value, Setting["inifile"].value, "PASettings", this.name) 
                 }
         } 
     }
@@ -412,7 +433,7 @@ PASettings_Init() {
 
     curuser := IniRead(inifile, "Users", "curuser", "")
     if curuser !="" {
-        PASettings["username"].value := curuser
+        Setting["username"].value := curuser
     }
 
     ; Now read the current user's settings
@@ -429,26 +450,26 @@ PASettings_Init() {
 ; Updates "special" setting for password by reading from local store.
 ;
 PASettings_ReadSettings() {
-    global PASettings
+    global Setting
     global CurrentUserCredentials
 
     ; ensure username has a value
-    if PASettings["username"].value {
+    if Setting["username"].value {
 
-        inifile := PASettings["inifile"].value
+        inifile := Setting["inifile"].value
         readvalue := ""
 
-        for key, sett in PASettings {
+        for key, sett in Setting {
             switch sett.type {
                 case "special":
                     if sett.name == "password" {
                         ; try to get the password from local storage
-                        cred := CredRead("PA_cred_" . PASettings["username"].value)
+                        cred := CredRead("PA_cred_" . Setting["username"].value)
                         if cred {
-                            PASettings["password"].value := cred.password
+                            Setting["password"].value := cred.password
                             CurrentUserCredentials.password := cred.password
                         } else {
-                            PASettings["password"].value := ""
+                            Setting["password"].value := ""
                             CurrentUserCredentials.password := ""
                         }
                     }
@@ -459,9 +480,9 @@ PASettings_ReadSettings() {
                     }
                     ; only update setting if a non-empty value is retrieved
                     if readvalue != "" {
-                        PASettings[key].value := readvalue
+                        Setting[key].value := readvalue
                     } else {
-                        PASettings[key].value := PASettings[key].default
+                        Setting[key].value := Setting[key].default
                     }
             }
         }
@@ -479,12 +500,12 @@ PASettings_ReadSettings() {
 ; The current user-specific .ini file is specified by PASettings["inifile"].
 ;
 PASettings_WriteSettings() {
-    global PASettings
+    global Setting
 ;    global CurrentUserCredentials
 
     ; ensure username has a value
-    if PASettings["username"].value {
-        for key, sett in PASettings {
+    if Setting["username"].value {
+        for key, sett in Setting {
             switch sett.type {
                 case "special":
                     ; skip, don't write special settings
@@ -590,7 +611,7 @@ PASettings_HTMLForm(show := true) {
                 optname := SubStr(optname, 2)
             }
     
-            switch PASettings[optname].type {
+            switch Setting[optname].type {
 
                 case "bool":
                     ; output a toggle switch
@@ -602,10 +623,10 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(Setting[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
-                    form .= '<input id="setval-' optname '" role="switch" oninput="handleCheckbox(this);" type="checkbox"' (PASettings[optname].value ? ' checked>' : '>')
+                    form .= '<input id="setval-' optname '" role="switch" oninput="handleCheckbox(this);" type="checkbox"' (Setting[optname].value ? ' checked>' : '>')
                     form .= '</div>'
                     form .= '</div>'
 
@@ -619,10 +640,10 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(Setting[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
-                    form .= '<input id="setval-' optname '" type="text" onchange="handleNum(this);" value="' PASettings[optname].value '">'
+                    form .= '<input id="setval-' optname '" type="text" onchange="handleNum(this);" value="' Setting[optname].value '">'
                     form .= '</div>'
                     form .= '</div>'
               
@@ -636,10 +657,10 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(Setting[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
-                    form .= '<input id="setval-' optname '" type="text" onchange="handleText(this);" value="' PASettings[optname].value '">'
+                    form .= '<input id="setval-' optname '" type="text" onchange="handleText(this);" value="' Setting[optname].value '">'
                     form .= '</div>'
                     form .= '</div>'
               
@@ -653,16 +674,16 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(Setting[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
                     form .= '<select id="setval-' optname '" oninput="handleSelect(this);">'
 
                     ; create options for the select list from the map of possible values
                     ; displayed options are the keys from the possible map
-                    for k, v in PASettings[optname].possible {
+                    for k, v in Setting[optname].possible {
                         ; if k matches the current value PASettings[optname].key, then add the selected attribute
-                        form .= '<option' ((k == PASettings[optname].key) ? ' selected>' : '>') k '</option>'
+                        form .= '<option' ((k == Setting[optname].key) ? ' selected>' : '>') k '</option>'
                     }
 
                     form .= '</select>'
@@ -679,13 +700,13 @@ PASettings_HTMLForm(show := true) {
                     } else {
                         form .= '<div id="setdesc-' optname '" class="set-desc">'
                     }
-                    form .= EscapeHTML(PASettings[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
+                    form .= EscapeHTML(Setting[optname].description) '<span id="setvalerr-' optname '" class="set-err"></span></div>'
 
                     form .= '<div class="set-val">'
-                    if PASettings[optname].name == "password" {
-                        form .= '<input id="setval-' optname '" type="password" onchange="handleText(this);" value="' PASettings[optname].value '">'
+                    if Setting[optname].name == "password" {
+                        form .= '<input id="setval-' optname '" type="password" onchange="handleText(this);" value="' Setting[optname].value '">'
                     } else {
-                        form .= '<input id="setval-' optname '" type="text" onchange="handleText(this);" value="' PASettings[optname].value '">'
+                        form .= '<input id="setval-' optname '" type="text" onchange="handleText(this);" value="' Setting[optname].value '">'
                     }
                     form .= '</div>'
                     form .= '</div>'
@@ -736,7 +757,7 @@ HandleFormInput(WebView, id, newval) {
         errid := "err-" . optname
     }
 
-    sett := PASettings[optname]
+    sett := Setting[optname]
     
     if sett.isValid(newval) {
 

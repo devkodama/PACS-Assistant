@@ -115,13 +115,13 @@ PASound(message) {
             GUIStatus(sound.statusmessage)
         }
 
-        if PASettings["UseVoice"].value && sound.phrase {
+        if Setting["UseVoice"].value && sound.phrase {
 
             ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
             voices := _SoundObj.GetVoices()
             
             ; set voice to use
-            _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+            _SoundObj.Voice := voices.Item(Setting["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
             ; speak phrase
             _SoundObj.Speak(sound.phrase, 0x01)
@@ -144,12 +144,12 @@ PASound(message) {
 
         ; key not found in Sounds[], just speak the passed message string
 
-        if PASettings["UseVoice"].value {
+        if Setting["UseVoice"].value {
             ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
             voices := _SoundObj.GetVoices()
 
             ; set voice to use
-            _SoundObj.Voice := voices.Item(PASettings["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
+            _SoundObj.Voice := voices.Item(Setting["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
             ; speak phrase
             _SoundObj.Speak(message, 0x01)

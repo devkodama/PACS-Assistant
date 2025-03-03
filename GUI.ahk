@@ -365,8 +365,8 @@ GUIInit(*) {
     _GUIRunning := true
 
     ; update GUI to show current username
-    if PASettings["username"].value {
-        GUIPost("curuser", "innerHTML", " - " . PASettings["username"].value)
+    if Setting["username"].value {
+        GUIPost("curuser", "innerHTML", " - " . Setting["username"].value)
     } else {
         GUIPost("curuser", "innerHTML", "")
     }

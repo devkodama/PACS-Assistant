@@ -333,7 +333,7 @@ EIOpen_EIdesktop() {
 
 	PASound("EI desktop opened")
 
-	if PASettings["EI_restoreatopen"].value {
+	if Setting["EI_restoreatopen"].value {
 		; Restore EI window positions
 		App["EI"].RestorePositions()
 	}

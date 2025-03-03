@@ -215,10 +215,10 @@ PSDictateIsOn(forceupdate := false) {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
 			if FindText(&x, &y, x0, y0 + 16, x0 + w0, y0 + 128, 0.001, 0.001, PAText["PSDictateOn"]) {
 				; dictate button is on
-				if PASettings["PS_dictate_idleoff"].value {
+				if Setting["PS_dictate_idleoff"].value {
 					; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
 					; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
-					if dictatestatus && A_TimeIdlePhysical > (PASettings["PS_dictate_idletimeout"].value * 60000) {
+					if dictatestatus && A_TimeIdlePhysical > (Setting["PS_dictate_idletimeout"].value * 60000) {
 						; microphone is currently on and we have idled for greater than timeout, so turn off the mic
 						PSSend("{F4}")		; Stop Dictation
 						GUIStatus("Microphone turned off")
@@ -283,7 +283,7 @@ PSOpen_PSlogin() {
 
 	; [todo] determine if PS was just opened or just closed
 
-	if PASettings["PS_restoreatopen"].value {
+	if Setting["PS_restoreatopen"].value {
 		; Restore PS window position
 		App["PS"].RestorePositions()
 	}
@@ -361,7 +361,7 @@ PSOpen_PSreport() {
 	GUIStatus("Report opened")
 
 	; Automatically turn on microphone when opening a report (and off when closing a report)
-	if PASettings["PS_dictate_autoon"].value {
+	if Setting["PS_dictate_autoon"].value {
 		; cancel the autooff timer
 		SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
 
@@ -429,7 +429,7 @@ PSOpen_PSreport() {
 PSClose_PSreport() {
 	GUIStatus("Report closed")
 
-	if PASettings["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
+	if Setting["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
 		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after delay
@@ -441,15 +441,15 @@ PSClose_PSreport() {
 PSOpen_PSlogout() {
 	PASound("logout")
 TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
 ;PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].key " / " PASettings["PSlogout_dismiss_reply"].value)
-	if PASettings["PSlogout_dismiss"].value {
+	if Setting["PSlogout_dismiss"].value {
 		if App["PS"].Win["logout"].hwnd {
 ;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 SetControlDelay -1
-ControlClick(PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
+ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 		}
 	}
 }
@@ -457,13 +457,13 @@ ControlClick(PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"]
 
 ; Hook function called when PS window appears
 PSOpen_PSsavespeech() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["savespeech"].CenterWindow(PSParent())
 	}
-	if PASettings["PSsavespeech_dismiss"].value {
+	if Setting["PSsavespeech_dismiss"].value {
 		if App["PS"].Win["savespeech"].hwnd {
 SetControlDelay -1
-ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
+ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
 		}
 	}
 }
@@ -471,7 +471,7 @@ ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, App["PS"].Win["save
 
 ; Hook function called when PS window appears
 PSOpen_PSsavereport() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["savereport"].CenterWindow(PSParent())
 	}
 }
@@ -479,7 +479,7 @@ PSOpen_PSsavereport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSdeletereport() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["deletereport"].CenterWindow(PSParent())
 	}
 }
@@ -487,7 +487,7 @@ PSOpen_PSdeletereport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSunfilled() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["unfilled"].CenterWindow(PSParent())
 	}
 }
@@ -495,13 +495,13 @@ PSOpen_PSunfilled() {
 
 ; Hook function called when PS window appears
 PSOpen_PSconfirmaddendum() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["confirmaddendum"].CenterWindow(PSParent())
 	}
-	if PASettings["PSconfirmaddendum_dismiss"].value {
+	if Setting["PSconfirmaddendum_dismiss"].value {
 		if App["PS"].Win["confirmaddendum"].hwnd {
 SetControlDelay -1
-ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
+ControlClick(Setting["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
 		}
 	}
 }
@@ -509,7 +509,7 @@ ControlClick(PASettings["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win[
 
 ; Hook function called when PS window appears
 PSOpen_PSconfirmanotheraddendum() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["confirmanotheraddendum"].CenterWindow(PSParent())
 	}
 }
@@ -517,7 +517,7 @@ PSOpen_PSconfirmanotheraddendum() {
 
 ; Hook function called when PS window appears
 PSOpen_PSexisting() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["existing"].CenterWindow(PSParent())
 	}
 }
@@ -525,7 +525,7 @@ PSOpen_PSexisting() {
 
 ; Hook function called when PS window appears
 PSOpen_PScontinue() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["continue"].CenterWindow(PSParent())
 	}
 }
@@ -533,7 +533,7 @@ PSOpen_PScontinue() {
 
 ; Hook function called when PS window appears
 PSOpen_PSownership() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["ownership"].CenterWindow(PSParent())
 	}
 }
@@ -541,13 +541,13 @@ PSOpen_PSownership() {
 
 ; Hook function called when PS window appears
 PSOpen_PSmicrophone() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["microphone"].CenterWindow(PSParent())
 	}
-	if PASettings["PSmicrophone_dismiss"].value {
+	if Setting["PSmicrophone_dismiss"].value {
 		if App["PS"].Win["microphone"].hwnd {
 			SetControlDelay -1
-			ControlClick(PASettings["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
+			ControlClick(Setting["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
 		}
 	}
 }
@@ -555,7 +555,7 @@ PSOpen_PSmicrophone() {
 
 ; Hook function called when PS window appears
 PSOpen_PSfind() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["find"].CenterWindow(PSParent())
 	}
 }
@@ -563,7 +563,7 @@ PSOpen_PSfind() {
 
 ; Hook function called when PS spelling appears
 PSOpen_PSspelling() {
-	if PASettings["PScenter_dialog"].value {
+	if Setting["PScenter_dialog"].value {
 		App["PSSP"].Win["spelling"].CenterWindow(PSParent())
 	}
 }

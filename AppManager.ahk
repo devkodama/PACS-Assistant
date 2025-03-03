@@ -58,7 +58,7 @@
 #Include <WinEvent>
 
 #Include Globals.ahk
-#Include PASettings.ahk
+#Include Settings.ahk
 
 
 
@@ -618,7 +618,7 @@ class WinItem {
                 appkey := this.parentapp.key
                 winkey := this.key
                 sectionname := A_ComputerName . "_WinPos"
-                inifile := PASettings["inifile"].value
+                inifile := Setting["inifile"].value
 ;    MsgBox(inifile "/" sectionname "/" appkey "/" winkey)
 ;    MsgBox(this._savepos.x "," this._savepos.y "," this._savepos.w "," this._savepos.h)
                 if inifile {
@@ -644,7 +644,7 @@ class WinItem {
             appkey := this.parentapp.key
             winkey := this.key
             sectionname := A_ComputerName . "_WinPos"
-            inifile := PASettings["inifile"].value
+            inifile := Setting["inifile"].value
     ; MsgBox(inifile "/" sectionname "/" appkey "/" winkey)
             if inifile {
                 x := IniRead(inifile, sectionname, appkey . winkey . "_x", -1)
@@ -1073,10 +1073,12 @@ Mouse() {
 ;
 ; Multiple context strings may be passed.
 ;
-; Returns true if hwnd matches any of the context strings.
+; Returns false if PAActive is not true
 ;
 ; Returns false if hwnd doesn't match any of the context strings, 
 ; if hwnd does not exist, or if context is empty ("").
+;
+; Returns true if hwnd matches one of the context strings.
 ;
 ; Case sensitive
 ;

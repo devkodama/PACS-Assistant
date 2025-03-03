@@ -65,21 +65,21 @@ F2:: {
 ;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
 ;
 $Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		if A_PriorHotkey = ThisHotkey {
 			PSCmdNextEOL()
 		} else {
@@ -90,7 +90,7 @@ $^Tab:: {
 	}
 }
 $^+Tab:: {
-	if Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
 		PSCmdPrevEOL()
 	} else {
 		Send("^+{Tab}")
@@ -109,14 +109,14 @@ $^+Tab:: {
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
 $CapsLock:: {
-	if Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -129,14 +129,14 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -156,21 +156,21 @@ $^+CapsLock:: {
 ; In effect for EI and PS windows.
 ;
 $`:: {
-	if Context(Mouse(), "EI", "PS") {
+	if Setting["hkBacktick"].on && Context(Mouse(), "EI", "PS") {
 		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if Context(Mouse(), "EI", "PS") {
+	if Setting["hkBacktick"].on && Context(Mouse(), "EI", "PS") {
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if Context(Mouse(), "EI", "PS") {
+	if Setting["hkBacktick"].on && Context(Mouse(), "EI", "PS") {
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -188,7 +188,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $+Esc:: {
-	if Context(Mouse(), "EI i1 i2") {
+	if Setting["hkEsc"].on && Context(Mouse(), "EI i1 i2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("+{Esc}")
@@ -204,14 +204,14 @@ $+Esc:: {
 ;	window if Text area is displaying
 ;
 $^y:: {
-	if Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
+	if Setting["hkCtrlYZ"].on && Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
 		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
+	if Setting["hkCtrlYZ"].on && Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
 		PSSend("^z")
 	} else {
 		Send("^z")
@@ -238,7 +238,7 @@ $Space:: {
 	global LButton_ClickLocktrigger
 	
 	if Context(Mouse(), "EI i1 i2") {
-		if PASettings["ClickLock"].value = "Manual" && GetKeyState("LButton") {
+		if Setting["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
 				; check whether L mouse button is physically down
@@ -261,7 +261,7 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
+			if Setting["hkSpaceClick"].on && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
 				BlockInput true
 				Click 2
 				BlockInput false
@@ -269,18 +269,20 @@ $Space:: {
 		}
 	} else if Context(Mouse(), "EI d/list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if !A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
+		if Setting["hkSpaceClick"].on && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
 			BlockInput true
 			Click 2
 			BlockInput false
 		}
 	} else if Context(Mouse(), "PS report addendum") {
-		; Check to see if there is a text selection in the PS report area
-		; If so, smart delete it
+		if Setting["hkSpaceDelete"].on {
+			; Check to see if there is a text selection in the PS report area
+			; If so, smart delete it
 
-		; If not, send a space
-		Send("{Space}")
-
+		} else {
+			; If not, send a space
+			Send("{Space}")
+		}
 	} else {
 		; Send a space
 		Send("{Space}")
@@ -298,6 +300,7 @@ global LButton_ClickLockon := false		; true when ClickLock is engaged
 global LButton_ClickLocktrigger := false	; true when Clicklock has been triggered by spacebar but before Lbutton is released
 global LButton_lastdown := 0			; tick count of last L button down
 
+
 ; R button needs to release click lock
 ~RButton:: {
 	global LButton_ClickLockon
@@ -313,6 +316,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 	}
 }
 
+
 ; L button
 ; Right now, Auto has been disabled in PASettings() [wip]
 ~LButton:: {
@@ -322,7 +326,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 	; PAToolTip("LButton down - last:" Button_lastdown)
 
 	if PAActive {
-		if PASettings["ClickLock"].value = "Manual" {
+		if Setting["ClickLock"].value = "Manual" {
 ;	 		if LButton_ClickLockon {
 ;				Click("U")
 ;				SoundBeep(600, 100)
@@ -331,10 +335,10 @@ global LButton_lastdown := 0			; tick count of last L button down
 			; else {
 			; 	Click("D")
 			; }
-		} else if PASettings["ClickLock"].value = "Auto" {
+		} else if Setting["ClickLock"].value = "Auto" {
 			if Context(Mouse(), "EI i1 i2") {
 				LButton_lastdown := A_TickCount
-				SetTimer(_LButton_beep, -PASettings["ClickLock_interval"].value)
+				SetTimer(_LButton_beep, -Setting["ClickLock_interval"].value)
 				if LButton_ClickLockon {
 					PASound("EIClickLockOff")
 					LButton_ClickLockon := false
@@ -349,6 +353,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 	}
 }
 
+
 ; L button up may engage click lock if space was pressed
 ; Or releases click lock if currently enabled
 ; Auto doesn't work [wip]
@@ -359,7 +364,7 @@ LButton Up:: {
 
 	if PAActive {
 
-		if PASettings["ClickLock"].value = "Manual" {
+		if Setting["ClickLock"].value = "Manual" {
 			if LButton_ClickLocktrigger {
 				; engage Click Lock
 				click("D")					; keep L mouse button down
@@ -371,8 +376,8 @@ LButton Up:: {
 				PASound("EIClickLockOff")
 				LButton_ClickLockon := false
 			}
-		} else if PASettings["ClickLock"].value = "Auto" {
-			if A_TickCount - LButton_lastdown > PASettings["ClickLock_interval"].value {
+		} else if Setting["ClickLock"].value = "Auto" {
+			if A_TickCount - LButton_lastdown > Setting["ClickLock_interval"].value {
 				Click("D")					; L mouse button down
 				LButton_ClickLockon := true
 			} else {

@@ -200,9 +200,9 @@ global DispatchQueue := Array()
 
 
 ; PASettings holds settings used across PACS Assistant.
-; Each entry is a {"key", Setting()} pair. See PASettings.ahk for Setting
+; Each entry is a {"key", SetItem()} pair. See Settings.ahk for Setting
 ; class and PASettings[] definitions.
-global PASettings
+global Setting
 
 ; credentials of current user. See Crek.ahk for Credential
 ; class definition.

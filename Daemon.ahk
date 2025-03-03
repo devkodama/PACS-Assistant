@@ -226,7 +226,7 @@ _RefreshGUI() {
 
 	; Update top level on/off switch status
 	; Also update the global PAActive as a shadow copy of PASettings["active"].value
-	onoff := PASettings["active"].value
+	onoff := Setting["active"].value
 	if onoff && !PAActive {
 		PAActive := true
 		GUIStatus("PACS Assistant enabled")
@@ -436,7 +436,7 @@ _WatchMouse() {
 
 	; local function to autoclose the PS spelling window
 	_ClosePSspelling() {
-		if PASettings["PSSPspelling_autoclose"].value && App["PSSP"].Win["spelling"].visible {
+		if Setting["PSSPspelling_autoclose"].value && App["PSSP"].Win["spelling"].visible {
 			App["PSSP"].Win["spelling"].Close()
 		}
 	}
@@ -537,7 +537,7 @@ _JiggleMouse() {
 		return
 	}
 
-	if PASettings["MouseJiggler"].value {
+	if Setting["MouseJiggler"].value {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
 	}

@@ -208,12 +208,12 @@ EPICOpened_EPICmain() {
 
 	PASound("Epic started")
 
-	if PASettings["EPIC_restoreatopen"].value {
+	if Setting["EPIC_restoreatopen"].value {
 		; Restore EPIC window positions
 		App["EPIC"].RestorePositions()
 	}
 	
-	if PASettings["EPICtimezone_dismiss"].value {
+	if Setting["EPICtimezone_dismiss"].value {
 		; launch daemon to look for and dismiss timezone window
 		_EPIC_DismissTimezone(true)	; call directly to initialize the callback
 		SetTimer(_EPIC_DismissTimezone, 500)

@@ -70,7 +70,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include Hotkeys.ahk
 
 #Include PAInfo.ahk
-#Include PASettings.ahk
+#Include Settings.ahk
 
 #Include PAICDCode.ahk
 
