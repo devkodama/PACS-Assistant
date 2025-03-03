@@ -1,5 +1,5 @@
 /**
- * PAGlobals.ahk
+ * Globals.ahk
  * 
  * Global variables and constants for PACS Assistant
  * 
@@ -148,8 +148,8 @@ MICROPHONECOLOR_ON := "#d02020"
 INFO_DOB_FORMAT := "M/d/yyyy"
 
 ; PA GUI
-PAGUI_WINDOWTITLE := "PACS Assistant"
-PAGUI_HOMEPAGE := "pages/PACSAssistant.html"
+GUIWINDOWTITLE := "PACS Assistant"
+GUIHOMEPAGE := "pages/PACSAssistant.html"
 
 ; Used in PAInfo.ahk. Format for returning DOB from Patient object.
 INFO_DOB_FORMAT := "M/d/yyyy"
@@ -188,7 +188,7 @@ global PACancelRequest := false
 global _PAUpdate_Initial := true
 
 ; This is false at startup and set to true after the GUI is up and running.
-global _PAGUI_Running := false
+global _GUIRunning := false
 
 ; updated with the handle of the window under the mouse cursor every time
 ; _UpdateMouseWindow() is called

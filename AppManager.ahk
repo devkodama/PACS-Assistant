@@ -57,7 +57,7 @@
 
 #Include <WinEvent>
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 #Include PASettings.ahk
 
 

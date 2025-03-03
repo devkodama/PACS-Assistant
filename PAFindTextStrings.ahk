@@ -11,7 +11,7 @@
 #SingleInstance Force
 
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 
 

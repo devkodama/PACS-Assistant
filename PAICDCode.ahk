@@ -13,7 +13,7 @@
  */
 
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 
 
@@ -32,9 +32,9 @@ ICDReadCodeFile(filename := ICD_CODEFILE) {
     global ICDCodeTable
 
     if ICDCodeTable := FileRead(filename) {
-        PAStatus("ICD Code table successfully read")
+        GUIStatus("ICD Code table successfully read")
     } else {
-        PAStatus("Could not read ICD Code table")
+        GUIStatus("Could not read ICD Code table")
     }
 }
 

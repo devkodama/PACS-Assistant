@@ -14,7 +14,7 @@
 */
 
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 
 
@@ -112,7 +112,7 @@ PASound(message) {
     
         sound := Sounds[message]
         if sound.statusmessage {
-            PAStatus(sound.statusmessage)
+            GUIStatus(sound.statusmessage)
         }
 
         if PASettings["UseVoice"].value && sound.phrase {

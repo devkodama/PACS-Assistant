@@ -21,7 +21,7 @@
 #Include <Cred>
 
 #Include Utils.ahk
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 
 
@@ -233,9 +233,9 @@ class Setting {
                                 CurrentUserCredentials.username := newval
                                 ; update GUI to show the new user
                                 if newval {
-                                    PAGui_Post("curuser", "innerHTML", " - " . newval)
+                                    GUIPost("curuser", "innerHTML", " - " . newval)
                                 } else {
-                                    PAGui_Post("curuser", "innerHTML", "")
+                                    GUIPost("curuser", "innerHTML", "")
                                 }
                                 ; update the user-specific .ini filename
                                 if newval = "" {
@@ -704,7 +704,7 @@ PASettings_HTMLForm(show := true) {
 
     if show {
         ; replace current form on GUI Settings page
-        PAGui_Post("settingsform", "innerHTML", form)
+        GUIPost("settingsform", "innerHTML", form)
     }
     
     return form
@@ -743,7 +743,7 @@ HandleFormInput(WebView, id, newval) {
         ; validation succeeded, change the setting's value
         sett.value := newval
         ; clear any previous error
-        PAGui_Post(errid, "innerHTML", "")
+        GUIPost(errid, "innerHTML", "")
 
     } else {
 
@@ -752,20 +752,20 @@ HandleFormInput(WebView, id, newval) {
         switch sett.type {
             case "num":
                 if IsObject(sett.possible) {
-                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
+                    GUIPost(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
                 } else {
-                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid number")
+                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid number")
                 }
             case "text", "special":
                 if sett.possible > 0 {
-                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
+                    GUIPost(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
                 } else {
-                    PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid entry")
+                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid entry")
                 }
             case "select":
-                PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid choice")
+                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid choice")
             default:
-                PAGui_Post(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
+                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
         }
     }
 

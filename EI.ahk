@@ -55,7 +55,7 @@
 #Include <FindText>
 #Include "PAFindTextStrings.ahk"
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 #include "PAInfo.ahk"
 
 
@@ -98,10 +98,11 @@ EISend(cmdstring := "", targetwindow := "i1") {
 		}
 		if (hwndEI) {
 			PAWindowBusy := true
-			try {
+;			try {
 				WinActivate(hwndEI)
+				Sleep(200)
 				Send(cmdstring)
-			}
+;			}
 			PAWindowBusy := false
 		}
 	}
@@ -406,7 +407,7 @@ EIStart(cred := CurrentUserCredentials) {
 
 	; if EI desktop is aleady up and running, return 1 (true)
 	if EIIsRunning() {
-		PAStatus("EI is already running")
+		GUIStatus("EI is already running")
 	 	running := false
 	 	return 1
 	}
@@ -415,9 +416,9 @@ EIStart(cred := CurrentUserCredentials) {
 	; if not quit and return 0 (failure)
 	if !NetworkIsConnected(true) {
 		if WorkstationIsHospital() {
-			PAStatus("Could not start EI - Network is not connected")
+			GUIStatus("Could not start EI - Network is not connected")
 		} else {
-			PAStatus("Could not start EI - VPN is not connected")
+			GUIStatus("Could not start EI - VPN is not connected")
 			; [todo] ask user if they want to connect the vpn
 		}
 		running := false
@@ -425,7 +426,7 @@ EIStart(cred := CurrentUserCredentials) {
 	}
 	
 	; start up EI
-	PAStatus("Starting EI...")
+	GUIStatus("Starting EI...")
 	tick0 := A_TickCount
 	cancelled := false
 	failed := false				; EI
@@ -435,7 +436,7 @@ EIStart(cred := CurrentUserCredentials) {
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; check if we already have a visible true login window
 	;
@@ -469,7 +470,7 @@ EIStart(cred := CurrentUserCredentials) {
 		; wait for true login window to exist
 		tick1 := A_TickCount
 		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
-			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
 			App["EI"].Win["login"].Update()
 			if PACancelRequest {
@@ -489,7 +490,7 @@ EIStart(cred := CurrentUserCredentials) {
 
 		; wait for EI login window to be visible (should already be)
 		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
-			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
 			App["EI"].Win["login"].Update()
 			if PACancelRequest {
@@ -547,7 +548,7 @@ EIStart(cred := CurrentUserCredentials) {
 			; waits for EI desktop window to appear
 			tick1 := A_TickCount
 			while !cancelled && !(hwnddesktop := App["EI"].Win["d"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
-				PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
 				App["EI"].Win["d"].Update()
 				if PACancelRequest {
@@ -566,7 +567,7 @@ EIStart(cred := CurrentUserCredentials) {
 			; in practice we can just wait for PS since it normally takes much longer then EPIC
 			tick1 := A_TickCount
 			while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-				PAStatus("Waiting for PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				GUIStatus("Waiting for PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
 				App["PS"].Win["main"].Update()
 				if PACancelRequest {
@@ -582,12 +583,12 @@ EIStart(cred := CurrentUserCredentials) {
 		}
 	}
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if cancelled {
 
 		; user cancelled
-		PAStatus("EI startup cancelled - cleaning up...")
+		GUIStatus("EI startup cancelled - cleaning up...")
 
 		; in this case, EI may have already been started up
 		; if there is an EI process, then need to kill EI process before we exit
@@ -599,24 +600,24 @@ EIStart(cred := CurrentUserCredentials) {
 			App["EI"].Update()
 		}
 
-		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else if failed {
 
 		; if failure, or if no desktop window by now, return as failure
-		PAStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else if PSfailed {
 	
-		PAStatus("EI started, but could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EI started, but could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 	
 	} else {
 
 		; success
-		PAStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
 	}
@@ -659,13 +660,13 @@ EIStop() {
 
 	; if EI is not running, immediately return success
 	if !EIIsRunning() {
-		PAStatus("IE is not running")
+		GUIStatus("IE is not running")
 		running := false
 		return 1
 	}
 
 	; shut down EI
-	PAStatus("Shutting down EI...")
+	GUIStatus("Shutting down EI...")
 	tick0 := A_TickCount
 
 	cancelled := false
@@ -677,14 +678,14 @@ EIStop() {
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; Close the EI desktop
 	EISend("!{F4}", "d")
 
 	; wait for EI desktop to go away
 	while !cancelled && (hwndEI := App["EI"].Win["d"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
-		PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
 		App["EI"].Update()
 		if PACancelRequest {
@@ -704,7 +705,7 @@ EIStop() {
 		; wait for both PS & Epic to shut down
 		while !cancelled && (!resultPS || !resultEPIC) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 	
-			PAStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			GUIStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			sleep(500)
 			App["PS"].Update()
 			App["EPIC"].Update()
@@ -735,12 +736,12 @@ EIStop() {
 		}
 	}
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if cancelled {
 
 		; user cancelled
-		PAStatus("EI shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EI shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else if resultEI && resultPS && resultEPIC {
@@ -758,31 +759,31 @@ EIStop() {
 			}
 		}
 
-		PAStatus("EI shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EI shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
 	} else if !resultEI {
 		
 		; something went wrong
-		PAStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 		
 	} else if !resultPS {
 		
 		; something went wrong
-		PAStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 		
 	} else if !resultEPIC {
 		
 		; something went wrong
-		PAStatus("Could not shut down Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not shut down Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else {		
 
 		; something went wrong
-		PAStatus("Could not shut down EI, PowerScribe, and/or Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not shut down EI, PowerScribe, and/or Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 		
 	}

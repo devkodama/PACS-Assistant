@@ -17,7 +17,7 @@
 
 #include <DateParse>
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 
 

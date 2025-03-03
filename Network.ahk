@@ -36,7 +36,7 @@
  */
 
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 
 
@@ -176,7 +176,7 @@ NetworkIsConnected(forceupdate := false) {
 				networkstatus := false
 			}
 		} else {
-			networkstatus := VPNIsConnected()
+			networkstatus := VPNIsConnected(forceupdate)
 		}
 
 		lastcheck := A_TickCount
@@ -239,7 +239,7 @@ VPNStart(cred := CurrentUserCredentials) {
 
 	; if VPN is already connected, just return true
 	if VPNIsConnected(true) {
-		PAStatus("VPN already connected")
+		GUIStatus("VPN already connected")
 		running := false
 		return 1
 	}
@@ -264,7 +264,7 @@ VPNStart(cred := CurrentUserCredentials) {
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; loop until connected, timed out, cancelled, or failed too many times
 	tick0 := A_TickCount
@@ -277,7 +277,7 @@ VPNStart(cred := CurrentUserCredentials) {
 
 	while !connected && !cancelled && (failedlogins < VPN_FAILEDLOGINS_MAX) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 
-		PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
 		; look for connected info dialog box
 		App["VPN"].Win["connected"].Update()
@@ -300,9 +300,9 @@ VPNStart(cred := CurrentUserCredentials) {
 		hwndotp := App["VPN"].Win["otp"].hwnd
 		if hwndotp {
 			; wait for user to enter otp and/or close window
-			PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
+			GUIStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
 			while (App["VPN"].Win["otp"].WinExist()) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
-				PAStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				GUIStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
 				try {
 					WinActivate(hwndotp) 		; keep OTP window focused
@@ -370,9 +370,9 @@ VPNStart(cred := CurrentUserCredentials) {
 				ControlClick("Connect", hwndmain, , , , "NA")
 				BlockInput false
 			} else if InStr(statustext, "Contacting ", true) {
-				PAStatus("Starting VPN - Contacting server " . VPN_URL . "...")
+				GUIStatus("Starting VPN - Contacting server " . VPN_URL . "...")
 			} else if InStr(statustext, "Login failed", true) {
-				PAStatus("Starting VPN - Incorrect username or password")
+				GUIStatus("Starting VPN - Incorrect username or password")
 			}
 			Sleep(300)
 			lastdialog := "main"
@@ -403,7 +403,7 @@ VPNStart(cred := CurrentUserCredentials) {
 				; wait for main window to be appear
 				tick1 := A_TickCount
 				while !(hwndmain := App["VPN"].Win["main"].WinExist()) && (A_TickCount - tick1 < VPN_DIALOG_TIMEOUT * 1000) {
-					PAStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+					GUIStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
 					if PACancelRequest {
 						cancelled := true
@@ -421,18 +421,18 @@ VPNStart(cred := CurrentUserCredentials) {
 
 	}	; while
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if connected {
-		PAStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		; if VPN main window is not closed, then close it (to windows tray)
 		App["VPN"].Win["main"].Close()
 	} else if cancelled {
-		PAStatus("VPN startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("VPN startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else if failedlogins >= VPN_FAILEDLOGINS_MAX {
-		PAStatus("Invalid username/password - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Invalid username/password - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else {
-		PAStatus("Timeout - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Timeout - VPN could not be connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
 	; restore focus following
@@ -470,26 +470,26 @@ VPNStop() {
 	; if VPN is alraedy connected, immediately return success
 	connected := VPNIsConnected(true)
 	if !connected {
-		PAStatus("VPN already disconnected")
+		GUIStatus("VPN already disconnected")
 		running := false
 		return 1
 	}
 
 	tick0 := A_TickCount
-	PAStatus("Disconnecting VPN...")
+	GUIStatus("Disconnecting VPN...")
 
 	; don't allow focus following
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; run CLI command to disconnect the VPN
 	vpnstate := StdoutToVar('"' . EXE_VPNCLI . '" disconnect').Output
 	connected := VPNIsConnected(true)
 	
 	while connected && !cancelled && A_TickCount - tick0 < VPN_DISCONNECT_TIMEOUT * 1000 {
-		PAStatus("Disconnecting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Disconnecting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(300)
 		connected := VPNIsConnected(true)
 		if PACancelRequest {
@@ -497,14 +497,14 @@ VPNStop() {
 		}
 	}
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if !connected {
-		PAStatus("VPN disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("VPN disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else if cancelled {
-		PAStatus("VPN disconnection cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("VPN disconnection cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else {
-		PAStatus("Timeout-  VPN could not be disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Timeout-  VPN could not be disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	}
 
 	; restore focus following

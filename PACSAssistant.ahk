@@ -12,7 +12,10 @@
  * 	PAShowHome()				- Switches PACS Assistant to Home tab
  * 	PAShowSettings()			- Switches PACS Assistant to Settings tab
  * 	PAShowWindows()				- Switches PACS Assistant to Window Manager tab
- *	
+ *
+ * 	PACSStart(cred := CurrentUserCredentials)	- Start up PACS
+ * 	PACSStop()									- Shut down PACS
+ * 
  * 	PAInit()					- Called once at startup to do necessary initialization
  * 	PAMain()					- Main starting point for PACS Assistant
  * 
@@ -30,6 +33,7 @@
  * Defaults
  */
 
+
 #MaxThreads 64
 
 DetectHiddenWindows true		; this needs to be true so we can detect hidden windows
@@ -44,18 +48,19 @@ SetDefaultMouseSpeed 0			; 0 = fastest
  * Includes
  */
 
+
 #Include <WinEvent>
 #Include <Cred>
 
 #Include <Peep.v2>				; for debugging
 
 #Include Utils.ahk
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 #Include PASound.ahk
 #Include PAFindTextStrings.ahk
 
-#Include PADaemon.ahk
+#Include Daemon.ahk
 
 #Include Network.ahk
 #Include EI.ahk
@@ -69,7 +74,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include PAICDCode.ahk
 
-#Include PACSAssistantGUI.ahk
+#Include GUI.ahk
 
 #Include AppManager.ahk
 
@@ -106,7 +111,7 @@ PAEnable(state) {
 	global PAActive
 
 	PAActive := state
-	InitDaemons(state)
+	DaemonInit(state)
 }
 
 
@@ -211,6 +216,131 @@ _PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
 
 
 /**********************************************************
+ * PACS start up and shut down functions
+ * 
+ */
+
+
+; Start up PACS
+; 
+; The parameter cred is a Credentials object with username and password properties.
+;
+; Function does not allow reentry. If called again while already running, 
+; immediately returns -1.
+;
+; First connects the VPN if needed (home), or ensures a network connection (hospital).
+;
+; Upon successful network/VPN connection, starts EI.
+;
+; Returns 1 once start up is successful, 0 if unsuccessful
+; 
+PACSStart(cred := CurrentUserCredentials) {
+    static running := false
+
+    ; prevent reentry
+    if running {
+        return -1
+    }
+    running := true
+
+	GUIStatus("Starting PACS...")
+    tick0 := A_TickCount
+
+	resultNetwork := NetworkIsConnected(true)
+	if !resultNetwork {
+		if !WorkstationIsHospital() {
+		    resultVPN := VPNStart(cred)
+			resultNetwork := (resultVPN = 1)
+		}
+	}
+
+	if resultNetwork {
+		; have network, try to start EI
+        resultEI := EIStart(cred)
+        resultEI := (resultEI = 1) ? true : false
+    } else {
+		; no network connection, can't start EI
+        resultEI := false
+    }
+
+	if !resultEI {
+        GUIStatus("PACS not started - Could not start EI, PowerScribe, and/or Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		result := 0
+    } else if !resultNetwork {
+		if WorkstationIsHospital() {
+	        GUIStatus("PACS not started - No network connection (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		} else {
+	        GUIStatus("PACS not started - No VPN connection (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		}
+		result := 0
+	} else {
+        ; EI desktop was started successfully
+		; also implies PowerScribe and Epic were started successfully
+	    GUIStatus("PACS started (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        result := 1
+    }
+
+    ;done
+    running := false
+    return result
+}
+
+
+; Shut down PACS
+;
+; Function does not allow reentry. If called again while already running, 
+; immediately returns -1.
+;
+; First shuts down EI (which also shuts down PowerScribe and Epic)
+;
+; Upon successful EI shutdown, then disconnects the VPN (if using VPN)
+;
+; Returns 1 if shut down is successful, 0 if unsuccessful
+; 
+PACSStop() {
+    static running := false
+
+    ; prevent reentry
+    if running {
+        return -1
+    }
+    running := true
+
+	; shut down PACS - EI then VPN
+	GUIStatus("Shutting down PACS...")
+	tick0 := A_TickCount
+
+    resultEI := (EIStop() = 1)
+	if resultEI {
+		if !WorkstationIsHospital() {
+		    resultVPN := VPNStop()
+			resultNetwork := (resultVPN = 1)
+		} else {
+			resultNetwork := true
+		}
+	}
+
+    if !resultEI {
+        GUIStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic was not shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        result := 0
+    } else if !resultNetwork {
+        GUIStatus("PACS shut down not completed - VPN was not disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+        result := 0
+    } else {
+        GUIStatus("PACS shut down successfully (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+    	result := 1
+	}
+
+    ;done
+    running := false
+    return result
+}
+
+
+
+
+/**********************************************************
  * Main and initialization functions for PACS Assistant
  */
 
@@ -273,9 +403,9 @@ PAMain() {
 	PAInit()
 
 	; Set up GUI
-	PAGui_Init()
+	GUIInit()
 
     ; Start daemons
-    InitDaemons(true)
+    DaemonInit(true)
 
 }

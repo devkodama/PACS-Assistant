@@ -42,7 +42,7 @@
 #Include <FindText>
 #Include PAFindTextStrings.ahk
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 #Include PASound.ahk
 
 
@@ -69,10 +69,11 @@ EPICSend(cmdstring := "") {
 		if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 			; at this point hwndPS is non-null and points to the current PS window
 			PAWindowBusy := true
-			BlockInput true				; prevent user input from interfering
+;			BlockInput true				; prevent user input from interfering
 			WinActivate(hwndEPIC)
+			Sleep(200)
 			Send(cmdstring)
-			BlockInput false
+;			BlockInput false
 			PAWindowBusy := false
 		}
 	}
@@ -91,9 +92,10 @@ _EPIC_DismissTimezone(initialize := false) {
 	}
 
 	if EPICIsTimezone() {
+		Sleep(500)
 		; dismiss Timezone dialog with Continue (Alt-O)
-		EPICSend("!o")
-		SetTimer(_EPIC_DismissTimezone, 0)
+		EPICSend("{Alt down}o{Alt up}")
+		;SetTimer(_EPIC_DismissTimezone, 0)
 	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
 		; timed out, stop checking
 		SetTimer(_EPIC_DismissTimezone, 0)
@@ -234,7 +236,6 @@ EPICClosed_EPICmain() {
  */
 
 
-
 ; Start Epic
 ;
 ; Function does not allow reentry. If called again while already running, 
@@ -257,15 +258,14 @@ EPICStart(cred := CurrentUserCredentials) {
 
 	; if EPIC is not running, immediately return success
 	if EPICIsRunning() {
-		PAStatus("Epic is already running")
+		GUIStatus("Epic is already running")
 		running := false
 		return 1
 	}
 
 	; Start Epic
-	PAStatus("Starting Epic...")
+	GUIStatus("Starting Epic...")
 	tick0 := A_TickCount
-	result := 0
 	cancelled := false
 	failed := false
 
@@ -273,7 +273,7 @@ EPICStart(cred := CurrentUserCredentials) {
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; run Epic
 	; Run('"' . EXE_EPIC . '" env="PRD"')
@@ -283,7 +283,7 @@ EPICStart(cred := CurrentUserCredentials) {
 
 	; wait for login window to exist
 	while !cancelled && !(islogin := EPICIsLogin()) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
-		PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
 		if PACancelRequest {
 				cancelled := true
@@ -336,7 +336,7 @@ EPICStart(cred := CurrentUserCredentials) {
 
 			; now wait for Epic to get to the chart screen to consider login successful
 			while !cancelled && !failed && !(ischart := EPICIsChart()) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
-				PAStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				GUIStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
 				; App["EPIC"].Update()		; unncessary to update
 				if PACancelRequest {
@@ -357,22 +357,22 @@ EPICStart(cred := CurrentUserCredentials) {
 		}
 	}	
 	
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if cancelled {
 
 		; user cancelled
-		PAStatus("EPIC startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EPIC startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else if failed {
 
-		PAStatus("Could not start EPIC (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not start EPIC (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else {
 
-		PAStatus("EPIC startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EPIC startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
 	}
@@ -410,7 +410,7 @@ EPICStop() {
 
 	; if EPIC is not running, immediately return success
 	if !EPICIsRunning() {
-		PAStatus("Epic is not running")
+		GUIStatus("Epic is not running")
 		running := false
 		return 1
 	}
@@ -418,9 +418,9 @@ EPICStop() {
 	cancelled := false
 	failed := false
 	tick0 := A_TickCount
-	PAStatus("Shutting down Epic...")
+	GUIStatus("Shutting down Epic...")
 
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; prevent focus following
 	PAWindowBusy := true
@@ -433,7 +433,7 @@ EPICStop() {
 
 	; wait for Epic main window to go away
 	while !cancelled && App["EPIC"].Win["main"].hwnd && (A_TickCount-tick0 < EPIC_SHUTDOWN_TIMEOUT * 1000) {
-		PAStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
 		App["EPIC"].Update()
 		if PACancelRequest {
@@ -446,16 +446,16 @@ EPICStop() {
 		failed := true
 	}
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if cancelled {
-		PAStatus("EPIC shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EPIC shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 	} else if failed {
-		PAStatus("Could not shut down EPIC (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not shut down EPIC (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 	} else {
-		PAStatus("EPIC shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("EPIC shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 	}
 	

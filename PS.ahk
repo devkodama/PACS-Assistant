@@ -69,7 +69,7 @@
 #Include <FindText>
 #Include PAFindTextStrings.ahk
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 #Include PASound.ahk
 
 
@@ -221,7 +221,7 @@ PSDictateIsOn(forceupdate := false) {
 					if dictatestatus && A_TimeIdlePhysical > (PASettings["PS_dictate_idletimeout"].value * 60000) {
 						; microphone is currently on and we have idled for greater than timeout, so turn off the mic
 						PSSend("{F4}")		; Stop Dictation
-						PAStatus("Microphone turned off")
+						GUIStatus("Microphone turned off")
 						dictatestatus := false
 					} else {
 						; haven't idled long enough, don't turn off mic
@@ -312,7 +312,9 @@ PSClose_PSlogin() {
 PSOpen_PSmain() {
 	global _PSlastparent
 
-;	PASound("PowerScribe opened")
+	if _PSlastparent = "login" {
+		PASound("PowerScribe opened")
+	}
 
 	; remove the current patient
 	PACurrentPatient.lastfirst := ""
@@ -356,7 +358,7 @@ PSOpen_PSreport() {
 	global PACurrentPatient
 	global PACurrentStudy
 
-	PAStatus("Report opened")
+	GUIStatus("Report opened")
 
 	; Automatically turn on microphone when opening a report (and off when closing a report)
 	if PASettings["PS_dictate_autoon"].value {
@@ -425,7 +427,7 @@ PSOpen_PSreport() {
 
 ; Hook function called when PS report or addendum window goes away
 PSClose_PSreport() {
-	PAStatus("Report closed")
+	GUIStatus("Report closed")
 
 	if PASettings["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
@@ -437,7 +439,8 @@ PSClose_PSreport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
-;TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
+	PASound("logout")
+TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if PASettings["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
@@ -596,13 +599,13 @@ PSStart(cred := CurrentUserCredentials) {
 
 	; if EI is aleady up and running, return 1 (true)
 	if PSIsRunning() {
-		PAStatus("PowerScribe is already running")
+		GUIStatus("PowerScribe is already running")
 	 	running := false
 	 	return 1
 	}
 
 	; start up PS
-	PAStatus("Starting PowerScribe...")
+	GUIStatus("Starting PowerScribe...")
 	tick0 := A_TickCount
 	cancelled := false
 	failed := false
@@ -611,7 +614,7 @@ PSStart(cred := CurrentUserCredentials) {
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; run PS
 	Run('"' . EXE_PS . '"')
@@ -621,7 +624,7 @@ PSStart(cred := CurrentUserCredentials) {
 	; wait for login window to exist
 	tick1 := A_TickCount
 	while !(hwndlogin := App["PS"].Win["login"].hwnd) && (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
-		PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
 		App["PS"].Win["login"].Update()
 		if PACancelRequest {
@@ -648,7 +651,7 @@ PSStart(cred := CurrentUserCredentials) {
 			; Need to wait until "Loading system components..." has completed
 			; so that Log On button will be enabled
 			while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
-				PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+				GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				if !InStr(WinGetText(hwndlogin), "Loading system components", true) {
 					; success, exit while
 					break		; while
@@ -676,7 +679,7 @@ PSStart(cred := CurrentUserCredentials) {
 				; waits for PS main window to appear
 				tick1 := A_TickCount
 				while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-					PAStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+					GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
 					App["PS"].Win["main"].Update()
 					if PACancelRequest {
@@ -693,12 +696,12 @@ PSStart(cred := CurrentUserCredentials) {
 		}
 	}
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if cancelled {
 
 		; user cancelled
-		PAStatus("PowerScribe startup cancelled - cleaning up...")
+		GUIStatus("PowerScribe startup cancelled - cleaning up...")
 
 		; in this case, PS may have already been started up
 		; if there is a PS process, then need to kill PS process before we exit
@@ -710,19 +713,19 @@ PSStart(cred := CurrentUserCredentials) {
 			App["PS"].Update()
 		}
 
-		PAStatus("PowerScribe startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("PowerScribe startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else if failed {
 
 		; if failure, or if no main window by now, return as failure
-		PAStatus("Could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else {
 
 		; success
-		PAStatus("PowerScribe startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("PowerScribe startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
 	}
@@ -756,20 +759,20 @@ PSStop() {
 
 	; if PS is not running, immediately return success
 	if !PSIsRunning() {
-		PAStatus("PowerScribe is not running")
+		GUIStatus("PowerScribe is not running")
 		running := false
 		return 1
 	}
 
 	; shut down PS
-	PAStatus("Shutting down PowerScribe...")
+	GUIStatus("Shutting down PowerScribe...")
 	tick0 := A_TickCount
 
 	; prevent focus following
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
-	PAGui_ShowCancelButton()
+	GUIShowCancelButton()
 
 	; close PS
 	PSSend("!{F4}")
@@ -779,7 +782,7 @@ PSStop() {
 	
 	; wait for PS to close
 	while !cancelled && PSIsRunning() && (A_TickCount-tick0 < PS_SHUTDOWN_TIMEOUT * 1000) {
-		PAStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Shutting down PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
 		; the login window should close automatically when going from main to login
 		; if it doesn't, we can close it here
@@ -794,17 +797,17 @@ PSStop() {
 		}
 	}
 
-	PAGui_HideCancelButton()
+	GUIHideCancelButton()
 
 	if cancelled {
-		PAStatus("PowerScribe shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("PowerScribe shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := false
 	} else if PSIsRunning() {
 		; PS still didn't close (timed out)
-		PAStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := false
 	} else {
-		PAStatus("PowerScribe shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		GUIStatus("PowerScribe shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := true
 	}
 

@@ -1,37 +1,43 @@
-/* PACSAssistantGUI.ahk
-**
-** GUI functions for PACS Assistant
-**
-*/
+/**
+ * GUI.ahk
+ * 
+ * GUI functions for PACS Assistant
+ * 
+ * 
+ * This module defines the functions:
+ *  
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
-/*
-** Includes
-*/
 
-; Required libraries
+
+
+/**********************************************************
+ * Includes
+ */
+
 #Include <WebView2>
 #Include <WebViewToo>
 
-#include Debug.ahk
-
-#Include PAGlobals.ahk
+#Include Globals.ahk
 #Include Utils.ahk
 
+#include Debug.ahk
 
-/**
- * Globals
+
+
+
+/**********************************************************
+ * Compile options
  */
 
-global PAGui
-global DispatchQueue
-
-
-/**
- * 
- */
 
 if (A_IsCompiled) {
     WebViewToo.CreateFileFromResource((A_PtrSize * 8) "bit\WebView2Loader.dll")
@@ -39,11 +45,25 @@ if (A_IsCompiled) {
 
 
 
-; Web callback functions
 
-;
+/**********************************************************
+ * Global variables and constants used in this module
+ */
+
+
+global PAGui
+global DispatchQueue
+
+
+
+
+/**********************************************************
+ * Web callback functions
+ */
+
+
 ; handles JS click events and dispatches to corresponding ahk functions
-
+;
 ClickId(WebView, id) {
     global DispatchQueue
 ;    PAToolTip("id='" . id . "' was clicked")
@@ -52,12 +72,12 @@ ClickId(WebView, id) {
 
         case "app-power":
             if PAStatus_PowerButton="off" {
-                DispatchQueue.Push(PAGui_PACSStartup)
+                DispatchQueue.Push(PACSStart)
             }
         case "app-power-startup":
-            DispatchQueue.Push(PAGui_PACSStartup)
+            DispatchQueue.Push(PACSStart)
         case "app-power-shutdown":
-            DispatchQueue.Push(PAGui_PACSShutdown)
+            DispatchQueue.Push(PACSStop)
         
         case "app-Network":
             if !WorkstationIsHospital() && !VPNIsConnected() {
@@ -81,15 +101,16 @@ ClickId(WebView, id) {
             DispatchQueue.Push(EIStop)
 
         case "app-PS":
-            DispatchQueue.Push(PSStart)
+            if !PSIsRunning() {
+                DispatchQueue.Push(PSStart)
+            }
         case "app-PS-startup":
             DispatchQueue.Push(PSStart)
-;            PAToolTip("This doesn't work yet")
         case "app-PS-shutdown":
             DispatchQueue.Push(PSStop)
         case "app-PS-forceclose":
             TTip("This doesn't work yet")
-; DispatchQueue.Push(PAGui_ForceClosePS)
+            ; DispatchQueue.Push(GUIForceClosePS)
 
         case "app-EPIC":
             if !EPICIsRunning() {
@@ -101,12 +122,12 @@ ClickId(WebView, id) {
             DispatchQueue.Push(EPICStop)
 
         case "button-restorewindows":
-            DispatchQueue.Push(PAGui_RestoreWindowPositions)
+            DispatchQueue.Push(GUIRestoreWindowPositions)
         case "button-savewindows":
-            DispatchQueue.Push(PAGui_SaveWindowPositions)
+            DispatchQueue.Push(GUISaveWindowPositions)
 
         case "cancelbutton":
-            DispatchQueue.Push(PAGui_CancelButton)
+            DispatchQueue.Push(GUICancelButton)
 
         default:
             TTip("id='" . id . "' was clicked")
@@ -116,7 +137,10 @@ ClickId(WebView, id) {
 
 
 
-
+; Hover messages and hover function
+;
+; [todo] Plan to replace this with js
+;
 HoverMessages := Map()
 HoverMessages["app-power"] := Map("off", "Press to start PACS",
         "yellow", "",
@@ -129,7 +153,6 @@ HoverMessages["app-PS"] := Map("false", "",
         "true", "Right click to shut down PowerScribe")
 HoverMessages["app-EPIC"] := Map("false", "Press to start Epic",
         "true", "Right click to shut down Epic")
-
 
 HoverEvent(WebView, id) {
 
@@ -146,52 +169,47 @@ HoverEvent(WebView, id) {
 
 
 
+/**********************************************************
+ * Helper functions to simplfy making changes to GUI web page
+ */
 
-/***************************************/
 
-
-; Helper functions to simplfy making changes to GUI web page
+; GUIPost() simplifies changes to the DOM.
 ;
-
-; PAGui_Post() simplifies changes to the DOM.
-;
-; e.g. PAGui_Post("patientname", "innerHTML", "John Smith")
+; e.g. GUIPost("patientname", "innerHTML", "John Smith")
 ; will replace the innerHTML property of the DOM element having id="patientname" with "John Smith"
-PAGui_Post(id, propname, propval) {
-    if _PAGUI_Running {
+GUIPost(id, propname, propval) {
+    if _GUIRunning {
 	    PAGui.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "';")
     }
 }
 
 
-
-/***************************************/
-
-
 ; Set Status Bar text
-PAGui_SetStatusBar(message := "") {
+GUISetStatusBar(message := "") {
     global PAStatusBarText
 
     PAStatusBarText := message
 }
 
-; Queues messages for display in the status bar
-PAStatus(message := "", duration := 0) {
 
-    ; for now, just calls PAGui_SetStatusBar
-    PAGui_SetStatusBar(message)
+; Queues messages for display in the status bar
+GUIStatus(message := "", duration := 0) {
+
+    ; for now, just calls GUISetStatusBar
+    GUISetStatusBar(message)
 }
 
 
-; Displays an alert
+; Displays an alert box at the top of the PA window
 ;
 ; Alert types:
-;   info
-;   success
-;   warning
-;   danger
+;   "info"
+;   "success"
+;   "warning"
+;   "danger"
 ;
-PAAlert(message, type := "info") {
+GUIAlert(message, type := "info") {
 
 TTip("paalert: " message ", " type)
 
@@ -210,21 +228,23 @@ TTip("paalert: " message ", " type)
 
 ; Call this to show the Cancel button on the status bar
 ; Resets the global PACancelRequest to false
-PAGui_ShowCancelButton() {
+GUIShowCancelButton() {
     global PACancelRequest
 
     PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').removeAttribute('disabled', '');")
-    PAGui_Post("cancelbutton", "style.display", "flex")
+    GUIPost("cancelbutton", "style.display", "flex")
     PACancelRequest := false
 }
 
+
 ; Call this to hide the Cancel button on the status bar
-PAGui_HideCancelButton() {
-    PAGui_Post("cancelbutton", "style.display", "none")
+GUIHideCancelButton() {
+    GUIPost("cancelbutton", "style.display", "none")
 }
 
+
 ; This gets called to handle a click on the Cancel button
-PAGui_CancelButton() {
+GUICancelButton() {
     global PACancelRequest
 
     PAGui.PostWebMessageAsString("document.getElementById('cancelbutton').setAttribute('disabled', '');")
@@ -233,7 +253,7 @@ PAGui_CancelButton() {
 
 
 ; Restore saved window positions from settings file
-PAGui_RestoreWindowPositions(*) {
+GUIRestoreWindowPositions(*) {
     static running := false
 
     ; prevent reentry
@@ -241,7 +261,7 @@ PAGui_RestoreWindowPositions(*) {
         return
     }
     running := true
-  TTip("PAGui_RestoreWindowPositions")
+  TTip("GUIRestoreWindowPositions")
     ReadPositionsAll()
     RestorePositionsAll()
 
@@ -250,8 +270,9 @@ PAGui_RestoreWindowPositions(*) {
     return
 }
 
+
 ; Save current window positions to settings file
-PAGui_SaveWindowPositions(*) {
+GUISaveWindowPositions(*) {
     static running := false
 
     ; prevent reentry
@@ -260,7 +281,7 @@ PAGui_SaveWindowPositions(*) {
     }
     running := true
 
-  TTip("PAGui_SaveWindowPositions")
+  TTip("GUISaveWindowPositions")
     SavePositionsAll()
     WritePositionsAll()
 
@@ -271,150 +292,15 @@ PAGui_SaveWindowPositions(*) {
 
 
 
-; Start up PACS
-; 
-; The parameter cred is a Credentials object with username and password properties.
-;
-; Function does not allow reentry. If called again while already running, 
-; immediately returns -1.
-;
-; First connects the VPN, if not already connected.
-;
-; Upon successful VPN connection, starts EI, if not already running.
-;
-; Returns 1 once start up is successful, 0 if unsuccessful
-; 
-PAGui_PACSStartup(cred := CurrentUserCredentials) {
-    static running := false
 
-    ; prevent reentry
-    if running {
-        return -1
-    }
-    running := true
-
-    resultVPN := false
-    resultEI := false
-    resultEPIC := false
-    resultPS := false
-    ; resultEPIC := false
-    tick0 := A_TickCount
-    
-    PAStatus("Starting PACS (VPN)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-    resultVPN := VPNStart(cred)
-    if resultVPN = 1 {
-        PAStatus("Starting PACS (EI)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-        resultEI := EIStart(cred)
-        resultEI := (resultEI = 1) ? true : false
-    } else {
-        resultVPN := false
-        resultEI := false
-    }
-
-	if resultEI {
-        ; EI desktop was started successfully, now wait for PowerScribe
-        ; to login and get to main page
-
-        PAGui_ShowCancelButton()
-        cancelled := false
-
-		tick1 := A_TickCount
-		while !cancelled && !(hwndPS := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-            PAStatus("Starting PACS (PowerScribe)... (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			App["PS"].Update()
-			Sleep(500)
-			if PACancelRequest {
-				cancelled := true
-				break           ; while
-			}
-		}
-       	PAGui_HideCancelButton()
-        resultPS := hwndPS ? true : false
-	}
-
-    if EPICIsRunning() {
-        resultEPIC := true
-    }
-
-    if resultVPN && resultEI && resultPS && resultEPIC {
-        PAStatus("PACS started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-        returnresult := 1
-    } else if !resultVPN {
-        PAStatus("PACS not started - VPN not connected (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-        returnresult := 0
-    } else if !resultEI {
-        PAStatus("PACS not started - EI could not be started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-        returnresult := 0
-    } else if !resultPS {
-        PAStatus("PACS not started - PowerScribe could not be started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-        returnresult := 0
-    } else if !resultEPIC {
-        PAStatus("PACS started but Epic could not be started (total time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-        returnresult := 0
-    }
-
-    ;done
-    running := false
-    return returnresult
-}
-
-
-; Shut down PACS
-;
-; Function does not allow reentry. If called again while already running, 
-; immediately returns -1.
-;
-; First shuts down EI (which also shuts down PowerScribe and Epic)
-;
-; Upon successful EI shutdown, then disconnects the VPN
-;
-; Returns 1 if shut down is successful, 0 if unsuccessful
-; 
-PAGui_PACSShutdown() {
-    static running := false
-
-    ; prevent reentry
-    if running {
-        return -1
-    }
-    running := true
-
-	tick0 := A_TickCount
-	PAStatus("Shutting down PACS...")
-
-    resultEI := EIStop()
-    if resultEI = 1 {
-        resultEI := true
-        resultVPN := VPNStop()
-    } else {
-        resultEI := false
-        resultVPN := false
-    }
-
-
-    if resultEI && resultVPN {
-        PAStatus("PACS shut down successfully (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-    returnresult := 1
-    } else if !resultEI {
-        PAStatus("PACS shut down not completed - EI, PowerScribe, and/or Epic was not shut down")
-        returnresult := 0
-    } else if !resultVPN {
-        PAStatus("PACS shut down not completed - VPN was not disconnected")
-        returnresult := 0
-    }
-
-    ;done
-    running := false
-    return returnresult
-}
 
 
 
 
 ; Called when GUI window is first started (opened)
-PAGui_Init(*) {
+GUIInit(*) {
     global PAGui
-    global _PAGUI_Running
+    global _GUIRunning
 
     ; Create the GUI
     PAGui := WebViewToo(,,, true)
@@ -434,13 +320,13 @@ PAGui_Init(*) {
     PAGui.Settings.IsWebMessageEnabled := true
 
     ; load the page
-    PAGui.Load(PAGUI_HOMEPAGE)
+    PAGui.Load(GUIHOMEPAGE)
     
     ; set up resize handler
-    PAGui.OnEvent("Size", PAGui_Size)
+    PAGui.OnEvent("Size", GUISize)
     
     ; set up exit handler
-    PAGui.OnEvent("Close", (*) => PAGui_Exit())
+    PAGui.OnEvent("Close", (*) => GUIExit())
     
     ; set up event handlers for web page
     ; parameters are "<function name for html>", <ahk function name>
@@ -449,7 +335,7 @@ PAGui_Init(*) {
 
     PAGui.AddCallbackToScript("Hover", HoverEvent)  ; don't want to use this for hovers
 
-    PAGui.Title := PAGUI_WINDOWTITLE
+    PAGui.Title := GUIWINDOWTITLE
 
     ; display the PACS Assistant window
     ; and restore PACS Assistant window position
@@ -464,37 +350,37 @@ PAGui_Init(*) {
     if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
         PAGui.Show("x" x " y" y " w" w " h" h)
         Sleep(300)                      ; need time for GUI to be set up
-        PAGui_Size(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
+        GUISize(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
     } else {
         PAGui.Show()
         Sleep(500)                      ; need time for GUI to be set up
         PAGui.GetClientPos(, , &w, &h)  ; get actual size of client window
-        PAGui_Size(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
+        GUISize(PAGui, 0, w, h)      ; call resize to calculate and set the height of the main display area
     }    
 
 
     win.Update()
 
     ; declare GUI to be up and running
-    _PAGUI_Running := true
+    _GUIRunning := true
 
     ; update GUI to show current username
     if PASettings["username"].value {
-        PAGui_Post("curuser", "innerHTML", " - " . PASettings["username"].value)
+        GUIPost("curuser", "innerHTML", " - " . PASettings["username"].value)
     } else {
-        PAGui_Post("curuser", "innerHTML", "")
+        GUIPost("curuser", "innerHTML", "")
     }
 
     ; display the settings page
     PASettings_HTMLForm()
 
-    ; PAGui_Post("log", "innerHTML", CurrentUserCredentials.username "/" CurrentUserCredentials.password (PASettings.Has("inifile") ? "/" PASettings["inifile"].value : ""))
+    ; GUIPost("log", "innerHTML", CurrentUserCredentials.username "/" CurrentUserCredentials.password (PASettings.Has("inifile") ? "/" PASettings["inifile"].value : ""))
 
 }
 
 
 ; Called whenever GUI is resized
-PAGui_Size(thisGui, MinMax, Width, Height) {
+GUISize(thisGui, MinMax, Width, Height) {
 
     if MinMax = -1 {
         ; The window has been minimized. No action needed.
@@ -513,9 +399,9 @@ PAGui_Size(thisGui, MinMax, Width, Height) {
 
 
 ; Called when GUI window is closed
-PAGui_Exit(*) {
+GUIExit(*) {
 
-    PAStatus("Closing PACS Assistant...")
+    GUIStatus("Closing PACS Assistant...")
 
     ; save PA window position
     win := App["PA"].Win["main"]
@@ -530,7 +416,7 @@ PAGui_Exit(*) {
 
 
     ; stop daemons
-    InitDaemons(false)
+    DaemonInit(false)
 
 
     ; Sleep(1000)

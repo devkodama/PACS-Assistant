@@ -19,7 +19,7 @@
 
 #include <Cred>
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 #Include Network.ahk
 

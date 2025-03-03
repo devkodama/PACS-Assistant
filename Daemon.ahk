@@ -1,9 +1,23 @@
-/* PADaemon.ahk
-**
-** Daemon procedures that run in the background for PACS Assistant
-**
-**
-*/
+/**
+ * Daemon.ahk
+ * 
+ * Daemons that run in the background for PACS Assistant
+ * 
+ * 
+ * This module defines the functions:
+ * 
+ * 	DaemonInit(start := true)			- Start or stop daemons
+ * 
+ * 	_Dispatcher()						- Checks the dispatch request queue and calls the queued functions
+ * 	_RefreshGUI()						- Refreshes the GUI display
+ * 	_WatchWindows()						- Update the status of all windows
+ * 
+ * 	_WatchMouse()						- Update the hwnd of the window under the mouse cursor
+ * 	_JiggleMouse()						- Jiggle the mouse to keep screen awake
+ * 
+ * 
+ */
+
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -14,33 +28,41 @@
 */
 
 
-#Include PAGlobals.ahk
+#Include Globals.ahk
 
 #include PAICDCode.ahk
 
 
 
 
-/***********************************************/
+/**********************************************************
+ * Functions defined by this module
+ * 
+ */
 
 
 ; Start or stop daemons
 ;
-InitDaemons(start := true) {
+DaemonInit(start := true) {
 
 	; these daemons run regardless of PAActive
 	SetTimer(_Dispatcher, (start ? DISPATCH_INTERVAL : 0))
 	SetTimer(_RefreshGUI, (start ? GUIREFRESH_INTERVAL : 0))
+	SetTimer(_WatchWindows, (start ? WATCHWINDOWS_UPDATE_INTERVAL : 0))
 
 	; these daemons only act if PAActive is true
-	SetTimer(_WatchWindows, (start ? WATCHWINDOWS_UPDATE_INTERVAL : 0))
 	SetTimer(_WatchMouse, (start ? WATCHMOUSE_UPDATE_INTERVAL : 0))
 	SetTimer(_JiggleMouse, (start ? JIGGLEMOUSE_UPDATE_INTERVAL : 0))
 }
 
 
 
-/***********************************************/
+
+/**********************************************************
+ * Local functions used within this module
+ * 
+ */
+
 
 ; Checks the dispatch request queue and calls the queued functions.
 ;
@@ -207,14 +229,14 @@ _RefreshGUI() {
 	onoff := PASettings["active"].value
 	if onoff && !PAActive {
 		PAActive := true
-		PAStatus("PACS Assistant enabled")
+		GUIStatus("PACS Assistant enabled")
 		PAGui.PostWebMessageAsString("document.getElementById('tab-active').setAttribute('checked', '');")
 	} else if !onoff && PAActive {
 		PAActive := false
-		PAStatus("PACS Assistant disabled")
+		GUIStatus("PACS Assistant disabled")
 		PAGui.PostWebMessageAsString("document.getElementById('tab-active').removeAttribute('checked');")
 	}
-;PAGui_Post("log", "innerHTML", PAActive " / " PASettings["active"].value)
+;GUIPost("log", "innerHTML", PAActive " / " PASettings["active"].value)
 		
 	; Update app icon indicators
 	status := 0x00
@@ -347,12 +369,6 @@ _RefreshGUI() {
 }
 
 
-
-
-/***********************************************/
-
-
-
 ; Update the status of all windows
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
@@ -361,6 +377,8 @@ _WatchWindows() {
 	global PAActive
 	global PAWindowInfo
 	
+	; runs regardless of PAActive
+
 	; update all app windows
 	UpdateAll()
 
@@ -375,8 +393,6 @@ _WatchWindows() {
 	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
-
-
 
 
 ; Update the hwnd of the window under the mouse cursor
@@ -514,9 +530,8 @@ _WatchMouse() {
 }
 
 
-
-
 ; Jiggle the mouse to keep screen awake
+;
 _JiggleMouse() {
 	if !PAActive {
 		return
@@ -527,4 +542,3 @@ _JiggleMouse() {
 		MouseMove(-1, -1, , "R")
 	}
 }
-
