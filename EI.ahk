@@ -425,6 +425,15 @@ EIStart(cred := CurrentUserCredentials) {
 		return 0
 	}
 	
+	; if no password, ask user before proceeding
+	if !cred.Password && !GUIGetPassword() {
+		; couldn't get a password from the user, return failure (0)
+        GUIStatus("Could not start EI - password needed")
+		running := false
+		return 0
+	}
+	cred.password := CurrentUserCredentials.password
+
 	; start up EI
 	GUIStatus("Starting EI...")
 	tick0 := A_TickCount

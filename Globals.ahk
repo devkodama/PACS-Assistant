@@ -65,7 +65,7 @@ VPN_DISCONNECT_TIMEOUT := 10
 ; or for waiting for initial login window to appear
 VPN_DIALOG_TIMEOUT := 10
 ; number of failed login attempts (username/password failures) allowed
-VPN_FAILEDLOGINS_MAX := 3
+VPN_FAILEDLOGINS_MAX := 5
 ; VPN URL string
 VPN_URL := "vpn.adventhealth.com/SecureAuth"
 
@@ -100,6 +100,10 @@ EPIC_SHUTDOWN_TIMEOUT := 30
 EPIC_TIMEZONE := "America/Chicago"
 
 
+; maximum password length
+PA_USERNAME_MAXLENGTH := 20
+; maximum password length
+PA_PASSWORD_MAXLENGTH := 20
 
 
 ; minimum width and height to consider a window position valid
@@ -116,6 +120,9 @@ WM_GETTEXT := 0x000D
 EM_GETSEL := 0x00B0
 EM_SETSEL := 0x00B1
 EM_SETREADONLY := 0x00CF
+
+; Windows constants used in GUI.ahk module
+
 
 
 ; Executable paths
@@ -188,7 +195,7 @@ global PACancelRequest := false
 global _PAUpdate_Initial := true
 
 ; This is false at startup and set to true after the GUI is up and running.
-global _GUIRunning := false
+global _GUIIsRunning := false
 
 ; updated with the handle of the window under the mouse cursor every time
 ; _UpdateMouseWindow() is called

@@ -577,7 +577,8 @@ F3:: {
 
 
 F8:: {
-	MsgBox(MonitorCount())
+	pwd := GUIGetPassword()
+	TTip("password = " pwd)
 }
 
 +F8:: {

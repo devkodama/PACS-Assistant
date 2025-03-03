@@ -1,9 +1,32 @@
 /**
  * Settings.ahk
  *
- * Settings functions for PACS Assistant
+ * This module defines classes and function for managing settings within PACS Assistant
+ * 
  *
+ * This module defines the following globals:
  *
+ *  Setting             - Map() with program-wide modifiable settings
+ *  SettingsPage        - Array() ordered array of keys that determines which settings
+ *                          are shown and the order in which they are shown on the 
+ *                          GUI Settings page
+ * 
+ *
+ * This module defines the following classes:
+ *
+ *  SetItem             - Holds an individual setting
+ *   
+ * 
+ * This module defines the functions:
+ *
+ *  SettingsInit()                          - Determine the current user, then read the user's saved settings from the user-specific .ini file.
+ *  SettingsReadAll()                       - Reads all the settings from the user-specific .ini file for the current user
+ *  SettingsWriteAll()                      - Writes all settings to a (new) user-specific .ini file for the current user.
+ *  SettingsGeneratePage(show := true)      - Generate an HTML form and displays it on the PACS Assistant GUI Settings page.
+ * 
+ *  HandleFormInput(WebView, id, newval)    -
+ * 
+ * 
  */
 
 
@@ -47,9 +70,10 @@ Setting := Map()
 Setting["active"] := SetItem("active", "bool", true, , "Top level switch for many PACS Assistant functions")
 
 ; Special settings
-Setting["username"] := SetItem("username", "special", "", 20, "Username")
-Setting["password"] := SetItem("password", "special", "", 20, "Password")
+Setting["username"] := SetItem("username", "special", "", PA_USERNAME_MAXLENGTH, "Username")
+Setting["password"] := SetItem("password", "special", "", PA_PASSWORD_MAXLENGTH, "Password")
 Setting["inifile"] := SetItem("inifile", "special", "", 0, "Current user-specific .ini file")
+Setting["storepassword"] := SetItem("storepassword", "bool", true, , "Remember your password on this workstation")
 
 ; General settings
 Setting["MouseJiggler"] := SetItem("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
@@ -128,6 +152,7 @@ SettingsPage := Array()
 SettingsPage.Push("#Account")
 SettingsPage.Push("username")
 SettingsPage.Push("password")
+SettingsPage.Push(">storepassword")
 
 SettingsPage.Push("#General")
 SettingsPage.Push("FocusFollow")
@@ -267,10 +292,10 @@ class SetItem {
                                     Setting["inifile"].value := FILE_SETTINGSBASE "." newval ".ini"
                                     if FileExist(Setting["inifile"].value) {
                                         ; Read the new user's saved settings
-                                        PASettings_ReadSettings()
+                                        SettingsReadAll()
                                     } else {
                                         ; No ini file, let's create a new one
-                                        PASettings_WriteSettings()
+                                        SettingsWriteAll()
                                     }
                                 }
                                 ; try to get the password from local storage
@@ -281,7 +306,7 @@ class SetItem {
                                     Setting["password"].value := ""
                                 }
                                 ; Update the displayed form
-                                PASettings_HTMLForm()
+                                SettingsGeneratePage()
 
                             } else {
                                 ; username was not changed, don't do anything
@@ -292,7 +317,6 @@ class SetItem {
                             this._value := newval
                             this._key := ""
                             CurrentUserCredentials.password := newval
-                            
                         default:
                             newval := Trim(Value)
                             this._value := newval
@@ -356,10 +380,22 @@ class SetItem {
                             }
                         }
                     case "password":
-                        ; Don't save to disk
-                        ; Save to local store if non-empty
-                        if this._value {
-                                CredWrite("PA_cred_" . Setting["username"].value, Setting["username"].value, this._value)
+                        ; Don't save to disk.
+                        ; Save to local credentials store if this is not a hospital computer 
+                        ; and the password is non-empty.
+                        if !WorkstationIsHospital() {
+                            ; not hospital, so save password to local storage if wanted
+                            if Setting.Has("storepassword") {
+                                if Setting["storepassword"].on {
+                                    if this._value {
+                                        CredWrite("PA_cred_" . Setting["username"].value, Setting["username"].value, this._value)
+                                    }
+                                } else {
+                                    ; user does not want password stored locally
+                                    ; delete any existing locally stored password
+                                    CredDelete("PA_cred_" . Setting["username"].value)
+                                }
+                            }
                         }
                     case "inifile":
                         ; don't save this anywhere
@@ -433,9 +469,9 @@ class SetItem {
 */
 
 
-; Call this to initially determine the current user from the
-; settings.ini file. Updates PASettings[] and CurrentUserCredentials
-PASettings_Init() {
+; Determine the current user, then read the user's saved settings
+; from the user-specific .ini file.
+SettingsInit() {
     inifile := FILE_SETTINGSBASE . ".ini"
 
     curuser := IniRead(inifile, "Users", "curuser", "")
@@ -444,7 +480,7 @@ PASettings_Init() {
     }
 
     ; Now read the current user's settings
-    PASettings_ReadSettings()           
+    SettingsReadAll()           
 }
 
 
@@ -456,7 +492,7 @@ PASettings_Init() {
 ;
 ; Updates "special" setting for password by reading from local store.
 ;
-PASettings_ReadSettings() {
+SettingsReadAll() {
     global Setting
     global CurrentUserCredentials
 
@@ -470,12 +506,19 @@ PASettings_ReadSettings() {
             switch sett.type {
                 case "special":
                     if sett.name == "password" {
-                        ; try to get the password from local storage
-                        cred := CredRead("PA_cred_" . Setting["username"].value)
-                        if cred {
-                            Setting["password"].value := cred.password
-                            CurrentUserCredentials.password := cred.password
+                        if !WorkstationIsHospital() {
+                            ; not hospital, so try to get the password from local storage
+                            cred := CredRead("PA_cred_" . Setting["username"].value)
+                            if cred {
+                                Setting["password"].value := cred.password
+                                CurrentUserCredentials.password := cred.password
+                            } else {
+                                ; didn't find a locally stored password
+                                Setting["password"].value := ""
+                                CurrentUserCredentials.password := ""
+                            }
                         } else {
+                            ; this is a hospital computer, set password to blank
                             Setting["password"].value := ""
                             CurrentUserCredentials.password := ""
                         }
@@ -498,7 +541,7 @@ PASettings_ReadSettings() {
 }
 
 
-; Writes a new user-specific .ini file for the current user.
+; Writes all settings to a (new) user-specific .ini file for the current user.
 ;
 ; All current settings values are written, excluding "special" settings
 ; such as username, password, or inifile.
@@ -506,7 +549,7 @@ PASettings_ReadSettings() {
 ; The current user is specified by PASettings["username"].
 ; The current user-specific .ini file is specified by PASettings["inifile"].
 ;
-PASettings_WriteSettings() {
+SettingsWriteAll() {
     global Setting
 ;    global CurrentUserCredentials
 
@@ -524,15 +567,17 @@ PASettings_WriteSettings() {
 }
 
 
-
-; Generates an HTML form from PASettings[] and PASettingsPage[] and returns it
-; as a string.
+; Generate an HTML form and displays it on the PACS Assistant GUI Settings page.
+;
+; The form is generated from the Setting[] map and the SettingsPage[] array.
 ;
 ; The generated form is inserted into div.#settingsform on the GUI
 ; (replacing any previous contents of innerHTML), unless the show parameter
-; is set to false, in which case the HTML form is only returned as a string.
+; is set to false.
 ;
-; Sample form output:
+; The generated form is returned as a string.
+;
+; Sample form output (but confirm with code):
 ;
 ; <div id="settingsform">
 ;     <form id="PASettings">
@@ -584,15 +629,40 @@ PASettings_WriteSettings() {
 ;     </form>
 ; </div>
 ;
-PASettings_HTMLForm(show := true) {
-    
+SettingsGeneratePage(show := true) {
+    static special := false
+
+    ; Need to special case the storepassword setting depending on whether this is 
+    ; a hospital workstation or a home workstation. The option is removed from the
+    ; SettingsPage[] array if we are running on a hospital workstation.
+    if !special && WorkstationIsHospital() {
+        ; this is a hospital workstation
+        for item in SettingsPage {
+            if !IsSet(item) {
+                ; this array element has been deleted, skip to next one
+                continue    ; for
+            }
+            if item == ">storepassword" {
+                ; this is the setting we need to delete
+                SettingsPage.Delete(A_Index)
+                special := true     ; so we don't have to do this again
+                break           ; for
+            }
+        }
+    }
+
     ; intialize the form to be generated
     form := ''
     form .= '<form id="PASettings">'
 
     in_cat := false     ; track whether we are inside a category section so we remember to close it
 
-    for i, optname in SettingsPage {
+    for optname in SettingsPage {
+
+        if !IsSet(optname) {
+            ; this array element has been deleted, skip to next one
+            continue    ; for
+        }
 
         if (SubStr(optname, 1, 1) == "#") {
             ; this is a Category heading
@@ -739,13 +809,18 @@ PASettings_HTMLForm(show := true) {
 }
 
 
-; Web callback form handler functions
-;
+
+
+/**********************************************************
+** Web callback form handler functions defined by this module
+*/
+
+
 ; HandleFormInput() is called by JS in response to changes made to form elements.
 ;
-; HandleFormInput() uses PASettings[] map to validate and save the new values.
+; HandleFormInput() uses Setting[] map to validate and save the new values.
 ;
-; If validation succeeds, the new value is saved in PASettings[] and 
+; If validation succeeds, the new value is saved in Setting[] and 
 ; also written to the settings.ini file.
 ;
 ; If validation fails, an error message is displayed and the previous setting
@@ -755,7 +830,7 @@ HandleFormInput(WebView, id, newval) {
 
     ; strip the prefix (e.g. "setval-", or "tab-") from the id name to get the key 
     ; if there is no hyphen, then assume no prefix and use the id as is
-    ; as the key to PASettings[] map
+    ; as the key to Setting[] map
     h := InStr(id,"-")
     optname := SubStr(id, 1 + h)
     if h {
