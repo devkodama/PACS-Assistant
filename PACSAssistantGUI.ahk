@@ -154,7 +154,7 @@ HoverEvent(WebView, id) {
 
 ; PAGui_Post() simplifies changes to the DOM.
 ;
-; e.g. GUIPost("patientname", "innerHTML", "John Smith")
+; e.g. PAGui_Post("patientname", "innerHTML", "John Smith")
 ; will replace the innerHTML property of the DOM element having id="patientname" with "John Smith"
 PAGui_Post(id, propname, propval) {
     if _PAGUI_Running {
@@ -443,9 +443,9 @@ PAGui_Init(*) {
     
     ; set up event handlers for web page
     ; parameters are "<function name for html>", <ahk function name>
-    PAGui.AddCallbackToScript("Hover", HoverEvent)
     PAGui.AddCallbackToScript("ClickId", ClickId)
     PAGui.AddCallbackToScript("HandleFormInput", HandleFormInput)
+;    PAGui.AddCallbackToScript("Hover", HoverEvent) -- don't want to use this for now
 
     PAGui.Title := PAGUI_WINDOWTITLE
 

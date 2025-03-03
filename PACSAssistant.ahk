@@ -32,8 +32,8 @@
 
 #MaxThreads 64
 
-DetectHiddenWindows true		; look for hidden windows by default
-DetectHiddenText true			; search hidden text by default
+DetectHiddenWindows false		; don't look for hidden windows by default
+DetectHiddenText false			; don't search hidden text by default
 SetDefaultMouseSpeed 0			; 0 = fastest
 
 

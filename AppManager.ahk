@@ -30,7 +30,7 @@
  *  Context(hwnd, contexts*) - Check whether the passed hwnd matches the passed context(s).
  *                              Returns true if hwnd matches any of the context strings, false otherwise.
  * 
- *  PrintWindows([app, win])    - Returns diagnostic info about a window(s) for an app (or all apps) as a string
+ *  PrintWindows([app, win, showall])    - Returns diagnostic info about a window(s) for an app (or all apps) as a string
  * 
  *  SavePositionsAll()      - For all windows of all apps, saves the current x, y, width, and height of each in its savepos proprety.
  *  RestorePositionsAll()   - For all windows of all apps, restores window to the size and position in its savepos property.
@@ -344,16 +344,10 @@ class WinItem {
                 ; search for the window by criteria, get its hwnd
                 if this.criteria {
                     DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
-                    try {
-                        hwnd := WinExist(this.criteria, this.wintext)
-                    } catch {
-                        ; window no longer exists
-                        hwnd := 0
-                    }
+                    hwnd := WinExist(this.criteria, this.wintext)
                 } else {
-                    ; do nothing
+                    ; do nothing, hwnd already = 0
                 }
-
             }
 
             ; At this point, hwnd has a value either passed to us
@@ -809,7 +803,8 @@ class AppItem {
     }
 
     ; Returns diagnostic info about the window(s) for this app as a string
-    Print(winkey := "") {
+    ; omits non-existing windows or pseudowindows unless showall is set to true
+    Print(winkey := "", showall := false) {
 
         if this.pid {
 
@@ -819,11 +814,11 @@ class AppItem {
             
             if winkey {
                 ; return info just for one window of this app
-                output .= this.Win[winkey].Print()
+                output .= this.Win[winkey].Print(showall)
             } else {
                     ;return info for all windows of this app
                     for k, w in this.Win {
-                        output .= w.Print()
+                        output .= w.Print(showall)
                     }
                 }
         } else {
@@ -1175,7 +1170,9 @@ UpdateAll() {
 ; Returns diagnostic info about a window(s) for an app (or all apps)
 ; as a string
 ;
-PrintWindows(appkey := "", winkey := "") {
+; omits non-existing windows or pseudowindows unless showall is set to true
+;
+PrintWindows(appkey := "", winkey := "", showall := false) {
     global App
 
 	output := ""
@@ -1183,15 +1180,15 @@ PrintWindows(appkey := "", winkey := "") {
     if appkey {
         if winkey {
             ; return info just for one window of one app
-            output .= App[appkey].Win[winkey].Print()
+            output .= App[appkey].Win[winkey].Print(showall)
         } else {
             ; return info for all windows of one app
-            output .= App[appkey].Print()
+            output .= App[appkey].Print( , showall)
         }
     } else {
         ; return info for all apps, all windows
         for k, a in App {
-            output .= a.Print()
+            output .= a.Print( , showall)
         }
     }
 

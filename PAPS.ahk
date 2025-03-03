@@ -371,7 +371,7 @@ TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if PASettings["PSlogout_dismiss"].value {
 		if App["PS"].Win["logout"].hwnd {
 ;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
-;SetControlDelay -1
+SetControlDelay -1
 ControlClick(PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 		}
 	}
@@ -385,7 +385,7 @@ PSOpen_PSsavespeech() {
 	}
 	if PASettings["PSsavespeech_dismiss"].value {
 		if App["PS"].Win["savespeech"].hwnd {
-;SetControlDelay -1
+SetControlDelay -1
 ControlClick(PASettings["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
 		}
 	}

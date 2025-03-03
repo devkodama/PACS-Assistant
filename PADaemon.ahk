@@ -77,7 +77,7 @@ _RefreshGUI() {
 
 	; don't allow reentry
 	if running {
-		return
+;		return
 	}
 	running := true
 
@@ -98,7 +98,7 @@ _RefreshGUI() {
 	}
 
 	; Update current study display if there have been any changes
-	if true || PACurrentStudy.changed {
+	if PACurrentStudy.changed {
 
 		studyinfo := ""
 		; studyinfo .= "acc=" . PACurrentStudy.accession
@@ -171,12 +171,13 @@ _RefreshGUI() {
 	; }
 	; PAGui.PostWebMessageAsString("document.getElementById('windowinfo').innerHTML = `"" . output . "`"")
 
+
 	; Update status bar text
-	if (statusbartext != PAStatusBarText) {
+	if true || (statusbartext != PAStatusBarText) {
 		statusbartext := PAStatusBarText
 		PAGui.PostWebMessageAsString("document.getElementById('statusbartext').innerHTML = `"" . PAStatusBarText . "`"")
 		statusbarlastupdate := A_TickCount
-	} else if A_TickCount - statusbarlastupdate > GUISTATUSBAR_TIMEOUT {
+	} else if (A_TickCount - statusbarlastupdate) > GUISTATUSBAR_TIMEOUT {
 		; remove status message after timeout period
 		PAGui.PostWebMessageAsString("document.getElementById('statusbartext').innerHTML = `"`"")
 	}
@@ -368,7 +369,7 @@ _WatchWindows() {
 
 
 	; update window info for GUI
-	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 

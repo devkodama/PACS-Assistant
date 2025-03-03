@@ -97,8 +97,10 @@ EISend(cmdstring := "", targetwindow := "i1") {
 		}
 		if (hwndEI) {
 			PAWindowBusy := true
-			WinActivate(hwndEI)
-			Send(cmdstring)
+			try {
+				WinActivate(hwndEI)
+				Send(cmdstring)
+			}
 			PAWindowBusy := false
 		}
 	}
@@ -378,10 +380,11 @@ EIClose_EIdesktop() {
 ; If EI is already running, returns immediately (without using credentials)
 ; with return value 1.
 ;
-; If EI is not already running and VPN is not connected, returns 0.
+; If EI is not already running and network is not connected, returns 0.
 ;
-; If EI is not already running and VPN is connected, starts up EI and uses cred to log in.
-; The parameter cred is an object with username and password properties.
+; If EI is not already running and network is connected, starts up EI
+; and uses cred to log in. The parameter cred is an object with username 
+; and password properties.
 ;
 ; Periodically checks PACancelRequest to see if it the startup attempt
 ; should be cancelled
@@ -400,7 +403,7 @@ EIStart(cred := CurrentUserCredentials) {
 	}
 	running := true
 
-	; if EI is aleady up and running, return 1 (true)
+	; if EI desktop is aleady up and running, return 1 (true)
 	if EIIsRunning() {
 		PAStatus("EI is already running")
 	 	running := false
@@ -414,7 +417,6 @@ EIStart(cred := CurrentUserCredentials) {
 			PAStatus("Could not start EI - Network is not connected")
 		} else {
 			PAStatus("Could not start EI - VPN is not connected")
-			
 			; [todo] ask user if they want to connect the vpn
 		}
 		running := false
@@ -433,31 +435,39 @@ EIStart(cred := CurrentUserCredentials) {
 	; allow user to cancel long running operation
 	PAGui_ShowCancelButton()
 
-	; if EI login window does not exist, then EI has not been run, so run EI
-	; or if EI login window does exist but is hidden, then need to kill EI process then rerun EI
-	hwndlogin := App["EI"].Win["login"].WinExist()
-	hiddenlogin := !App["EI"].Win["login"].visible
-	if !hwndlogin || (hwndlogin && hiddenlogin) {
-		if hwndlogin {
-			; if EI login window is hidden, likely EI was running then closed
-			; need to kill the existing process and start over, since the login box doesn't
-			; display properly with WinShow()
-			if App["EI"].pid {
-				try {
-					ProcessClose(App["EI"].pid)
-				}
-				hwndlogin := 0
+	; check if we already have a visible truee login window
+	if !((hwndlogin := App["EI"].Win["login"].WinExist()) && App["EI"].Win["login"].visible) {
+
+		; no visible true login window
+
+		; EI desktop window isn't showing, so kill any existing EI process then (re)run EI.
+		;
+		; Note that there are two windows that will match the criteria for the login window.
+		; Both match the criteria for App["EI"].Win["login"] but have different HWNDs.
+		;
+		; The first is a hidden window that bootstraps the login procedure and monitors the shut
+		; down procedure. This window will only be detected if DetectHiddenWindows is set to true. 
+		; This hidden window persists after EI desktop is closed, and must be killed before EI 
+		; can be run again.
+		;
+		; The second is the true login window that becomes visible and shows the username/password fields.
+		; This is the window we want for logging in.
+		App["EI"].Update()
+		if App["EI"].pid {
+			try {
+				ProcessClose(App["EI"].pid)
 			}
 		}
 
+TTip("run EI")
 		; now run EI
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
 		Sleep(500)
 		App["EI"].Update()
 
-		; wait for login window to exist
+		; wait for true login window to exist
 		tick1 := A_TickCount
-		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+		while !(hwndlogin := App["EI"].Win["login"].WinExist()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
 			App["EI"].Update()
@@ -468,26 +478,18 @@ EIStart(cred := CurrentUserCredentials) {
 		}
 	}
 
-	; if couldn't get a login window, return with failure
+	; if couldn't get to the true login window, return with failure
 	if !hwndlogin {
 		failed := true
 	}
 
-	; quit if user cancelled
-	if PACancelRequest {
-		cancelled := true
-	}
-
 	if !cancelled && !failed {
 
-		; got an EI login window, start the login process
-	
-		; restore the EI login window if it is minimized
-		if App["EI"].Win["login"].minimized {
-			WinRestore(hwndlogin)
-		}
+		; got a true EI login window, start the login process
+;		hwndlogin := App["EI"].Win["login"].hwnd
+TTip("hwndlogin=" hwndlogin)
 
-		; wait for EI login window to be visible (not hidden)
+		; wait for EI login window to be visible (likely already is)
 		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 			PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
@@ -497,7 +499,7 @@ EIStart(cred := CurrentUserCredentials) {
 				break		; while
 			}
 		}
-
+		
 		if !App["EI"].Win["login"].visible {
 			
 			; if EI Login window still not visible after time out, return failure
@@ -505,7 +507,8 @@ EIStart(cred := CurrentUserCredentials) {
 
 		} else {
 
-			; EI login window is visible
+MsgBox("hwndlogin=" hwndlogin)
+			; EI login window is visible, use it
 			WinActivate(hwndlogin)
 
 			; delay to allow display of the username and password edit fields
@@ -527,13 +530,9 @@ EIStart(cred := CurrentUserCredentials) {
 				BlockInput true				; prevent user input from interfering
 				MouseGetPos(&savex, &savey)
 				Click(ok[1].x, ok[1].y + 8)
-				Sleep(50)
 				Send("^a" . cred.username)
-				Sleep(50)
 				Click(ok[2].x, ok[2].y + 8)
-				Sleep(50)
 				Send("^a" . cred.password)
-				Sleep(50)
 				Send("!o")					; Presses OK key (Alt-O) to start login
 				MouseMove(savex, savey)
 				BlockInput false
@@ -578,6 +577,7 @@ EIStart(cred := CurrentUserCredentials) {
 			try {
 				ProcessClose(App["EI"].pid)
 			}
+			Sleep(500)
 			App["EI"].Update()
 		}
 
@@ -727,10 +727,10 @@ EIStop() {
 
 		; shut down successful
 		
-		; After EI desktop is closed, the EI login window persists in a hidden state.
+		; After EI desktop is closed, a hidden EI login window persists in the background.
 		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
 		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
-		if App["EI"].Win["login"].hwnd && !App["EI"].Win["login"].visible {
+		if App["EI"].pid {
 			try {
 				ProcessClose(App["EI"].pid)
 			}
