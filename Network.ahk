@@ -3,10 +3,6 @@
  * 
  * Functions for detecting and making network connections, including VPN connections
  * 
- * Detects the environment, either hospital network or home network.
- *
- * On a hospital workstation, requires a direct connection (bypass VPN).
- * On a home workstation, requires a VPN connection.
  *
  *
  * This module defines the functions:
@@ -53,7 +49,7 @@
 
 
 /**********************************************************
- * Functions to send info to VPN
+ * Functions to interact with VPN client
  * 
  */
 
@@ -424,6 +420,10 @@ VPNStart(cred := CurrentUserCredentials) {
 
 	if connected {
 		PAStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		; if VPN main window is not minimized, then minimize it
+		if !App["VPN"].Win["main"].minimized {
+			WinMinimize(App["VPN"].Win["main"].hwnd)
+		}
 	} else if cancelled {
 		PAStatus("VPN startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else if failedlogins >= VPN_FAILEDLOGINS_MAX {

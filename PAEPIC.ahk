@@ -110,8 +110,7 @@ _EPICBreakTheGlass() {
 ; Returns TRUE if Epic is running, FALSE if not
 ;
 EPICIsRunning() {
-	App["EPIC"].Update()
-	return App["EPIC"].Win["main"].hwnd ? true : false
+	return App["EPIC"].isrunning
 }
 
 

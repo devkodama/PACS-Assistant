@@ -1,9 +1,42 @@
 /**
- * PAEI.ahk
+ * EI.ahk
  * 
  * Functions for working with EI
  *
- *
+ * 
+ * This module defines the functions:
+ * 
+ * 	EISend(cmdstring := "", targetwindow := "i1")	- Send keystroke commands to EI 
+ * 	EIClickDesktop(buttonname)						- Click a button image, specified by buttonname, on the EI Desktop window
+ * 	EIClickImages(buttonname)						- Click a button image, specified by buttonname, on the EI Images1 window
+ * 
+ * 	EIIsRunning()									- Returns TRUE if EI desktop is running, FALSE if not
+ * 	EIIsSearch()									- Functions to detect whether a specific EI desktop page is showing
+ * 	EIIsList()										- 
+ * 	EIIsText()										- 
+ * 	EIIsImage()										- 
+ * 	EIGetStudyMode()								- Determines which type of study is being displayed in the EI Text page
+ * 
+ * 	EIOpen_EIdesktop()								- Hook function called when EI desktop window appears
+ * 	EIClose_EIdesktop()								- Hook function called when EI desktop window goes away
+ * 	
+ * 	EIStart(cred := CurrentUserCredentials)			- Start up Enterprise Imaging Desktop
+ * 	EIStop()										- Shut down Enterprise Imaging
+ * 
+ * 	EIRetrievePatientInfo()							- 
+ * 	EIRetrieveStudyInfo(patient)					- 
+ * 
+ * 	EICmdStartReading()								- Send Start reading/Resume reading commands to EI
+ * 	EICmdDisplayStudyDetails()						- Display Study Details, by clicking the Study Details icon
+ * 	EICmdToggleListText()							- Toggles between the EI desktop Text and List pages
+ * 	EICmdShowSearch()								- Shows the Search page on the EI desktop
+ * 	EICmdResetSearch()								- Resets the Search page on the EI desktop, places cursor in the patient last name field
+ * 	EICmdRemoveFromList()							- Sends the Remove from list command (click on the close icon)
+ * 
+ * On a hospital workstation, requires a direct connection (bypass VPN).
+ * On a home workstation, requires a VPN connection.
+ * 
+ * 
  */
 
 
@@ -35,7 +68,7 @@
 
 
 /**********************************************************
- * Functions to send commands or info to EI
+ * Functions to interact with EI
  * 
  */
 
@@ -81,7 +114,7 @@ EISend(cmdstring := "", targetwindow := "i1") {
 ;	"EIImage"
 ;	"EIEpic"
 ;
-;	"EI_StartReading"
+;	"EI_DesktopStartReading"
 ;
 ; Searches the client area of the EI Desktop window within
 ; the coordinates (0,32) and (720,80) for the button (image search with FindText)
@@ -188,11 +221,11 @@ EIClickImages(buttonname) {
 
 
 /**********************************************************
- * Functions to retrieve info about PS
+ * Functions to retrieve info about EI
  */
 
 
-; Returns the status of EI
+; Returns the status of EI desktop
 ;
 ; Returns TRUE if EI desktop is running, FALSE if not
 ;
@@ -388,35 +421,38 @@ EIStart(cred := CurrentUserCredentials) {
 		return 0
 	}
 	
+	; start up EI
+	PAStatus("Starting EI...")
+	tick0 := A_TickCount
 	cancelled := false
 	failed := false
-	tick0 := A_TickCount
-	PAStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-
-	PAGui_ShowCancelButton()
 
 	; prevent focus following
 	PAWindowBusy := true
 
+	; allow user to cancel long running operation
+	PAGui_ShowCancelButton()
+
 	; if EI login window does not exist, then EI has not been run, so run EI
 	; or if EI login window does exist but is hidden, then need to kill EI process then rerun EI
-	hwndlogin := WinExist(App["EI"].Win["login"].searchtitle, App["EI"].Win["login"].wintext)
+	hwndlogin := App["EI"].Win["login"].WinExist()
 	hiddenlogin := !App["EI"].Win["login"].visible
 	if !hwndlogin || (hwndlogin && hiddenlogin) {
 		if hwndlogin {
 			; if EI login window is hidden, likely EI was running then closed
 			; need to kill the existing process and start over, since the login box doesn't
-			; display properly with just WinShow()
-			pid := WinGetPID(hwndlogin)
-			if pid {
-				ProcessClose(pid)
-				App["EI"].Update()
+			; display properly with WinShow()
+			if App["EI"].pid {
+				try {
+					ProcessClose(App["EI"].pid)
+				}
+				hwndlogin := 0
 			}
-			hwndlogin := 0
 		}
 
 		; now run EI
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
+		Sleep(500)
 		App["EI"].Update()
 
 		; wait for login window to exist
@@ -491,9 +527,13 @@ EIStart(cred := CurrentUserCredentials) {
 				BlockInput true				; prevent user input from interfering
 				MouseGetPos(&savex, &savey)
 				Click(ok[1].x, ok[1].y + 8)
+				Sleep(50)
 				Send("^a" . cred.username)
+				Sleep(50)
 				Click(ok[2].x, ok[2].y + 8)
+				Sleep(50)
 				Send("^a" . cred.password)
+				Sleep(50)
 				Send("!o")					; Presses OK key (Alt-O) to start login
 				MouseMove(savex, savey)
 				BlockInput false
@@ -517,6 +557,7 @@ EIStart(cred := CurrentUserCredentials) {
 					break
 				}
 			}
+
 			if !hwnddesktop {
 				; if EI desktop window still not visible after time out, return failure
 				failed := true
@@ -533,16 +574,11 @@ EIStart(cred := CurrentUserCredentials) {
 
 		; in this case, EI may have already been started up
 		; if there is an EI process, then need to kill EI process before we exit
-		if	hwndlogin := WinExist(App["EI"].Win["login"].searchtitle, App["EI"].Win["login"].wintext) {
-			if pid := WinGetPID(hwndlogin) {
-				ProcessClose(pid)
-				App["EI"].Update()
+		if App["EI"].pid {
+			try {
+				ProcessClose(App["EI"].pid)
 			}
-		} else if hwnddesktop := WinExist(App["EI"].Win["d"].searchtitle, App["EI"].Win["d"].wintext) {
-			if pid := WinGetPID(hwnddesktop) {
-				ProcessClose(pid)
-				App["EI"].Update()
-			}
+			App["EI"].Update()
 		}
 
 		PAStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -562,9 +598,9 @@ EIStart(cred := CurrentUserCredentials) {
 
 	}
 
-; Should we wait for PS & Epic to start up completely??
+	; restore focus following
+	PAWindowBusy := false
 
-	PAWindowBusy := false	; restore focus following
 	running := false
 	return result
 }
@@ -605,10 +641,10 @@ EIStop() {
 		return 1
 	}
 
+	; shut down EI
 	PAStatus("Shutting down EI...")
 	tick0 := A_TickCount
-	
-	PAGui_ShowCancelButton()
+
 	cancelled := false
 	resultEI := false
 	resultPS := false
@@ -617,7 +653,10 @@ EIStop() {
 	; prevent focus following
 	PAWindowBusy := true
 
-	; Close EI desktop
+	; allow user to cancel long running operation
+	PAGui_ShowCancelButton()
+
+	; Close the EI desktop
 	EISend("!{F4}", "d")
 
 	; wait for EI desktop to go away
@@ -660,12 +699,13 @@ EIStop() {
 				pscloseflag := true
 			}
 	
-			hwndEPIC := App["EPIC"].Win["main"].hwnd
-			if !hwndEPIC {
+			if !EPICIsRunning() {
 				resultEPIC := true
 			} else if EPICIsLogin() {
 				; need to shut down Epic
-				WinClose(hwndEPIC)
+				try {
+					ProcessClose(App["EPIC"].pid)
+				}
 			}
 
 			if PACancelRequest {
@@ -690,17 +730,13 @@ EIStop() {
 		; After EI desktop is closed, the EI login window persists in a hidden state.
 		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
 		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
-		hwndlogin := App["EI"].Win["login"].hwnd
-		hiddenlogin := !App["EI"].Win["login"].visible
-		if hwndlogin && hiddenlogin {
-			pid := WinGetPID(hwndlogin)
-			if pid {
-				ProcessClose(pid)
-				App["EI"].Update()
+		if App["EI"].Win["login"].hwnd && !App["EI"].Win["login"].visible {
+			try {
+				ProcessClose(App["EI"].pid)
 			}
 		}
 
-		PAStatus("EI shut down (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+		PAStatus("EI shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
 	} else if !resultEI {
@@ -729,7 +765,8 @@ EIStop() {
 		
 	}
 
-	PAWindowBusy := false	; restore focus following
+	; restore focus following
+	PAWindowBusy := false
 
 	; done
 	running := false
@@ -740,7 +777,7 @@ EIStop() {
 
 
 /**********************************************************
- * PS data retrieval and parsing functions
+ * EI data retrieval and parsing functions
  *  
  */
 
@@ -1163,7 +1200,7 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
  */
 
 
-; Send Start reading/Resume reading command to EI
+; Send Start reading/Resume reading commands to EI
 ;
 ; Uses EIClickImages to target eyeglasses icon since that works for
 ; both Start reading and Resume reading. Ctrl-Enter is a shortcut
