@@ -33,11 +33,11 @@
 
 ; MsgBox("Just called WinEvent.Stop()")
 
-    PAToolTip("Reloading script " A_ScriptName " in 3 seconds...")
+    TTip("Reloading script " A_ScriptName " in 3 seconds...")
     Sleep(1000)
-    PAToolTip("Reloading script " A_ScriptName " in 2 seconds...")
+    TTip("Reloading script " A_ScriptName " in 2 seconds...")
     Sleep(1000)
-    PAToolTip("Reloading script " A_ScriptName " in 1 second...")
+    TTip("Reloading script " A_ScriptName " in 1 second...")
     Sleep(1000)
     Reload
     Sleep 1000 ; If successful, the reload will close this instance during the Sleep, so the line below will never be reached.

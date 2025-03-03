@@ -580,6 +580,11 @@ class WinItem {
             }
         } else {
             ; parent is assumed to be an integer specifying a monitor number
+            ; if parent is zero, the get the monitor number that window is on
+            if !parent {
+                pos := this.pos
+                parent := MonitorNumber(pos.x, pos.y)
+            }
             if parent >= 1 && parent <= MonitorCount() {
                 cw := 0
                 ; get child window position and dimensions
@@ -886,7 +891,7 @@ class AppItem {
 _cbAppShow(hwnd, hook, dwmsEventTime) {
     global PAApps
 
-PAToolTip("_cbAppShow(" hwnd ", " hook.MatchCriteria[1] ", " hook.MatchCriteria[2] ")")
+TTip("_cbAppShow(" hwnd ", " hook.MatchCriteria[1] ", " hook.MatchCriteria[2] ")")
 
     ; Is this a known open window?
     ; try {
@@ -927,7 +932,7 @@ _cbAppCreate(hwnd, hook, dwmsEventTime) {
 	wintitle := hook.MatchCriteria[1]
  	wintext := hook.MatchCriteria[2]
 
-PAToolTip("_cbAppCreate(" hwnd ", " wintitle ", " wintext ")")
+TTip("_cbAppCreate(" hwnd ", " wintitle ", " wintext ")")
 return
 
 ; 	; Figure out which application window was created by searching PAWindows
@@ -960,7 +965,7 @@ _cbAppClose(hwnd, hook, dwmsEventTime) {
 	wintitle := hook.MatchCriteria[1]
  	wintext := hook.MatchCriteria[2]
 
-PAToolTip("_cbAppClose(" hwnd ", " wintitle ", " wintext ")")
+TTip("_cbAppClose(" hwnd ", " wintitle ", " wintext ")")
 return
 
 

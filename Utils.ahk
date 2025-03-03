@@ -4,23 +4,46 @@
  * Utility functions
  *
  *
+ *
+ * This module defines the functions:
+ * 
+ *  TTip(message, duration := 5000)                     - Displays a tooltip.
+ * 
+ *  StrJoin(arr, delimiter := "", OmitChars := "")      - Joins an array of strings into a single string and returns it.
+ * 
+ *  EscapeHTML(Text)                                    - Escapes characters "&, "<", ">", and single and double quotes from a string
+ *                                                          and returns the escaped string.
+ * 
+ *  StdoutToVar(sCmd, sDir:="", sEnc:="CP0")            - Function to run a command line command and return its output as an
+ *                                                          object of the form {Output: sOutput, ExitCode: nExitCode}
+ *
+ * 
  */
 
 
-
-
-
+; Displays a tooltip.
 ;
+; Can set the duration (ms) before the tooltip is hidden. The default is 5 seconds.
 ;
-EscapeHTML(Text) {
-    return StrReplace(StrReplace(StrReplace(StrReplace(StrReplace(Text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"), "`"", "&quot;"), "'", "&#039;")
+TTip(message, duration := 5000) {
+	static currentmessage := ""
+
+	if SubStr(message, 1, 1) = "+" {
+		currentmessage := currentmessage . SubStr(message, 2)
+	} else {
+		currentmessage := message
+	}
+	
+	ToolTip currentmessage
+	SetTimer ToolTip, -duration
 }
 
 
-
-
+; Joins an array of strings into a single string and returns it.
 ;
+; Can specify a delimiter.
 ;
+; Can specify characters to trim from the beginning and end of each string before joining.
 ;
 StrJoin(arr, delimiter := "", OmitChars := "") {
 
@@ -33,20 +56,25 @@ StrJoin(arr, delimiter := "", OmitChars := "") {
 }
 
 
-
-
+; Escapes characters "&, "<", ">", and single and double quotes from a string
+; and returns the escaped string.
 ;
-; not used? 
-;
-GetCMDOutput(command){
-	Shell := ComObject("WScript.Shell")
-	exec := Shell.Exec(A_ComSpec " /C " command)
-	return exec.StdOut.ReadAll()
+EscapeHTML(Text) {
+    return StrReplace(StrReplace(StrReplace(StrReplace(StrReplace(Text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"), "`"", "&quot;"), "'", "&#039;")
 }
 
 
+; not used?
+;
+; GetCMDOutput(command){
+; 	Shell := ComObject("WScript.Shell")
+; 	exec := Shell.Exec(A_ComSpec " /C " command)
+; 	return exec.StdOut.ReadAll()
+; }
+
+
 ; Function to run a command line command and return its output as an
-;   object: { Output: sOutput, ExitCode: nExitCode }
+;   object of the form {Output: sOutput, ExitCode: nExitCode}
 ;
 ; from https://www.autohotkey.com/boards/viewtopic.php?style=8&p=485576
 ;
@@ -54,7 +82,6 @@ GetCMDOutput(command){
 ; see also https://www.autohotkey.com/docs/v2/lib/Run.htm#ExStdOut
 ; see also https://www.autohotkey.com/boards/viewtopic.php?p=345039#p345039
 ;
-
 StdoutToVar(sCmd, sDir:="", sEnc:="CP0") {
     ; Create 2 buffer-like objects to wrap the handles to take advantage of the __Delete meta-function.
     oHndStdoutRd := { Ptr: 0, __Delete: delete(this) => DllCall("CloseHandle", "Ptr", this) }
@@ -127,4 +154,3 @@ StdoutToVar(sCmd, sDir:="", sEnc:="CP0") {
     DllCall( "CloseHandle", "Ptr", NumGet(PI, A_PtrSize, "Ptr") )
     Return { Output: sOutput, ExitCode: nExitCode } 
 }
-

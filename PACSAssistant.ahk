@@ -1,31 +1,27 @@
-/************************************************************************
- * @description Main script for PACS Assistant
- * @author Scott Lee
- * @date 2025/02/25
- * @version 0.0.0
+/**
+ * PACSAssistant.ahk
+ * 
+ * Main script for PACS Assistant.
  * 
  * 
  * This module defines the functions:
  * 
- * 	PAToolTip()
- *	PAEnable()
- * 	PAToggle()
+ *	PAEnable()					- Enables/disables PACS Assistant
+ * 	PAToggle()					- Toggles (enables/disables) PACS Assistant
  * 
- * 	PAShowHome()
- * 	PAShowSettings()
- * 	PAShowWindows()
+ * 	PAShowHome()				- Switches PACS Assistant to Home tab
+ * 	PAShowSettings()			- Switches PACS Assistant to Settings tab
+ * 	PAShowWindows()				- Switches PACS Assistant to Window Manager tab
  *	
- * 	PAInit()
- * 	PAMain()
+ * 	PAInit()					- Called once at startup to do necessary initialization
+ * 	PAMain()					- Main starting point for PACS Assistant
  * 
  * 
- *  
- ***********************************************************************/
+ */
+
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-
-#MaxThreads 64
 
 
 
@@ -33,6 +29,8 @@
 /**********************************************************
  * Defaults
  */
+
+#MaxThreads 64
 
 DetectHiddenWindows true		; look for hidden windows by default
 DetectHiddenText true			; search hidden text by default
@@ -81,101 +79,25 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 
 
-
-
-
-
-
 /**********************************************************
- * Functions defined by this module
+ * Auto execute section
+ * 
+ * This is where PACS Assistant execution starts.
  * 
  */
 
 
-
-
-; This callback function is called when a window matching specific criteria
-; is shown on screen. It updates the WinItem object for the window.
-_PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
-
-	; Figure out which application window was created by searching
-	; for matching criteria
-	crit := hook.MatchCriteria[1]
-	text := hook.MatchCriteria[2]
-
-; PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
-
-	for k, a in App {
-		for , w in a.Win {
-			if crit = w.criteria && text = w.wintext {
-				; found the window, update it with the new hwnd
-				w.Update(hwnd)
-; PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
-				break 2		; break out of both for loops
-			}
-		}
-	}
-
-}
-
-
-; This callback function is called when a specific window is closed
+; Main entry point for starting PACS Assistant, by calling PAMain()
 ;
-_PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
-
-	crit := hook.MatchCriteria[1]
-	text := hook.MatchCriteria[2]
-
-; PAToolTip("Close " hwnd ": ('" crit "','" text "') => ?")
-
-	; Figure out which application window was created by searching
-	; for matching criteria
-	for k, a in App {
-		for , w in a.Win {
-			if crit = w.criteria && text = w.wintext {
-				; found the window, reset the window's properties and call its hook_close
-; PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
-				w.Close(false)
-				break 2		; break out of both for loops
-			}
-		}
-	}
-	
-	; try {
-	; 	win := GetWinItem(hwnd)
-	; 	if win {
-	; 		win.Clear()		; Clears the hwnd and other properties
-	; 	}
-	; }
-	
-}
-
-
+PAMain()
 
 
 
 
 /**********************************************************
- * Functions defined by this module
+ * Functions to control PACS Manager
  * 
  */
-
-
-
-
-; Helper functions
-PAToolTip(message, duration := 5000) {
-	static currentmessage := ""
-
-	if SubStr(message, 1, 1) = "+" {
-		currentmessage := currentmessage . SubStr(message, 2)
-	} else {
-		currentmessage := message
-	}
-	
-	ToolTip currentmessage
-	SetTimer ToolTip, -duration
-}
 
 
 ; Enables/disables PACS Assistant
@@ -213,15 +135,90 @@ PAShowWindows() {
 }
 
 
+
+
+/**********************************************************
+ * Functions to retrieve info from PACS Assistant
+ */
+
+
+
+
+/**********************************************************
+ * Local functions defined by this module
+ * 
+ */
+
+
+; This local callback function is called when a window matching specific criteria
+; is shown on screen. It updates the WinItem object for the window.
+_PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
+
+	; Figure out which application window was created by searching
+	; for matching criteria
+	crit := hook.MatchCriteria[1]
+	text := hook.MatchCriteria[2]
+
+; PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
+
+	for k, a in App {
+		for , w in a.Win {
+			if crit = w.criteria && text = w.wintext {
+				; found the window, update it with the new hwnd
+				w.Update(hwnd)
+; PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+				break 2		; break out of both for loops
+			}
+		}
+	}
+
+}
+
+
+; This local callback function is called when a specific window is closed
+;
+_PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
+
+	crit := hook.MatchCriteria[1]
+	text := hook.MatchCriteria[2]
+
+; PAToolTip("Close " hwnd ": ('" crit "','" text "') => ?")
+
+	; Figure out which application window was created by searching
+	; for matching criteria
+	for k, a in App {
+		for , w in a.Win {
+			if crit = w.criteria && text = w.wintext {
+				; found the window, reset the window's properties and call its hook_close
+; PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+				w.Close(false)
+				break 2		; break out of both for loops
+			}
+		}
+	}
+	
+	; try {
+	; 	win := GetWinItem(hwnd)
+	; 	if win {
+	; 		win.Clear()		; Clears the hwnd and other properties
+	; 	}
+	; }
+	
+}
+
+
+
+
+/**********************************************************
+ * Main and initialization functions for PACS Assistant
+ */
+
+
 ; Called once at startup to do necessary initialization
 ;
 PAInit() {
 	global PAApps
 	global App
-
-	; set PACS Assistant application icon
-	TraySetIcon("PA.ico")
-
 
 	; Get Windows system double click setting
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")
@@ -264,21 +261,12 @@ PAInit() {
 }
 
 
-
-
-
-/**********************************************************
- * Functions defined by this module
- * 
- */
-
-
-
-
 ; Main starting point for PACS Assistant
 ;
 PAMain() {
-	global PACurrentPatient
+
+	; set PACS Assistant application icon
+	TraySetIcon("PA.ico")
 
 	; Basic set up
 	PAInit()
@@ -290,10 +278,3 @@ PAMain() {
     InitDaemons(true)
 
 }
-
-
-
-
-; Start up PACS Assistant by calling PAMain()
-
-PAMain()

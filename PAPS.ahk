@@ -363,7 +363,7 @@ PSClose_PSreport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
-PAToolTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
+TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if PASettings["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}

@@ -578,7 +578,7 @@ F8:: {
 +F8:: {
 	CoordMode("Mouse", "Screen")
 	MouseGetPos(&x, &y)
-	PAToolTip("x, y: " x ", " y " -> " MonitorNumber(x, y))
+	TTip("x, y: " x ", " y " -> " MonitorNumber(x, y))
 }
 
 ^F8:: {

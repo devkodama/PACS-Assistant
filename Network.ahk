@@ -198,8 +198,10 @@ NetworkIsConnected(forceupdate := false) {
 
 ; Hook function called when VPN main window appears
 VPNOpen_VPNmain() {
-	; center on the current monitor
-	App["VPN"].Win["main"].CenterWindow()
+	if PASettings["VPN_center"].value {
+		; center on the current monitor
+		App["VPN"].Win["main"].CenterWindow()
+	}
 }
 
 

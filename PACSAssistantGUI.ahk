@@ -88,7 +88,7 @@ ClickId(WebView, id) {
         case "app-PS-shutdown":
             DispatchQueue.Push(PSStop)
         case "app-PS-forceclose":
-            PAToolTip("This doesn't work yet")
+            TTip("This doesn't work yet")
 ; DispatchQueue.Push(PAGui_ForceClosePS)
 
         case "app-EPIC":
@@ -109,7 +109,7 @@ ClickId(WebView, id) {
             DispatchQueue.Push(PAGui_CancelButton)
 
         default:
-            PAToolTip("id='" . id . "' was clicked")
+            TTip("id='" . id . "' was clicked")
     }
 }
 
@@ -138,7 +138,7 @@ HoverEvent(WebView, id) {
     msg := HoverMessages[id][PACurState[app]]
     if msg {
         ; display tooltip
-        PAToolTip(msg, 1000)
+        TTip(msg, 1000)
     }
 }
 
@@ -192,7 +192,7 @@ PAStatus(message := "", duration := 0) {
 ;
 PAAlert(message, type := "info") {
 
-PAToolTip("paalert: " message ", " type)
+TTip("paalert: " message ", " type)
 
     ; PAGui.PostWebMessageAsString("")
 
@@ -240,7 +240,7 @@ PAGui_RestoreWindowPositions(*) {
         return
     }
     running := true
-  PAToolTip("PAGui_RestoreWindowPositions")
+  TTip("PAGui_RestoreWindowPositions")
     ReadPositionsAll()
     RestorePositionsAll()
 
@@ -259,7 +259,7 @@ PAGui_SaveWindowPositions(*) {
     }
     running := true
 
-  PAToolTip("PAGui_SaveWindowPositions")
+  TTip("PAGui_SaveWindowPositions")
     SavePositionsAll()
     WritePositionsAll()
 

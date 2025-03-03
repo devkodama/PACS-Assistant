@@ -62,6 +62,7 @@ PASettings["ClickLock"] := Setting("ClickLock", "select", "Spacebar", Map("Off",
 PASettings["ClickLock_interval"] := Setting("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 ; VPN settings
+PASettings["VPN_center"] := Setting("VPN_center", "bool", true, , "When VPN window appears, center it on the screen")
 
 ; EI settings
 PASettings["EI_restoreatopen"] := Setting("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
@@ -142,6 +143,9 @@ PASettingsPage.Push("PScenter_dialog")
 PASettingsPage.Push("#Epic")
 PASettingsPage.Push("EPIC_restoreatopen")
 PASettingsPage.Push("EPICtimezone_dismiss")
+
+PASettingsPage.Push("#VPN")
+PASettingsPage.Push("VPN_center")
 
 PASettingsPage.Push("#Beta - Experimental, may not work")
 PASettingsPage.Push("EIcollaborator_show")
