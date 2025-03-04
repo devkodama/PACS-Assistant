@@ -48,6 +48,7 @@
     <div id="tab-home" class="tab-icon default" onclick="openTab(this.id, 'home')"></div>
     <div id="tab-settings" class="tab-icon" onclick="openTab(this.id, 'settings')"></div>
     <div id="tab-windows" class="tab-icon" onclick="openTab(this.id, 'windows')"></div>
+    <div id="tab-help" class="tab-icon" onclick="openTab(this.id, 'help')"></div>
     <div id="tab-active-wrapper">
       <label for="active">ON/OFF</label>
       <input id="tab-active" name="active" class="" role="switch" type="checkbox" oninput="handleCheckbox(this)">
@@ -131,7 +132,7 @@
 
       <div class="col-left">
 
-        <h1>Window manager</h1>
+        <h1>Window Manager</h1>
 
         <div id="windowinfo"></div>
 
@@ -150,8 +151,28 @@
       </div>
 
     </div>
-    <!-- End Settings page -->
+    <!-- End Window Manager page -->
     
+
+    <!-- Help page -->
+    <div id="help" class="tabpage">
+
+      <div class="col-left">
+
+        <h1>Help</h1>
+
+        <div id="helpinfo"></div>
+
+      </div>
+
+      <div class="col-right">
+        <br />
+      </div>
+
+    </div>
+    <!-- End Help page -->
+    
+
   </div>
   <!-- End Primary display area -->
 

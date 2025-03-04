@@ -121,8 +121,6 @@ Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", t
 Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
 Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
 
-
-
 ; Hotkey settings
 Setting["hkTab"] := SetItem("hkTab", "bool", true, , "Enable Tab key mappings")
 Setting["hkCapsLock"] := SetItem("hkCapsLock", "bool", true, , "Enable CapsLock key mappings")
@@ -131,6 +129,9 @@ Setting["hkEsc"] := SetItem("hkEsc", "bool", true, , "Enable Escape key mappings
 Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Enable Ctrl-Y & Ctrl-Z key mappings")
 Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Enable Spacebar double click function")
 Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", true, , "Enable Spacebar PowerScribe delete text function")
+
+; Misc settings
+Setting["run"] := SetItem("run", "num", 0, , "")
 
 
 

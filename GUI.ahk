@@ -6,7 +6,30 @@
  * 
  * This module defines the functions:
  *  
+ *  ClickId(WebView, id)                - handles JS click events and dispatches to corresponding ahk functions
  * 
+ *  HoverEvent(WebView, id)             -
+ * 
+ *  GUIPost(id, propname, propval)
+ *  GUISetStatusBar(message := "")
+ *  GUIStatus(message := "", duration := 0)
+ * 
+ *  GUIAlert(message, type := "info")
+ *  
+ *  GUIShowCancelButton()
+ *  GUIHideCancelButton()
+ *  GUICancelButton()
+ * 
+ *  GUIRestoreWindowPositions(*)        - Restore saved window positions from settings file
+ *  GUISaveWindowPositions(*)           - Save current window positions to settings file
+ * 
+ *  GUIMain(*)                          - Called to create and show main GUI window
+ * 
+ *  GUIGetPassword([prompt])            - Shows a modal dialog to ask for the user's password.
+ *  SetDarkWindowFrame(hwnd, boolEnable:=1) - helper function to set a gui window to dark mode
+ * 
+ *  GUISize(thisGui, MinMax, Width, Height) - Event handler, Called whenever GUI is resized
+ *  GUIExit(*)                              - Event handler, Called when the main GUI window is closed
  * 
  * 
  * 
@@ -53,8 +76,6 @@ if (A_IsCompiled) {
 
 ; the main PACS Assistant GUI
 global PAGUI
-
-global pwdGUI
 
 ; queue of callback functions to be called
 global DispatchQueue
@@ -144,7 +165,6 @@ ClickId(WebView, id) {
             TTip("id='" . id . "' was clicked")
     }
 }
-
 
 
 
@@ -354,9 +374,7 @@ GUIMain(*) {
     PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; don't want to continue to use this for hovers
 
 
-    ; display the PACS Assistant window
-    ; and restore PACS Assistant window position
-
+    ; get previously saved PACS Assistant window position
     App["PA"].ReadPositions()
     PAmain := App["PA"].Win["main"]
     x := PAmain.savepos.x
@@ -364,15 +382,30 @@ GUIMain(*) {
     w := PAmain.savepos.w
     h := PAmain.savepos.h
 
-    if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
-        PAGUI.Show("x" x " y" y " w" w " h" h)
-        Sleep(500)                      ; need time for GUI to be set up
-    } else {
-        ; invalid position, don't use to show
-        PAGUI.Show()
-        Sleep(500)                      ; need time for GUI to be set up
-        PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
+    if w < WINPOS_MINWIDTH || h < WINPOS_MINHEIGHT {
+        ; invalid winpos, calculate some default values
+
+        ; position PA GUI in upper right corner of 3rd monitor from right
+        ; with a width of PA_DEFAULTWIDTH
+        n := MonitorCount()
+        if n > 2 {
+            n := n - 2
+        } else {
+            n := 1
+        }
+        pos := MonitorPos(n)
+        x := pos.x + pos.w - PA_DEFAULTWIDTH
+        y := 0
+        w := PA_DEFAULTWIDTH
+        h := PA_DEFAULTHEIGHT
     }
+
+    ; now show the PACS Assistant GUI window
+    PAGUI.Show("x" x " y" y " w" w " h" h)
+    Sleep(500)                      ; need time for GUI to be set up
+
+    ; PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
+
     GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
 
     PAmain.Update()
@@ -380,7 +413,7 @@ GUIMain(*) {
     ; declare GUI to be up and running
     _GUIIsRunning := true
 
-    ; update GUI to show current username
+    ; add username to title bar
     if Setting["username"].value {
         GUIPost("curuser", "innerHTML", " - " . Setting["username"].value)
     } else {
@@ -393,16 +426,12 @@ GUIMain(*) {
 }
 
 
-; helper function to set a gui window to dark mode
-;
-SetDarkWindowFrame(hwnd, boolEnable:=1) {
-    hwnd := WinExist(hwnd)
-    if VerCompare(A_OSVersion, "10.0.17763") >= 0
-        attr := 19
-    if VerCompare(A_OSVersion, "10.0.18985") >= 0
-        attr := 20
-    DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "int", attr, "int*", boolEnable, "int", 4)
-}
+
+
+/**********************************************************
+ * Main GUI functions
+ * 
+ */
 
 
 ; Shows a modal dialog to ask for the user's password.
@@ -439,8 +468,13 @@ GUIGetPassword(prompt := "Please enter your password") {
     pwdGUI.Add("Button", "yp default", "Ok").OnEvent("Click", _GUIProcessPassword)
     pwdGUI.OnEvent("Close", _GUIProcessPassword)
 
+    ; center over the PA main window
+    p := App["PA"].Win["main"].pos
+    x := p.x + (p.w - 380) / 2
+    y := p.y + (p.h - 140) / 2
+    
     ; show the gui
-    pwdGUI.Show("w380 h140" )
+    pwdGUI.Show("x" x " y" y " w380 h140")
 
     ; wait for the user to enter a password or cancel
     done := false
@@ -459,6 +493,19 @@ GUIGetPassword(prompt := "Please enter your password") {
         return false
     }
 }
+
+
+; helper function to set a gui window to dark mode
+;
+SetDarkWindowFrame(hwnd, boolEnable:=1) {
+    hwnd := WinExist(hwnd)
+    if VerCompare(A_OSVersion, "10.0.17763") >= 0
+        attr := 19
+    if VerCompare(A_OSVersion, "10.0.18985") >= 0
+        attr := 20
+    DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "int", attr, "int*", boolEnable, "int", 4)
+}
+
 
 
 

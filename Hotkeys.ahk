@@ -19,6 +19,9 @@
 
 #include <Cred>
 
+#include <_MD_Gen>
+
+
 #Include Globals.ahk
 
 #Include Network.ahk
@@ -577,14 +580,27 @@ F3:: {
 
 
 F8:: {
-	pwd := GUIGetPassword()
-	TTip("password = " pwd)
+	pos := VirtualScreenPos()
+
+	out := ""
+	out .= "monitor count=" MonitorCount() "`n`n"
+	Peep(_MonitorCoords)
+	n := 1
+	while n <= MonitorCount() {
+		pos := MonitorPos(n)
+		out .= "  " A_Index ": " pos.x ", " pos.y ", " pos.w ", " pos.h "`n"
+		n++
+	}
+	out .= "`n"
+	
+	pos := VirtualScreenPos()
+	out .= "virtual screen: " pos.x ", " pos.y ", " pos.w ", " pos.h "`n"
+	MsgBox(out)
 }
 
 +F8:: {
-	CoordMode("Mouse", "Screen")
-	MouseGetPos(&x, &y)
-	TTip("x, y: " x ", " y " -> " MonitorNumber(x, y))
+	HelpTest()
+
 }
 
 ^F8:: {

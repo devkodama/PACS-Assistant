@@ -40,6 +40,8 @@
  *  MonitorCount()          - Returns the system monitor count
  *  MonitorNumber(x, y)     - Returns the monitor number that contains the x, y coordinates
  *  MonitorPos(N)           - For monitor N, returns the monitor position and size (WinPos).
+ *  VirtualScreenPos()      - Returns a WinPos with  the coordinates and size of the virtual screen.
+ * 
  * 
  */
 
@@ -69,11 +71,12 @@
 
 
 ; The number of system monitors
-global _monitorcount := 0
+global _MonitorCount := 0
 
-; The static local monitors holds each monitor's coordinates
-; as objects of {l, t, r, b}
-global _monitors := Array()
+; Array of objects of {l, t, r, b}, representing the left, top, right, bottom
+; coordinates for each monitor. The right and bottom coordinates are just outside
+; the displayable area.
+global _MonitorCoords := Array()
 
 
 
@@ -491,7 +494,7 @@ class WinItem {
         try {
             if this.hwnd {
 				WinGetPos(&x, &y, &w, &h, this.hwnd)
-				if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+				if w >= WINPOS_MINWIDTH && h >= WINPOS_MINHEIGHT {
                     this._savepos.x := x
                     this._savepos.y := y
                     this._savepos.w := w
@@ -508,7 +511,7 @@ class WinItem {
     RestorePosition() {
         try {
 			if this.hwnd {
-                if this._savepos.w >= WINDOWPOSITION_MINWIDTH && this._savepos.h >= WINDOWPOSITION_MINHEIGHT {
+                if this._savepos.w >= WINPOS_MINWIDTH && this._savepos.h >= WINPOS_MINHEIGHT {
     				WinMove(this._savepos.x, this._savepos.y, this._savepos.w, this._savepos.h, this.hwnd)
                     return true
                 }
@@ -614,7 +617,7 @@ class WinItem {
         }
 
         try {
-            if this._savepos.w >= WINDOWPOSITION_MINWIDTH && this._savepos.h >= WINDOWPOSITION_MINHEIGHT {
+            if this._savepos.w >= WINPOS_MINWIDTH && this._savepos.h >= WINPOS_MINHEIGHT {
                 appkey := this.parentapp.key
                 winkey := this.key
                 sectionname := A_ComputerName . "_WinPos"
@@ -651,7 +654,7 @@ class WinItem {
                 y := IniRead(inifile, sectionname, appkey . winkey . "_y", -1)
                 w := IniRead(inifile, sectionname, appkey . winkey . "_w", 0)
                 h := IniRead(inifile, sectionname, appkey . winkey . "_h", 0)
-                if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+                if w >= WINPOS_MINWIDTH && h >= WINPOS_MINHEIGHT {
                     this._savepos.x := x
                     this._savepos.y := y
                     this._savepos.w := w
@@ -1227,14 +1230,31 @@ ReadPositionsAll() {
 }
 
 
+; Helper function to other Monitor functions
+_MonitorGetInfo() {
+    global _MonitorCount
+    global _MonitorCoords
+
+    ; if first time, get and cache info about the montors
+    if !_MonitorCount {
+        _MonitorCount := MonitorGetCount()
+        n := 1
+        while n <= _MonitorCount {
+            MonitorGetWorkArea(n, &left, &top, &right, &bottom)
+            _MonitorCoords.Push({l: left, t: top, r: right, b: bottom})
+            n++
+        }
+    }
+}
+
+
+
 ; Returns the system monitor count
 MonitorCount() {
-    global _monitorcount
-
-    if !_monitorcount {
-        _monitorcount := MonitorGetCount()
+    if !_MonitorCount {
+        _MonitorGetInfo()
     }
-    return _monitorcount
+    return _MonitorCount
 }
 
 
@@ -1243,23 +1263,13 @@ MonitorCount() {
 ; Returns 0 if coordinates are not on any monitor.
 ;
 MonitorNumber(x, y) {
-    global _monitorcount
-    global _monitors
-
-    ; if first time, get and cache info about the montors
-    if !_monitorcount {
-        _monitorcount := MonitorGetCount()
-        n := 1
-        while n <= _monitorcount {
-            MonitorGetWorkArea(n, &left, &top, &right, &bottom)
-            _monitors.Push({l: left, t: top, r: right, b: bottom})
-            n++
-        }
+    if !_MonitorCount {
+        _MonitorGetInfo()
     }
 
     ; determine which monitor the passed x, y coordinates falls on
     monitorN := 0
-    for mon in _monitors {
+    for mon in _MonitorCoords {
         if x >= mon.l && x < mon.r && y >= mon.t && y < mon.b {
             monitorN := A_Index
             break               ; for
@@ -1270,18 +1280,32 @@ MonitorNumber(x, y) {
 }
 
 
-; For monitor N, returns the monitor position and size (WinPos).
+; For monitor N, returns a WinPos reflecting the monitor's position and size (x,y,w,h).
 ;
 ; Returns 0 if an invalid monitor number is passed.
 ;
 MonitorPos(N) {
-    global _monitorcount
-    global _monitors
+    if !_MonitorCount {
+        _MonitorGetInfo()
+    }
 
-    if N < 1 || N > _monitorcount {
+    if N < 1 || N > _MonitorCount {
         return 0
     }
 
-    mon := _monitors[N]
+    mon := _MonitorCoords[N]
     return WinPos(mon.l, mon.t, (mon.r - mon.l), (mon.b - mon.t))
+}
+
+
+; Returns a WinPos (x, y, w, h) reflecting the coordinates and size of the
+; virtual screen, which is the bounding rectangle of all display monitors.
+;
+; SM_XVIRTUALSCREEN := 76   - Coordinates for the left side and the top of the virtual screen.
+; SM_YVIRTUALSCREEN := 77
+; SM_CXVIRTUALSCREEN := 78  - Width and height of the virtual screen, in pixels.
+; SM_CYVIRTUALSCREEN := 79
+;
+VirtualScreenPos() {
+    return WinPos(SysGet(76), SysGet(77), SysGet(78), SysGet(79))
 }

@@ -553,6 +553,30 @@ body {
 
 
 
+/***********************************************/
+
+/* Help page */
+
+#help .col-left {
+  display: block;
+  float: left;
+  width: 70%;
+  padding: 5px;
+
+  font-size: 0.9rem;
+}
+
+#help .col-right {
+  display: block;
+  float: right;
+  width: 30%;
+  padding: 5px;
+
+  font-size: 0.9rem;
+}
+
+
+
 
 /***********************************************/
 

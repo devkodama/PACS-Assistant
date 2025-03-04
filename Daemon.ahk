@@ -489,7 +489,7 @@ _WatchMouse() {
 						case "chat":
 							if !restore_EPICchat {
 								WinGetPos(&x, &y, &w, &h, hwnd)
-								if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
+								if w >= WINPOS_MINWIDTH && h >= WINPOS_MINHEIGHT {
 									extended_h := (h < 600) ? 600 : h
 									restore_EPICchat := [x, y, w, h, extended_h]
 									WinMove(x, y, w, extended_h, hwnd)

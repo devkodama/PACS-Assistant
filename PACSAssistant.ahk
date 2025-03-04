@@ -78,6 +78,8 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include AppManager.ahk
 
+#Include Help.ahk
+
 
 ; for debugging use
 #Include Debug.ahk
@@ -420,8 +422,19 @@ PAMain() {
 	; Check for a username. 
 	; If no current username, post an alert and ask for one.
 	if !CurrentUserCredentials.username {
-		GUIAlert("Enter your username and password on the Settings page.", "warning")
+		GUIAlert("To get started, enter your username and password on the Settings page.", "green")
 		PAShowSettings()
+	} else {
+		; Display informational alerts the first few time(s) PA is run
+		n := Setting["run"].value
+		if n < 1 {
+			GUIAlert("🡨 Tabs on the left side navigate between Home, Settings, Window Manager, and Help pages", "blue")
+			GUIAlert("Icons on the right side start and stop applications 🡪", "blue")
+			Setting["run"].value := n + 1
+		} else if n < 2 {
+			GUIAlert("⮦ On/Off switch on the lower left enables/disables many PACS Assistant functions", "blue")
+			Setting["run"].value := n + 1
+		}
 	}
 
 }

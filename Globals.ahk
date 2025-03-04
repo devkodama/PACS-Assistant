@@ -101,15 +101,20 @@ EPIC_SHUTDOWN_TIMEOUT := 30
 EPIC_TIMEZONE := "America/Chicago"
 
 
-; maximum password length
+; maximum username length
 PA_USERNAME_MAXLENGTH := 20
 ; maximum password length
 PA_PASSWORD_MAXLENGTH := 20
 
+; default width and height of PACS Assistant GUI window
+PA_DEFAULTWIDTH := 1080
+PA_DEFAULTHEIGHT := 350
 
 ; minimum width and height to consider a window position valid
-WINDOWPOSITION_MINWIDTH := 100
-WINDOWPOSITION_MINHEIGHT := 100
+WINPOS_MINWIDTH := 100
+WINPOS_MINHEIGHT := 100
+
+
 
 
 ; Windows constant (style of visible windows)
@@ -123,6 +128,9 @@ EM_SETSEL := 0x00B1
 EM_SETREADONLY := 0x00CF
 
 ; Windows constants used in GUI.ahk module
+
+
+
 
 
 
