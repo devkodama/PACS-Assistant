@@ -357,12 +357,12 @@ GUIMain(*) {
     ; display the PACS Assistant window
     ; and restore PACS Assistant window position
 
-    winPA := App["PA"].Win["main"]
-    winPA.ReadPosition()
-    x := winPA.savepos.x
-    y := winPA.savepos.y
-    w := winPA.savepos.w
-    h := winPA.savepos.h
+    App["PA"].ReadPositions()
+    PAmain := App["PA"].Win["main"]
+    x := PAmain.savepos.x
+    y := PAmain.savepos.y
+    w := PAmain.savepos.w
+    h := PAmain.savepos.h
 
     if w >= WINDOWPOSITION_MINWIDTH && h >= WINDOWPOSITION_MINHEIGHT {
         PAGUI.Show("x" x " y" y " w" w " h" h)
@@ -375,7 +375,7 @@ GUIMain(*) {
     }
     GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
 
-    winPA.Update()
+    PAmain.Update()
 
     ; declare GUI to be up and running
     _GUIIsRunning := true
@@ -502,10 +502,10 @@ GUIExit(*) {
 
     GUIStatus("Closing PACS Assistant...")
 
-    ; save PA window position
-    winPA := App["PA"].Win["main"]
-    winPA.SavePosition()
-    winPA.WritePosition()
+    ; save PA window positions
+    appPA := App["PA"]
+    appPA.SavePositions()
+    appPA.WritePositions()
 
     ; stop daemons
     DaemonInit(false)
@@ -518,7 +518,6 @@ GUIExit(*) {
     if !WorkstationIsHospital() {
         Setting["password"].SaveSetting()
     }
-
 
     ; terminate the script
     ExitApp()
