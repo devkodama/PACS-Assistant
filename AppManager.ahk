@@ -1,11 +1,11 @@
 /**
  * AppManager.ahk
- *
+ * 
  * This module defines classes and function for managing apps, windows, and monitors.
  * 
- *
+ * 
  * This module defines the following classes:
- *
+ * 
  *  WinPos - stores a 4-tuple x, y, w, h that specifies the position and size
  *  of a window.
  * 

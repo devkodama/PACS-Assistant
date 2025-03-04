@@ -417,4 +417,12 @@ PAMain() {
     ; Start daemons
     DaemonInit()
 
+	; Check for a username. 
+	; If no current username, post an alert and ask for one.
+	Peep(CurrentUserCredentials)
+	if !CurrentUserCredentials.username {
+		GUIAlert("Enter your username and password on the Settings page.", "warning")
+		PAShowSettings()
+	}
+
 }
