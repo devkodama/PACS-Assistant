@@ -72,7 +72,7 @@ Setting["active"] := SetItem("active", "bool", true, , "Top level switch for man
 ; Special settings
 Setting["username"] := SetItem("username", "special", "", PA_USERNAME_MAXLENGTH, "Username")
 Setting["password"] := SetItem("password", "special", "", PA_PASSWORD_MAXLENGTH, "Password")
-Setting["inifile"] := SetItem("inifile", "special", "", 0, "Current user-specific .ini file")
+Setting["inifile"] := SetItem("inifile", "special", FILE_SETTINGSBASE . ".ini", 0, "Current .ini file")
 Setting["storepassword"] := SetItem("storepassword", "bool", true, , "Remember your password on this workstation")
 
 ; General settings
@@ -274,44 +274,59 @@ class SetItem {
                         case "username":
                             newval := Trim(Value)
                             if this._value != newval {
-
                                 ; username has changed, so update the user and his settings
                                 this._value := newval
                                 this._key := ""
                                 CurrentUserCredentials.username := newval
-                                ; update GUI to show the new user
+
                                 if newval {
+                                    ; username is non-empty
+
+                                    ; add username to title bar
                                     GUIPost("curuser", "innerHTML", " - " . newval)
-                                } else {
-                                    GUIPost("curuser", "innerHTML", "")
-                                }
-                                ; update the user-specific .ini filename
-                                if newval = "" {
-                                    Setting["inifile"].value := ""
-                                } else {
+
+                                    ; update password
+                                    if !WorkstationIsHospital() {
+                                        ; not hospital, try to get the password from local storage
+                                        cred := CredRead("PA_cred_" . newval)
+                                        if cred {
+                                            Setting["password"].value := cred.password
+                                        } else {
+                                            Setting["password"].value := ""
+                                        }
+                                    } else {
+                                        Setting["password"].value := ""
+                                    }
+
+                                    ; update the user-specific .ini filename
                                     Setting["inifile"].value := FILE_SETTINGSBASE "." newval ".ini"
                                     if FileExist(Setting["inifile"].value) {
                                         ; Read the new user's saved settings
                                         SettingsReadAll()
                                     } else {
-                                        ; No ini file, let's create a new one
+                                        ; No ini file, let's write a new one
                                         SettingsWriteAll()
                                     }
-                                }
-                                ; try to get the password from local storage
-                                cred := CredRead("PA_cred_" . newval)
-                                if cred {
-                                    Setting["password"].value := cred.password
+
                                 } else {
+                                    ; username is empty
+
+                                    ; update title bar
+                                    GUIPost("curuser", "innerHTML", "")
+
+                                    ; set password to empty
                                     Setting["password"].value := ""
+
+                                    ; set inifile to application-wide settings.ini file
+                                    Setting["inifile"].value := FILE_SETTINGSBASE ".ini"
                                 }
-                                ; Update the displayed form
+
+                                ; Update the displayed settings page form
                                 SettingsGeneratePage()
 
                             } else {
                                 ; username was not changed, don't do anything
                             }
-
                         case "password":
                             newval := Trim(Value)
                             this._value := newval
@@ -327,7 +342,7 @@ class SetItem {
                     this._value := Trim(Value)
                     this._key := ""
             }
-            ; Save the update setting to the user-specific .ini file
+            ; Save this update setting to the .ini file
             this.SaveSetting()
         }
     }
@@ -348,7 +363,7 @@ class SetItem {
     ; There is a master settings.ini file used by PACS Assistant. Each user also
     ; has a separate settings.username.ini file, where username is replaced by 
     ; the actual username. The username must have a value stored in 
-    ; PASettings["username"].
+    ; Setting["username"].
     ;
     SaveSetting() {
 ;        PAToolTip(this.name " / " this._value " / " )
@@ -358,7 +373,7 @@ class SetItem {
                 switch this.name {
                     case "username":
                         if this._value {
-                            inifile := FILE_SETTINGSBASE . ".ini"
+                            inifile := FILE_SETTINGSBASE ".ini"
                             
                             ; save to ini file to remember current user
                             IniWrite(this._value, inifile, "Users", "curuser")
@@ -471,13 +486,12 @@ class SetItem {
 
 ; Determine the current user, then read the user's saved settings
 ; from the user-specific .ini file.
+; If there is no current user (""), then use the application-wide inifile.
 SettingsInit() {
     inifile := FILE_SETTINGSBASE . ".ini"
 
     curuser := IniRead(inifile, "Users", "curuser", "")
-    if curuser !="" {
-        Setting["username"].value := curuser
-    }
+    Setting["username"].value := curuser
 
     ; Now read the current user's settings
     SettingsReadAll()           
