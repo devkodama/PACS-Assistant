@@ -179,7 +179,7 @@ _RefreshGUI() {
 		studyinfo := "No exam"
 ;  PAToolTip(studyinfo)
 
-		PAGui.PostWebMessageAsString("document.getElementById('studyinfo').innerHTML = '" . studyinfo . "'")
+	;	PAGui.PostWebMessageAsString("document.getElementById('studyinfo').innerHTML = '" . studyinfo . "'")
 
 	}
 

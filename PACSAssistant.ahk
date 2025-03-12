@@ -380,7 +380,6 @@ PAInit() {
 			if w.criteria {
 				; register a hook for this window
 				WinEvent.Show(_PAWindowShowCallback, w.criteria, , w.wintext)
-				; register a hook for this window
 			}
 		}
 	}
@@ -424,17 +423,16 @@ PAMain() {
 	if !CurrentUserCredentials.username {
 		GUIAlert("To get started, enter your username and password on the Settings page.", "green")
 		PAShowSettings()
-	} else {
+	} 
 		; Display informational alerts the first few time(s) PA is run
 		n := Setting["run"].value
 		if n < 1 {
-			GUIAlert("🡨 Tabs on the left side navigate between Home, Settings, Window Manager, and Help pages", "blue")
-			GUIAlert("Icons on the right side start and stop applications 🡪", "blue")
-			Setting["run"].value := n + 1
-		} else if n < 2 {
-			GUIAlert("⮦ On/Off switch on the lower left enables/disables many PACS Assistant functions", "blue")
+			GUIAlert("🡨 Tabs on the left side navigate between Home, Settings, Window Manager, and Help pages.", "blue")
+			GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
+			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions (or F2)", "blue")
 			Setting["run"].value := n + 1
 		}
-	}
+
+	
 
 }

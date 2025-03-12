@@ -1,7 +1,7 @@
 /**
  * Debug.ahk
  * 
- * Debug code helpers
+ * Debugging helpers
  * 
  */
 

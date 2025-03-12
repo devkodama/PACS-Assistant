@@ -52,7 +52,7 @@ h1, h2, h3, h4, h5, h6 {
 /* CSS basic styles */
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Verdana, Arial, sans-serif;
 }
 
 h1 {
@@ -226,6 +226,9 @@ body.ahk-maximized .ahk-title-btn-maximize {
 }
 #tab-windows {
   background-image: url('../images/windows.png');
+}
+#tab-help {
+  background-image: url('../images/help.png');
 }
 
 /* these styles are for the PAActive On/Off switch */
@@ -536,7 +539,7 @@ body {
 #windows .col-left {
   display: block;
   float: left;
-  width: 70%;
+  width: 60%;
   padding: 5px;
 
   font-size: 0.9rem;
@@ -545,7 +548,7 @@ body {
 #windows .col-right {
   display: block;
   float: right;
-  width: 30%;
+  width: 40%;
   padding: 5px;
 
   font-size: 0.9rem;
@@ -557,12 +560,12 @@ body {
 
 /* Help page */
 
+
 #help .col-left {
   display: block;
   float: left;
   width: 70%;
-  padding: 5px;
-
+  padding: 5px 10px;
   font-size: 0.9rem;
 }
 
@@ -570,11 +573,55 @@ body {
   display: block;
   float: right;
   width: 30%;
-  padding: 5px;
-
+  padding: 5px 10px;
   font-size: 0.9rem;
 }
 
+
+#help h1 {
+  font-size: 1.8rem;
+  padding-bottom: 0rem;
+  margin-top: 1rem;
+  margin-bottom: 0rem;
+}
+
+#help h2 {
+  font-size: 1.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #444;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+#help h3 {
+  font-size: 1.2rem;
+  padding-bottom: 0.4rem;
+  text-decoration: underline;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+#help p {
+  font-size: 1rem;
+  line-height: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+#help li {
+  font-size: 1rem;
+  line-height: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+#help blockquote {
+  border-left: 2px solid darkred;
+  padding-left: 1rem;
+  margin-top: 1rem;
+}
+
+#help strong {
+  color: #8fd1f9;
+}
 
 
 

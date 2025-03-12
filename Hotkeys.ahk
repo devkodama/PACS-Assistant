@@ -30,6 +30,23 @@
 
 
 /**********************************************************
+** Global variables and constants used or defined in this module
+*/
+
+
+; PA_EIKeyList is an array of EI shortcut keys for which we want automatic viewport activation.
+; It is an array of strings, each representing one EI shortcut key.
+;
+; Example:
+;		PA_EIKeyList := ["1", "2", "3", "d", "+d", "f", "+f", "x", "^w", "^!e", "!q"]
+; where + = Shift, ^ = Ctrl, ! = Alt.
+;
+PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
+
+
+
+
+/**********************************************************
  * Hotkey definitions
  */
 
@@ -58,49 +75,6 @@ F2:: {
 }
 
 
-; Tab key mapping:
-;	Tab -> PowerScribe Next field
-;	Shift-Tab -> PowerScribe Previous field
-;	Ctrl-Tab -> PowerScribe Go to end of current line (End). If pressed again,
-;			move down one line and go to end of line.
-;	Ctrl-Shift-Tab -> PowerScribe Move up one line and go to end of line.
-;
-;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
-;
-$Tab:: {
-	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		PSCmdNextField()
-	} else {
-		Send("{Tab}")
-	}
-}
-$+Tab:: {
-	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		PSCmdPrevField()
-	} else {
-		Send("+{Tab}")
-	}
-}
-$^Tab:: {
-	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		if A_PriorHotkey = ThisHotkey {
-			PSCmdNextEOL()
-		} else {
-			PSCmdEOL()
-		}
-	} else {
-		Send("^{Tab}")
-	}
-}
-$^+Tab:: {
-	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		PSCmdPrevEOL()
-	} else {
-		Send("^+{Tab}")
-	}
-}
-
-
 ; CapsLock mapping
 ;	CapsLock -> PowerScribe Start/Stop Dictation (F4)
 ;	Shift-CapsLock -> PowerScribe Sign Dictation (F12)
@@ -119,7 +93,7 @@ $CapsLock:: {
 	}
 }
 $+CapsLock:: {
-	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["+hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -132,14 +106,14 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["^hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["^+hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -147,12 +121,55 @@ $^+CapsLock:: {
 }
 
 
+; Tab key mapping:
+;	Tab -> PowerScribe Next field
+;	Shift-Tab -> PowerScribe Previous field
+;	Ctrl-Tab -> PowerScribe Go to end of current line (End). If pressed again,
+;			move down one line and go to end of line.
+;	Ctrl-Shift-Tab -> PowerScribe Move up one line and go to end of line.
+;
+;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
+;
+$Tab:: {
+	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+		PSCmdNextField()
+	} else {
+		Send("{Tab}")
+	}
+}
+$+Tab:: {
+	if Setting["+hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+		PSCmdPrevField()
+	} else {
+		Send("+{Tab}")
+	}
+}
+$^Tab:: {
+	if Setting["^hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+		if A_PriorHotkey = ThisHotkey {
+			PSCmdNextEOL()
+		} else {
+			PSCmdEOL()
+		}
+	} else {
+		Send("^{Tab}")
+	}
+}
+$^+Tab:: {
+	if Setting["^+hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
+		PSCmdPrevEOL()
+	} else {
+		Send("^+{Tab}")
+	}
+}
+
+
 ; ` key mapping
 ;	` -> Display Study Details
-;	Shift-` -> Toggle between EI List and Text views
+;	Shift-` -> Toggle between EI Desktop List and Text pages
 ;			If List view is currently selected, then click the EI Text button
 ;			Otherwise, click the EI List button
-;	Ctrl-` -> Switch to EI Search area. If pressed a second time, 
+;	Ctrl-` -> Show EI Desktop Search page. If pressed a second time, 
 ;			clear search fields and place cursor in patient last name
 ;			search field
 ;
@@ -166,14 +183,14 @@ $`:: {
 	}
 }
 $+`:: {
-	if Setting["hkBacktick"].on && Context(Mouse(), "EI", "PS") {
+	if Setting["+hkBacktick"].on && Context(Mouse(), "EI", "PS") {
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if Setting["hkBacktick"].on && Context(Mouse(), "EI", "PS") {
+	if Setting["^hkBacktick"].on && Context(Mouse(), "EI", "PS") {
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -191,7 +208,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $+Esc:: {
-	if Setting["hkEsc"].on && Context(Mouse(), "EI i1 i2") {
+	if Setting["+hkEsc"].on && Context(Mouse(), "EI i1 i2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("+{Esc}")
@@ -282,6 +299,8 @@ $Space:: {
 			; Check to see if there is a text selection in the PS report area
 			; If so, smart delete it
 
+			; If not, send a space
+			Send("{Space}")
 		} else {
 			; If not, send a space
 			Send("{Space}")
@@ -435,32 +454,32 @@ _LButton_beep() {
 ; Each time this function is called, any hotkeys previously defined by this function are 
 ; disabled (no way to actually delete them) prior to defining the new list of hotkeys.
 ;
-
-PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
-
 PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
-	static definedhklist := Array()		; remembers all hotkeys which have been defined through this function
+	static definedhklist := Array()		; remembers all hotkeys which have been defined previously through this function
 
 	if keylist {
 		for hk in definedhklist {
 			Hotkey(hk, "Off")	; disable previously defined hotkeys
 		}
 
-		for key in keylist {
-			; (re)define a hotkey for key
-			hkey := "$" . key
-			Hotkey(hkey, _PA_EIHotkey, "On")
-			
-			; if the hotkey is not already in the definedhklist, then add it
-			found := 0
-			for hk in definedhklist {
-				if hk = hkey {
-					found := true
-					break
+		if Setting["EIactivate"].on {
+			for key in keylist {
+				; (re)define a hotkey for key
+				hkey := "$" . key
+				Hotkey(hkey, _PA_EIHotkey, "On")
+				
+				; if the hotkey is not already in definedhklist, then add it
+				found := 0
+				for hk in definedhklist {
+					if hk = hkey {
+						found := true
+						break
+					}
 				}
-			}
-			if !found {
-				definedhklist.Push(hkey)	; remember the new hotkey
+				if !found {
+					; hotkey is not already in definedhklist, so remember the new hotkey
+					definedhklist.Push(hkey)
+				}
 			}
 		}
 	}
@@ -470,7 +489,7 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 _PA_EIHotkey(key) {
 	global PADoubleClickSetting
 
-	if Context(Mouse(), "EI i1 i2") {
+	if Setting["EIactivate"].on && Context(Mouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 			
@@ -481,7 +500,7 @@ _PA_EIHotkey(key) {
 			}
 		}
 	}
-	Send(SubStr(key,2))		; don't send the $ that is part of the hotkey name
+	Send("{Blind}" . SubStr(key,2))		; don't send the $ that is part of the hotkey name
 }
 
 
@@ -599,7 +618,7 @@ F8:: {
 }
 
 +F8:: {
-	HelpTest()
+	
 
 }
 

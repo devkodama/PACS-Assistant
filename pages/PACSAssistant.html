@@ -18,7 +18,7 @@
   <link rel="icon" href="images/PA.png">
 
   <link rel="stylesheet" href="css/styles.css?v=1.0">
-
+  
 </head>
 
 <body>
@@ -92,7 +92,7 @@
 
       <!-- Toolbar panel -->
       <div id="toolbar">
-        tools here
+
       </div>
 
       <!-- Study info area -->
@@ -134,19 +134,20 @@
 
         <h1>Window Manager</h1>
 
-        <div id="windowinfo"></div>
+        <p>Move PACS windows to desired positions, then press <strong>Remember window positions</strong>. This will save the positions of all visible PACS windows (EI, PowerScribe, Epic).</p>
+        <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)" class="btn btn-block btn-outline-primary">Remember window positions</button>
+
+        <br />
+        <br />
+
+        <p>Press <strong>Restore window positions</strong> to restore windows to last saved positions. This will affect all visible PACS windows (EI, PowerScribe, Epic).</p>
+        <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)" class="btn btn-block btn-outline-primary">Restore window positions</button>
 
       </div>
 
       <div class="col-right">
 
-        <br />
-        <button type="button" id="button-savewindows" onclick="ahk.ClickId(this.id)"
-          class="btn btn-block btn-outline-primary">Save window positions</button>
-        <button type="button" id="button-restorewindows" onclick="ahk.ClickId(this.id)"
-          class="btn btn-block btn-outline-primary">Restore window positions</button>
-
-        <br />
+        <div id="windowinfo"></div>
 
       </div>
 
@@ -159,9 +160,7 @@
 
       <div class="col-left">
 
-        <h1>Help</h1>
-
-        <div id="helpinfo"></div>
+          <div id="helpinfo"></div>
 
       </div>
 
@@ -221,6 +220,7 @@
   <!-- scripts at end of body for performance reasons -->
 
   <script src="js/scripts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 </body>
 

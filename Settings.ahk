@@ -79,6 +79,7 @@ Setting["storepassword"] := SetItem("storepassword", "bool", true, , "Remember y
 Setting["MouseJiggler"] := SetItem("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
 Setting["MouseJiggler_timeout"] := SetItem("MouseJiggler_timeout", "num", 240, [0, 1440], "Disable mouse jiggler after this many minutes of inactivity (0 = never disable)")
 Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus following to keep the window under the mouse active")
+;Setting["RememberWindows"] := SetItem("RememberWindows", "bool", true, , "Automatically remember window positions on exit.")
 
 Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
@@ -122,17 +123,32 @@ Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "
 Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
 
 ; Hotkey settings
-Setting["hkTab"] := SetItem("hkTab", "bool", true, , "Enable Tab key mappings")
-Setting["hkCapsLock"] := SetItem("hkCapsLock", "bool", true, , "Enable CapsLock key mappings")
-Setting["hkBacktick"] := SetItem("hkBacktick", "bool", true, , "Enable Backtick (``) key mappings")
-Setting["hkEsc"] := SetItem("hkEsc", "bool", true, , "Enable Escape key mappings")
-Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Enable Ctrl-Y & Ctrl-Z key mappings")
-Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Enable Spacebar double click function")
-Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", true, , "Enable Spacebar PowerScribe delete text function")
+Setting["hkCapsLock"] := SetItem("hkCapsLock", "bool", true, , "Enable CapsLock ⇒ PowerScribe Microphone on/off")
+Setting["+hkCapsLock"] := SetItem("+hkCapsLock", "bool", true, , "Enable Shift-CapsLock ⇒ PowerScribe Sign Dictation")
+Setting["^hkCapsLock"] := SetItem("^hkCapsLock", "bool", true, , "Enable Ctrl-CapsLock ⇒ PowerScribe Draft Dictation")
+Setting["^+hkCapsLock"] := SetItem("^+hkCapsLock", "bool", true, , "Enable Ctrl-Shift-CapsLock ⇒ PowerScribe Sign as Preliminary")
+
+Setting["hkTab"] := SetItem("hkTab", "bool", true, , "Enable Tab ⇒ PowerScribe Next field")
+Setting["+hkTab"] := SetItem("+hkTab", "bool", true, , "Enable Shift-Tab ⇒ PowerScribe Previous field")
+Setting["^hkTab"] := SetItem("^hkTab", "bool", true, , "Enable Ctrl-Tab ⇒ PowerScribe Move to End of current line")
+Setting["^+hkTab"] := SetItem("^+hkTab", "bool", true, , "Enable Ctrl-Shift-Tab ⇒ PowerScribe Move to End of line above")
+
+Setting["hkBacktick"] := SetItem("hkBacktick", "bool", true, , "Enable Backtick (``) ⇒ Display Study Details (comparison report)")
+Setting["+hkBacktick"] := SetItem("+hkBacktick", "bool", true, , "Enable Shift-Backtick (``) ⇒ Toggle between EI Desktop List and Text pages")
+Setting["^hkBacktick"] := SetItem("^hkBacktick", "bool", true, , "Enable Ctrl-Backtick (``) ⇒ Show EI Desktop Search page")
+
+Setting["+hkEsc"] := SetItem("+hkEsc", "bool", true, , "Enable Escape ⇒ Close current study")
+
+Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Enable Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
+
+Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Enable Spacebar to double click")
+Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Enable Spacebar to delete text in PowerScribe")
+
+; Advanced
+Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
 
 ; Misc settings
 Setting["run"] := SetItem("run", "num", 0, , "")
-
 
 
 
@@ -188,15 +204,26 @@ SettingsPage.Push("EPIC_restoreatopen")
 SettingsPage.Push("EPICtimezone_dismiss")
 
 SettingsPage.Push("#Hotkeys")
-SettingsPage.Push("hkTab")
 SettingsPage.Push("hkCapsLock")
+SettingsPage.Push("+hkCapsLock")
+SettingsPage.Push("^hkCapsLock")
+SettingsPage.Push("^+hkCapsLock")
+SettingsPage.Push("hkTab")
+SettingsPage.Push("+hkTab")
+SettingsPage.Push("^hkTab")
+SettingsPage.Push("^+hkTab")
 SettingsPage.Push("hkBacktick")
-SettingsPage.Push("hkEsc")
+SettingsPage.Push("+hkBacktick")
+SettingsPage.Push("^hkBacktick")
+SettingsPage.Push("+hkEsc")
 SettingsPage.Push("hkCtrlYZ")
 SettingsPage.Push("hkSpaceClick")
-SettingsPage.Push("hkSpaceDelete")
 
-SettingsPage.Push("#Beta - Experimental, may not work")
+SettingsPage.Push("#Advanced")
+SettingsPage.Push("EIactivate")
+
+SettingsPage.Push("#Beta - Experimental, not working yet")
+SettingsPage.Push("hkSpaceDelete")
 SettingsPage.Push("EIcollaborator_show")
 
 

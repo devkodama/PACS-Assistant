@@ -444,8 +444,8 @@ class WinItem {
             }
 
 ;            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ") / (" this.savepos.x ", " this.savepos.y ", " this.savepos.w ", " this.savepos.h ")"
-
-            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ")"
+            ; output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ")"
+            output .= " savepos=(" this.savepos.x ", " this.savepos.y ", " this.savepos.w ", " this.savepos.h ")"
 
             ; output .= this.fulltitle " (= '" this.criteria "'"  
             ; if this.wintext {
@@ -1246,7 +1246,6 @@ _MonitorGetInfo() {
         }
     }
 }
-
 
 
 ; Returns the system monitor count

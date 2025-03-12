@@ -295,9 +295,12 @@ GUIRestoreWindowPositions(*) {
     }
     running := true
 
-  TTip("GUIRestoreWindowPositions")
+    GUIStatus("Restoring windows...")
+
     ReadPositionsAll()
     RestorePositionsAll()
+
+    GUIStatus("Restored")
 
     ;done
     running := false
@@ -315,9 +318,28 @@ GUISaveWindowPositions(*) {
     }
     running := true
 
-  TTip("GUISaveWindowPositions")
+    GUIStatus("Remembering window positions...")
+
     SavePositionsAll()
+
+    Peep(App["PS"].Win["login"].savepos)
+    Peep(App["PS"].Win["main"].savepos)
+
+    ; PS login window is a special case. It's saved position should be set to the same as the PS main window,
+    ; unless the main window does not have a saved position.
+    if App["PS"].Win["main"].savepos.w < WINPOS_MINWIDTH || App["PS"].Win["main"].savepos.h < WINPOS_MINHEIGHT {
+        App["PS"].Win["main"].savepos := App["PS"].Win["login"].savepos
+    } else {
+        App["PS"].Win["login"].savepos := App["PS"].Win["main"].savepos
+    }
+
+    Peep(App["PS"].Win["login"].savepos)
+    Peep(App["PS"].Win["main"].savepos)
+
+    ; write to settings file
     WritePositionsAll()
+
+    GUIStatus("Remembered")
 
     ;done
     running := false
@@ -422,6 +444,9 @@ GUIMain(*) {
 
     ; initialize the settings page
     SettingsGeneratePage()
+
+    ; initialize the Help page
+    HelpShowReadme()
 
 }
 

@@ -281,8 +281,6 @@ PSIsReport() {
 PSOpen_PSlogin() {
 	global _PSlastparent
 
-	; [todo] determine if PS was just opened or just closed
-
 	if Setting["PS_restoreatopen"].value {
 		; Restore PS window position
 		App["PS"].RestorePositions()
@@ -316,6 +314,7 @@ PSOpen_PSmain() {
 		PASound("PowerScribe opened")
 	}
 
+/*
 	; remove the current patient
 	PACurrentPatient.lastfirst := ""
 	PACurrentPatient.dob := ""
@@ -331,6 +330,7 @@ PSOpen_PSmain() {
 	PACurrentStudy.referringmd := ""
 	PACurrentStudy.reason := ""
 	PACurrentStudy.techcomments := ""
+*/
 
 	_PSlastparent := "main"
 }
@@ -376,7 +376,7 @@ PSOpen_PSreport() {
 
 
 	; When the PS report window appears, refresh the current patient in PA
-	
+/*	
 	PACurrentPatient.lastfirst := ""
 	PACurrentPatient.dob := ""
 	PACurrentPatient.sex := ""
@@ -417,6 +417,7 @@ PSOpen_PSreport() {
 			PACurrentStudy.techcomments := st.techcomments
 		}
 	}
+*/
 
 	; switch PA tab to Home page
 	PAShowHome()
@@ -427,7 +428,12 @@ PSOpen_PSreport() {
 
 ; Hook function called when PS report or addendum window goes away
 PSClose_PSreport() {
+	global PACurrentStudy
+	
 	GUIStatus("Report closed")
+
+	PACurrentStudy := Study()
+	PACurrentStudy.changed := true
 
 	if Setting["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
@@ -440,16 +446,20 @@ PSClose_PSreport() {
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
 	PASound("logout")
-TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
+; TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
 ;PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].key " / " PASettings["PSlogout_dismiss_reply"].value)
-	if Setting["PSlogout_dismiss"].value {
+	if Setting["PSlogout_dismiss"].on {
 		if App["PS"].Win["logout"].hwnd {
 ;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
-SetControlDelay -1
-ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
+
+try{
+ SetControlDelay -1
+ ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
+}
+
 		}
 	}
 }
@@ -457,10 +467,11 @@ ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hw
 
 ; Hook function called when PS window appears
 PSOpen_PSsavespeech() {
+	PASound("save speech")
 	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["savespeech"].CenterWindow(PSParent())
 	}
-	if Setting["PSsavespeech_dismiss"].value {
+	if Setting["PSsavespeech_dismiss"].on {
 		if App["PS"].Win["savespeech"].hwnd {
 SetControlDelay -1
 ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
