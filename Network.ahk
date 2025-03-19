@@ -113,13 +113,19 @@ WorkstationIsHospital(forceupdate := false) {
 	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
 		ishospital := false
 
+		; check for matching ip addresses
 		ip := NetworkGetIP(forceupdate)
-		if RegExMatch(ip, "([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+", &regout) {			
-			if regout[1] == "172.30.198" {
-				ishospital := true
+		if RegExMatch(ip, "([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+", &regout) {	
+			for prefix in HOSPITAL_SUBNETPREFIXES {		
+				if regout[1] == prefix {
+					ishospital := true
+					break			; for
+				}
 			}
-		} else {
-			; check for matching hostname
+		} 
+
+		; or check for matching hostname
+		if !ishospital {
 			host := NetworkGetHostName(forceupdate)
 			if host {
 				for prefix in HOSPITAL_WORKSTATIONPREFIXES {
@@ -132,6 +138,7 @@ WorkstationIsHospital(forceupdate := false) {
 			}
 		}
 	}
+	
 	return ishospital
 }
 
