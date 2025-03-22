@@ -123,26 +123,26 @@ Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "
 Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
 
 ; Hotkey settings
-Setting["hkCapsLock"] := SetItem("hkCapsLock", "bool", true, , "Enable CapsLock ⇒ PowerScribe Microphone on/off")
-Setting["+hkCapsLock"] := SetItem("+hkCapsLock", "bool", true, , "Enable Shift-CapsLock ⇒ PowerScribe Sign Dictation")
-Setting["^hkCapsLock"] := SetItem("^hkCapsLock", "bool", true, , "Enable Ctrl-CapsLock ⇒ PowerScribe Draft Dictation")
-Setting["^+hkCapsLock"] := SetItem("^+hkCapsLock", "bool", true, , "Enable Ctrl-Shift-CapsLock ⇒ PowerScribe Sign as Preliminary")
+Setting["hkCapsLock"] := SetItem("hkCapsLock", "bool", true, , "CapsLock ⇒ PowerScribe Microphone on/off")
+Setting["+hkCapsLock"] := SetItem("+hkCapsLock", "bool", true, , "Shift-CapsLock ⇒ PowerScribe Sign Dictation")
+Setting["^hkCapsLock"] := SetItem("^hkCapsLock", "bool", true, , "Ctrl-CapsLock ⇒ PowerScribe Draft Dictation")
+Setting["^+hkCapsLock"] := SetItem("^+hkCapsLock", "bool", true, , "Ctrl-Shift-CapsLock ⇒ PowerScribe Sign as Preliminary")
 
-Setting["hkTab"] := SetItem("hkTab", "bool", true, , "Enable Tab ⇒ PowerScribe Next field")
-Setting["+hkTab"] := SetItem("+hkTab", "bool", true, , "Enable Shift-Tab ⇒ PowerScribe Previous field")
-Setting["^hkTab"] := SetItem("^hkTab", "bool", true, , "Enable Ctrl-Tab ⇒ PowerScribe Move to End of current line")
-Setting["^+hkTab"] := SetItem("^+hkTab", "bool", true, , "Enable Ctrl-Shift-Tab ⇒ PowerScribe Move to End of line above")
+Setting["hkTab"] := SetItem("hkTab", "bool", true, , "Tab ⇒ PowerScribe Next field")
+Setting["+hkTab"] := SetItem("+hkTab", "bool", true, , "Shift-Tab ⇒ PowerScribe Previous field")
+Setting["^hkTab"] := SetItem("^hkTab", "bool", true, , "Ctrl-Tab ⇒ PowerScribe Move to End of current/next line")
+Setting["^+hkTab"] := SetItem("^+hkTab", "bool", true, , "Ctrl-Shift-Tab ⇒ PowerScribe Move to End of line above")
 
-Setting["hkBacktick"] := SetItem("hkBacktick", "bool", true, , "Enable Backtick (``) ⇒ Display Study Details (comparison report)")
-Setting["+hkBacktick"] := SetItem("+hkBacktick", "bool", true, , "Enable Shift-Backtick (``) ⇒ Toggle between EI Desktop List and Text pages")
-Setting["^hkBacktick"] := SetItem("^hkBacktick", "bool", true, , "Enable Ctrl-Backtick (``) ⇒ Show EI Desktop Search page")
+Setting["hkBacktick"] := SetItem("hkBacktick", "bool", true, , "Backtick (``) ⇒ Display Study Details (comparison report)")
+Setting["+hkBacktick"] := SetItem("+hkBacktick", "bool", true, , "Shift-Backtick (``) ⇒ Toggle between EI Desktop List and Text pages")
+Setting["^hkBacktick"] := SetItem("^hkBacktick", "bool", true, , "Ctrl-Backtick (``) ⇒ Show EI Desktop Search page")
 
-Setting["+hkEsc"] := SetItem("+hkEsc", "bool", true, , "Enable Escape ⇒ Close current study")
+Setting["+hkEsc"] := SetItem("+hkEsc", "bool", true, , "Shift-Escape ⇒ Close current study")
 
-Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Enable Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
+Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
 
-Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Enable Spacebar to double click")
-Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Enable Spacebar to delete text in PowerScribe")
+Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Spacebar to double click")
+Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar to delete text in PowerScribe")
 
 ; Advanced
 Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
