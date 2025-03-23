@@ -14,6 +14,7 @@
  * 
  * 	_WatchMouse()						- Update the hwnd of the window under the mouse cursor
  * 	_JiggleMouse()						- Jiggle the mouse to keep screen awake
+ *  _ClearCapsLock()					- Clear CapsLock after no keyboard input for a specified time
  * 
  * 
  */
@@ -53,6 +54,7 @@ DaemonInit(start := true) {
 	; these daemons only act if PAActive is true
 	SetTimer(_WatchMouse, (start ? WATCHMOUSE_UPDATE_INTERVAL : 0))
 	SetTimer(_JiggleMouse, (start ? JIGGLEMOUSE_UPDATE_INTERVAL : 0))
+	SetTimer(_ClearCapsLock, (start ? CAPSLOCK_TIMEOUT / 2 : 0))
 }
 
 
@@ -540,5 +542,18 @@ _JiggleMouse() {
 	if Setting["MouseJiggler"].on {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
+	}
+}
+
+
+; Clear CapsLock after no keyboard input for a specified time
+;
+_ClearCapsLock() {
+	if !PAActive {
+		return
+	}
+
+	if Setting["ClearCapsLock"].on && A_TimeIdleKeyboard > CAPSLOCK_TIMEOUT {
+		SetCapsLockState false
 	}
 }

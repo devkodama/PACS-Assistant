@@ -54,6 +54,9 @@ WATCHNETWORK_UPDATE_INTERVAL := 60000       ; 60000 = 1 minute
 ; interval (ms) for jiggling mouse to keeping screen awake
 JIGGLEMOUSE_UPDATE_INTERVAL := 120000		; 120000 = 2 minutes
 
+; interval (ms) for clearing CapsLock after no keyboard input
+CAPSLOCK_TIMEOUT := 10000		; 10000 = 10 sec
+
 ; timeout (ms) for clearing status bar text
 GUISTATUSBAR_TIMEOUT := 60000	    ; 60000 = 60 sec
 
