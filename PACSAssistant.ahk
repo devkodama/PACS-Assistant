@@ -51,7 +51,9 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include <WinEvent>
 #Include <Cred>
+#include <DateParse>
 #Include <FindText>
+#include <_MD_Gen>
 
 #Include <Peep.v2>				; for debugging
 
@@ -59,22 +61,29 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include Globals.ahk
 #Include Settings.ahk
-
-#Include Sound.ahk
 #Include FindTextStrings.ahk
 
+#Include Sound.ahk
+
+#Include Info.ahk
+#Include ICDCode.ahk
 
 #Include Daemon.ahk
 
 #Include Network.ahk
 #Include EI.ahk
-#Include PS.ahk
-#Include EPIC.ahk
 
 #Include Hotkeys.ahk
 
-#Include PAInfo.ahk
-#Include PAICDCode.ahk
+#Include PS.ahk
+
+
+
+
+
+
+
+#Include EPIC.ahk
 
 #Include GUI.ahk
 
@@ -262,15 +271,13 @@ PACSStart(cred := CurrentUserCredentials) {
 	resultNetwork := NetworkIsConnected(true)
 	if !resultNetwork {
 		if !WorkstationIsHospital() {
-		    resultVPN := VPNStart(cred)
-			resultNetwork := (resultVPN = 1)
+		    resultNetwork := (VPNStart(cred) = 1)
 		}
 	}
 
 	if resultNetwork {
-		; have network, try to start EI
-        resultEI := EIStart(cred)
-        resultEI := (resultEI = 1) ? true : false
+		; have network connection, try to start EI
+        resultEI := (EIStart(cred) = 1) ? true : false
     } else {
 		; no network connection, can't start EI
         resultEI := false
@@ -327,8 +334,7 @@ PACSStop() {
     resultEI := (EIStop() = 1)
 	if resultEI {
 		if !WorkstationIsHospital() {
-		    resultVPN := VPNStop()
-			resultNetwork := (resultVPN = 1)
+			resultNetwork := (VPNStop() = 1)
 		} else {
 			resultNetwork := true
 		}

@@ -115,17 +115,6 @@ PSSend(cmdstring := "") {
 		}
 	}
 
-		; if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
-		; 	return
-		; }
-
-		; at this point hwndPS is non-null and points to the current PS window
-	; 	PAWindowBusy := true
-	; 	WinActivate(hwndPS)
-	; 	Send(cmdstring)
-	; 	PAWindowBusy := false
-	; }
-
 }
 
 
@@ -149,13 +138,12 @@ PSPaste(text := "") {
 		saveclipboard := A_Clipboard
 		A_Clipboard := text
 		WinActivate(hwndPS)
-		SendInput("^v")					; paste the text
+		SendInput("^v")				; paste the text
 		Sleep(100)					; requires a delay before restoring keyboard, or else the ^v paste will send the wrong contents (the saved clipboard)
 		A_Clipboard := saveclipboard
 		PAWindowBusy := false
 	}
 }
-
 
 
 
@@ -199,7 +187,7 @@ PSParent() {
 ; This function also turns off the microphone after an idle timeout, if
 ; enabled by PASettings["PS_dictate_idleoff"]. It does so by tracking the
 ; time since the last physical keyboard or mouse activity. This functionality
-; depends upon this function being called frequently (as it typically is by PADaemon()).
+; depends upon this function being called sufficiently frequently (as it typically is by PADaemon()).
 ;
 PSDictateIsOn(forceupdate := false) {
 	static dictatestatus := false
@@ -207,7 +195,6 @@ PSDictateIsOn(forceupdate := false) {
 
 	; If one of PS report, addendum, or main windows does not exist, return false
 	if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
-
 		dictatestatus := false
 
 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
@@ -215,7 +202,7 @@ PSDictateIsOn(forceupdate := false) {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
 			if FindText(&x, &y, x0, y0 + 16, x0 + w0, y0 + 128, 0.001, 0.001, PAText["PSDictateOn"]) {
 				; dictate button is on
-				if Setting["PS_dictate_idleoff"].value {
+				if Setting["PS_dictate_idleoff"].enabled {
 					; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
 					; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
 					if dictatestatus && A_TimeIdlePhysical > (Setting["PS_dictate_idletimeout"].value * 60000) {
@@ -281,7 +268,7 @@ PSIsReport() {
 PSOpen_PSlogin() {
 	global _PSlastparent
 
-	if Setting["PS_restoreatopen"].value {
+	if Setting["PS_restoreatopen"].enabled {
 		; Restore PS window position
 		App["PS"].RestorePositions()
 	}
@@ -346,8 +333,10 @@ PSClose_PSmain() {
 ; helper function to turn off mic
 ; called by PSOpen_PSreport() and PSClose_PSreport()
 _PSStopDictate() {
-	if PSDictateIsOn(true) {
-		PSSend("{F4}")						; Stop Dictation
+	if App["PS"].Win["report"].hwnd || App["PS"].Win["main"].hwnd || App["PS"].Win["addendum"].hwnd {
+		if PSDictateIsOn(true) {
+			PSSend("{F4}")						; Stop Dictation
+		}
 	}
 }
 
@@ -363,17 +352,20 @@ PSOpen_PSreport() {
 	; Automatically turn on microphone when opening a report (and off when closing a report)
 	if Setting["PS_dictate_autoon"].value {
 		; cancel the autooff timer
-		SetTimer(_PSStopDictate, 0)		; cancel pending microphone off action	
+		SetTimer(_PSStopDictate, 0)		; cancel any pending microphone off action	
 
 		; check to ensure the mic is on, turn it on if it isn't
-		if !PSDictateIsOn(true) {			
+		; keep trying for up to 5 seconds
+		tick0 := A_TickCount
+		while !PSDictateIsOn(true) && (A_TickCount - tick0 < 5000) {			
 			; mic is not on so turn it on
 			PSSend("{F4}")						; Start Dictation
+			Sleep(1000)
+		}
+		if PSDictateIsOn() {
 			PlaySound("PSToggleMic")
 		}
-	}	
-
-
+	}
 
 	; When the PS report window appears, refresh the current patient in PA
 /*	
@@ -438,7 +430,7 @@ PSClose_PSreport() {
 	if Setting["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
 		; Stop dictation afer a delay, to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
-		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after delay
+		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after brief delay
 	}
 }
 
@@ -451,7 +443,7 @@ PSOpen_PSlogout() {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
 	}
 ;PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].key " / " PASettings["PSlogout_dismiss_reply"].value)
-	if Setting["PSlogout_dismiss"].on {
+	if Setting["PSlogout_dismiss"].enabled {
 		if App["PS"].Win["logout"].hwnd {
 ;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
 
@@ -471,7 +463,7 @@ PSOpen_PSsavespeech() {
 	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["savespeech"].CenterWindow(PSParent())
 	}
-	if Setting["PSsavespeech_dismiss"].on {
+	if Setting["PSsavespeech_dismiss"].enabled {
 		if App["PS"].Win["savespeech"].hwnd {
 SetControlDelay -1
 ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
@@ -608,7 +600,7 @@ PSStart(cred := CurrentUserCredentials) {
 	}
 	running := true
 
-	; if EI is aleady up and running, return 1 (true)
+	; if PS is aleady up and running, return 1 (true)
 	if PSIsRunning() {
 		GUIStatus("PowerScribe is already running")
 	 	running := false

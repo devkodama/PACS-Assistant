@@ -45,11 +45,8 @@ WATCHWINDOWS_UPDATE_INTERVAL := 400
 ; interval (ms) for updating dictate button status
 WATCHDICTATE_UPDATE_INTERVAL := 100
 
-; interval (ms) for updating network connection status
-WATCHNETWORK_UPDATE_INTERVAL := 1000
-
-; interval (ms) for updating workstation status
-WATCHNETWORK_UPDATE_INTERVAL := 60000       ; 60000 = 1 minute
+; interval (ms) for updating network connection or workstation status
+WATCHNETWORK_UPDATE_INTERVAL := 5000       ; 5000 = 5 seconds
 
 ; interval (ms) for jiggling mouse to keeping screen awake
 JIGGLEMOUSE_UPDATE_INTERVAL := 120000		; 120000 = 2 minutes
@@ -77,9 +74,9 @@ VPN_URL := "vpn.adventhealth.com/SecureAuth"
 ; timeout (seconds) for starting up EI to get to login window
 EI_LOGIN_TIMEOUT := 60
 ; timeout (seconds) for getting to EI desktop window after login
-EI_DESKTOP_TIMEOUT := 60
+EI_DESKTOP_TIMEOUT := 120
 ; timeout (seconds) for allowing Collaborator window to appear after login
-EI_COLLABORATOR_TIMEOUT := 10
+EI_COLLABORATOR_TIMEOUT := 30
 ; timeout (seconds) for shutting down EI
 EI_SHUTDOWN_TIMEOUT := 60
 ; EI server string
@@ -168,7 +165,7 @@ INFO_DOB_FORMAT := "M/d/yyyy"
 GUIWINDOWTITLE := "PACS Assistant"
 GUIHOMEPAGE := "pages/PACSAssistant.html"
 
-; Used in PAInfo.ahk. Format for returning DOB from Patient object.
+; Used in Info.ahk. Format for returning DOB from Patient object.
 INFO_DOB_FORMAT := "M/d/yyyy"
 
 ; Hospital workstation names
@@ -345,10 +342,10 @@ App["EI"].Win["i2"] := WinItem(App["EI"], "i2", "Diagnostic Desktop - Images (2 
 App["EI"].Win["4dm"] := WinItem(App["EI"], "4dm" ,"4DM(Enterprise Imaging) v2017", "4DM", , "Corridor4DM.exe")
 App["EI"].Win["collab"] := WinItem(App["EI"], "collab", "Collaborator", "Collaborator")
 ; pseudowindows
-App["EI"].Win["list"] := WinItem(App["EI"], "list", "Desktop List page", , , , , App["EI"].Win["d"], EIIsList)
-App["EI"].Win["text"] := WinItem(App["EI"], "text", "Desktop Text page", , , , , App["EI"].Win["d"], EIIsText)
-App["EI"].Win["search"] := WinItem(App["EI"], "search", "Desktop Search page", , , , , App["EI"].Win["d"], EIIsSearch)
-App["EI"].Win["image"] := WinItem(App["EI"], "image", "Desktop Image page", , , , , App["EI"].Win["d"], EIIsImage)
+App["EI"].Win["list"] := WinItem(App["EI"], "d", "Desktop List page", , , , , App["EI"].Win["d"], EIIsList)
+App["EI"].Win["text"] := WinItem(App["EI"], "d", "Desktop Text page", , , , , App["EI"].Win["d"], EIIsText)
+App["EI"].Win["search"] := WinItem(App["EI"], "d", "Desktop Search page", , , , , App["EI"].Win["d"], EIIsSearch)
+App["EI"].Win["image"] := WinItem(App["EI"], "d", "Desktop Image page", , , , , App["EI"].Win["d"], EIIsImage)
 
 ; for Agfa ClinApps (e.g. MPR)
 App["EICLIN"].Win["mpr"] := WinItem(App["EICLIN"], "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
@@ -400,6 +397,9 @@ App["EPIC"].Win["chart"] := WinItem(App["EPIC"], "chart", "Hyperspace - chart", 
 ; Sounds map maps PA events to voice or audio feedback
 Sounds := Map()
 
+Sounds["VPNConnected"] := SoundItem("VPN connected")
+Sounds["VPNDisconnected"] := SoundItem("VPN disconnected")
+
 Sounds["PSTab"] := SoundItem( , [440, 10])
 Sounds["PSToggleMic"] := SoundItem( , 392)
 
@@ -418,6 +418,11 @@ Sounds["EPIC"] := SoundItem("EPIC was clicked")
 ; PAText holds a dictionary of strings for the FindText function.
 ; Strings are defined in the FindTextStrings.ahk module.
 global PAText := Map()
+
+
+
+; Holds the icd-10 lookup table. See ICDCode.ahk.
+global ICDCodeTable
 
 
 

@@ -24,16 +24,6 @@
 #SingleInstance Force
 
 
-/*
-** Global variables and constants
-*/
-
-
-#Include Globals.ahk
-
-#include PAICDCode.ahk
-
-
 
 
 /**********************************************************
@@ -382,7 +372,7 @@ _WatchWindows() {
 	; runs regardless of PAActive
 
 	; update all app windows
-	UpdateAll()
+;	UpdateAll()
 
 	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
 	
@@ -397,16 +387,15 @@ _WatchWindows() {
 }
 
 
-; Update the hwnd of the window under the mouse cursor
+; Performs focu following by activiating the window under the mouse when appropriate.
 ;
-; Also makes the window active if appropriate.
-; Automatic window activation is suspended if Shift key is being held down
+; Focus following is suspended if any of the following are true:
+;	Setting["FocusFollow"].enabled is false
+;	PAActive is false
+; 	PA_WindowBusy is true
+; 	Shift key is being held down
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchMouse, UPDATE_INTERVAL)
-;
-; PAActive must be true for this function to be active
-;
-; PA_WindowBusy must be false for focus following to be allowed
 ;
 _WatchMouse() {
 	global PAActive
@@ -416,6 +405,8 @@ _WatchMouse() {
 	static running := false
 	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
 
+
+/*	
 	; local function to restore windows that have been enlarged
 	_RestoreSaved() {
 		if restore_EPICchat {
@@ -435,18 +426,15 @@ _WatchMouse() {
 			}
 		}
 	}
+*/
 
 	; local function to autoclose the PS spelling window
 	_ClosePSspelling() {
-		if Setting["PSSPspelling_autoclose"].value && App["PSSP"].Win["spelling"].visible {
+		if Setting["PSSPspelling_autoclose"].enabled && App["PSSP"].Win["spelling"].visible {
 			App["PSSP"].Win["spelling"].Close()
 		}
 	}
 
-
-	if !PAActive {
-		return
-	}
 
 	; don't allow reentry
 	if running {
@@ -454,8 +442,14 @@ _WatchMouse() {
 	}
 	running := true
 
+	; check if we should focus follow
+	if !PAActive || PAWindowBusy || !Setting["FocusFollow"].enabled {
+		running := false
+		return
+	}
+
 	; get the handle of the window under the mouse
-	hwnd := Mouse()
+	hwnd := WindowUnderMouse()
 
 	; store it
 	PA_WindowUnderMouse := hwnd
@@ -465,7 +459,7 @@ _WatchMouse() {
 	; only activate window if another window is not busy
 	; and Lshift is not being held down
 	; and if not already active
-	if !PAWindowBusy && Setting["FocusFollow"].on && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
+	if !WinActive(hwnd) && !GetKeyState("LShift", "P") {
 
 		appkey := GetAppkey(hwnd)
 		winkey := GetWinkey(hwnd)
@@ -474,17 +468,20 @@ _WatchMouse() {
 				case "EI":
 					; close PS Spelling window
 					_ClosePSspelling()
-
+					WinActivate(hwnd)
+/*
 					; don't activate if there are more than one PS windows open
 					if App["PS"].CountOpenWindows() < 2 {
-						_RestoreSaved()
+;						_RestoreSaved()
 						WinActivate(hwnd)
 					}
+*/
+
 				case "PS":
-					_RestoreSaved()
+;					_RestoreSaved()
 					WinActivate(hwnd)
 				case "PA":
-					_RestoreSaved()
+;					_RestoreSaved()
 					WinActivate(hwnd)
 				case "EPIC":
 					switch winkey {
@@ -517,7 +514,7 @@ _WatchMouse() {
 							; don't activate if there are more than one PS windows open
 							; if _WindowKeys.CountAppWindows("PS") < 2 {
 							if App["PS"].CountOpenWindows() < 2 {
-								_RestoreSaved()
+;								_RestoreSaved()
 								WinActivate(hwnd)
 							}
 					}
@@ -539,7 +536,7 @@ _JiggleMouse() {
 		return
 	}
 
-	if Setting["MouseJiggler"].on {
+	if Setting["MouseJiggler"].enabled {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
 	}
@@ -553,7 +550,7 @@ _ClearCapsLock() {
 		return
 	}
 
-	if Setting["ClearCapsLock"].on && A_TimeIdleKeyboard > CAPSLOCK_TIMEOUT {
+	if Setting["ClearCapsLock"].enabled && A_TimeIdleKeyboard > CAPSLOCK_TIMEOUT {
 		SetCapsLockState false
 	}
 }

@@ -1,0 +1,6 @@
+Temporary notes, scratchpad
+
+
+Daemon.ahk
+    disabled epic chat window resizing
+

@@ -13,23 +13,6 @@
 
 
 /**********************************************************
- * Includes
- */
-
-
-#include <Cred>
-
-#include <_MD_Gen>
-
-
-#Include Globals.ahk
-
-#Include Network.ahk
-
-
-
-
-/**********************************************************
 ** Global variables and constants used or defined in this module
 */
 
@@ -82,18 +65,19 @@ F2:: {
 ;	Ctrl-CapsLock -> PowerScribe Draft Dictation (F9)
 ;	Ctrl-Shift-CapsLock -> PowerScribe Prelim Dictation (Alt-F Alt-M (File > Prelim))
 ;
-; In effect for EI and PS windows.
 ; Alt-CapsLock still works to toggle Caps Lock when the above mappings are in effect.
 ;
+; In effect for EI, PS, PA, and EPIC windows.
+;
 $CapsLock:: {
-	if Setting["hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
 		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if Setting["+hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["+hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -106,14 +90,14 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if Setting["^hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["^hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if Setting["^+hkCapsLock"].on && Context(Mouse(), "EI", "PS", "PA") {
+	if Setting["^+hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -128,36 +112,54 @@ $^+CapsLock:: {
 ;			move down one line and go to end of line.
 ;	Ctrl-Shift-Tab -> PowerScribe Move up one line and go to end of line.
 ;
-;	In effect for EI (images, 4dm, desktop text and list areas), PS (main or report) windows
+; In effect for EI, PS, and PA windows with the conditions:
+;	only when PS report or addendum window is showing
+;	if EI desktop, only if text or list window is showing
 ;
 $Tab:: {
-	if Setting["hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		PSCmdNextField()
+	if Setting["hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
+		if PSIsReport() {
+			PSCmdNextField()
+		} else {
+			Send("{Tab}")
+		}
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if Setting["+hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		PSCmdPrevField()
+	if Setting["+hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
+		if PSIsReport() {
+			PSCmdPrevField()
+		} else {
+			Send("+{Tab}")
+		}
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if Setting["^hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		if A_PriorHotkey = ThisHotkey {
-			PSCmdNextEOL()
+	if Setting["^hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
+		if PSIsReport() {
+			if A_PriorHotkey = ThisHotkey {
+				PSCmdNextEOL()
+			} else {
+				PSCmdEOL()
+			}
 		} else {
-			PSCmdEOL()
+			Send("^{Tab}")
 		}
 	} else {
 		Send("^{Tab}")
 	}
 }
 $^+Tab:: {
-	if Setting["^+hkTab"].on && Context(Mouse(), "PS main report addendum", "EI i1 i2 4dm d/text d/list") {
-		PSCmdPrevEOL()
+	if Setting["^+hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
+		if PSIsReport() {
+			PSCmdPrevEOL()
+		} else {
+			Send("^+{Tab}")
+		}
 	} else {
 		Send("^+{Tab}")
 	}
@@ -173,24 +175,24 @@ $^+Tab:: {
 ;			clear search fields and place cursor in patient last name
 ;			search field
 ;
-; In effect for EI and PS windows.
+; In effect for EI, PS, EPIC, and PA windows.
 ;
 $`:: {
-	if Setting["hkBacktick"].on && Context(Mouse(), "EI", "PS") {
+	if Setting["hkBacktick"].enabled && Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA") {
 		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if Setting["+hkBacktick"].on && Context(Mouse(), "EI", "PS") {
+	if Setting["+hkBacktick"].enabled && Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA") {
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if Setting["^hkBacktick"].on && Context(Mouse(), "EI", "PS") {
+	if Setting["^hkBacktick"].enabled && Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA") {
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -208,7 +210,7 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $+Esc:: {
-	if Setting["+hkEsc"].on && Context(Mouse(), "EI i1 i2") {
+	if Setting["+hkEsc"].enabled && Context(WindowUnderMouse(), "EI i1 i2") {
 		EICmdRemoveFromList()
 	} else {
 		Send("+{Esc}")
@@ -220,19 +222,28 @@ $+Esc:: {
 ;	Ctrl-Y -> PowerScribe Redo
 ;	Ctrl-Z -> PowerScribe Undo
 ;
-; In effect for EI (images1, images2, or 4dm), PS windows, also for EI desktop
-;	window if Text area is displaying
+; In effect for EI, PS, and PA windows with the conditions:
+;	only when PS report or addendum window is showing
+;	if EI desktop, only if text or list window is showing
 ;
 $^y:: {
-	if Setting["hkCtrlYZ"].on && Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
-		PSSend("^y")
+	if Setting["hkCtrlYZ"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
+		if PSIsReport() {
+			PSSend("^y")
+		} else {
+			Send("^y")
+		}
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if Setting["hkCtrlYZ"].on && Context(Mouse(), "PS", "EI i1 i2 d/text 4dm") {
-		PSSend("^z")
+	if Setting["hkCtrlYZ"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
+		if PSIsReport() {
+			PSSend("^z")
+		} else {
+			Send("^z")
+		}
 	} else {
 		Send("^z")
 	}
@@ -257,7 +268,7 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLocktrigger
 	
-	if Context(Mouse(), "EI i1 i2") {
+	if Context(WindowUnderMouse(), "EI i1 i2") {
 		if Setting["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
@@ -281,21 +292,21 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if Setting["hkSpaceClick"].on && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
+			if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
 				BlockInput true
 				Click 2
 				BlockInput false
 			}
 		}
-	} else if Context(Mouse(), "EI d/list") {
+	} else if Context(WindowUnderMouse(), "EI list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if Setting["hkSpaceClick"].on && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
+		if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
 			BlockInput true
 			Click 2
 			BlockInput false
 		}
-	} else if Context(Mouse(), "PS report addendum") {
-		if Setting["hkSpaceDelete"].on {
+	} else if Context(WindowUnderMouse(), "PS report addendum") {
+		if Setting["hkSpaceDelete"].enabled {
 			; Check to see if there is a text selection in the PS report area
 			; If so, smart delete it
 
@@ -358,7 +369,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 			; 	Click("D")
 			; }
 		} else if Setting["ClickLock"].value = "Auto" {
-			if Context(Mouse(), "EI i1 i2") {
+			if Context(WindowUnderMouse(), "EI i1 i2") {
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -Setting["ClickLock_interval"].value)
 				if LButton_ClickLockon {
@@ -462,7 +473,7 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 			Hotkey(hk, "Off")	; disable previously defined hotkeys
 		}
 
-		if Setting["EIactivate"].on {
+		if Setting["EIactivate"].enabled {
 			for key in keylist {
 				; (re)define a hotkey for key
 				hkey := "$" . key
@@ -489,7 +500,7 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 _PA_EIHotkey(key) {
 	global PADoubleClickSetting
 
-	if Setting["EIactivate"].on && Context(Mouse(), "EI i1 i2") {
+	if Setting["EIactivate"].enabled && Context(WindowUnderMouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
 		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
 			
@@ -507,7 +518,7 @@ _PA_EIHotkey(key) {
 
 
 /**********************************************************
- * Hotkeys for testing
+ * Hotkeys for testing purposes
  */
 
 
@@ -531,7 +542,7 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
-	if Context(Mouse(), "PA") {
+	if Context(WindowUnderMouse(), "PA") {
 		SoundBeep(440)
 		PAShowHome()
 	}

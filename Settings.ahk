@@ -388,7 +388,7 @@ class SetItem {
         }
     }
 
-    on {
+    enabled {
         get {
             return this._value ? true : false 
         }
@@ -436,7 +436,7 @@ class SetItem {
                         if !WorkstationIsHospital() {
                             ; not hospital, so save password to local storage if wanted
                             if Setting.Has("storepassword") {
-                                if Setting["storepassword"].on {
+                                if Setting["storepassword"].enabled {
                                     if this._value {
                                         CredWrite("PA_cred_" . Setting["username"].value, Setting["username"].value, this._value)
                                     }

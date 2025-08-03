@@ -124,7 +124,7 @@ class WinPos {
 ; WinItem properties:
 ;
 ;   parentapp   - AppItem, parent app to which this window belongs
-;   key         - string, window identifier, e.g. "desktop", "images1", "images2", "main", "login", etc.
+;   key         - string, window identifier, e.g. "d", "i1", "i2", "main", "login", etc.
 ;
 ;	fulltitle	- string, full title of window, not used for matching, just descriptive
 ;	searchtitle	- string, short title of window, used for matching
@@ -134,7 +134,7 @@ class WinPos {
 ;	hook_close	- function to be called when this window is closed, does not apply to pseudowindows
 ;
 ;   parentwindow - WinItem, parent window if this is a pseudowindow, zero if this is a true window
-;   validate    - function to be called to determine whether this pseudowindow is showing
+;   validate    - function to be called to determine whether this window or pseudowindow is showing
 ;
 ;	hwnd		- 0 if window doesn't exist, HWND of the window if it is a true window, 
 ;                 HWND of the parent window if it is a pseudowindow
@@ -362,13 +362,13 @@ class WinItem {
                     ; the window is new or has a new handle
 
                     if this.hwnd {
-                        ; delete reverse lookup entry
+                        ; delete reverse lookup entry for the old handle
                         try {
                             _HwndLookup.Delete(this.hwnd)
                         }
                     }
 
-                    ; assign the new hwnd
+                    ; save the new hwnd
                     this.hwnd := hwnd
                     _HwndLookup[hwnd] := this
                     this.openclosetime := A_TickCount
@@ -386,9 +386,6 @@ class WinItem {
                     minimized := false
                 }
 
-                ; ; call hook_open if window transitions from not visible or minimized to visible and not minimized
-                ; if !_PAUpdate_Initial && PAActive && this.hook_open && (!this.visible || this.minimized) && (visible && !minimized) {
-
                 ; call hook_open if window transitions from not visible to visible
                 if !_PAUpdate_Initial && PAActive && this.hook_open && !this.visible && visible {
                     this.hook_open.Call()
@@ -398,7 +395,7 @@ class WinItem {
                 this.minimized := minimized
 
             } else {
-                ; the window no longer exists
+                ; the window doesn't exist
 
                 ; if this.hwnd exists, delete its reverse lookup entry and call its hook_close
                 if this.hwnd {
@@ -773,9 +770,9 @@ class AppItem {
         }
     }
 
-    ; Updates the pid for this window
+    ; Updates the pid for this app
     ;
-    ; If the pid is non-zero, then updates all the windows in Win[]
+    ; If the pid is non-zero, then updates all the windows in Win[] for this app
     ;
     Update() {
 
@@ -1057,7 +1054,7 @@ GetMonitor(hwnd) {
 
 
 ; Returns hwnd of window under mouse
-Mouse() {
+WindowUnderMouse() {
     MouseGetPos( , , &hwnd)
     return hwnd
 }
@@ -1069,7 +1066,7 @@ Mouse() {
 ;	"EI"					- matches any EI window
 ;	"EI i1 i2"		        - matches either EI images1 or images2 windows
 ;	"EI d                   - matches EI desktop window
-;	"EI desktop/list desktop/text"	- matches EI desktop window if list page or text page is showing
+;	"EI list text"	        - matches EI desktop window if list page or text page (pseudowindow) is showing
 ;	"PS"					- matches any PS window
 ;	"PS report"				- matches PS report window
 ;	...
@@ -1095,54 +1092,43 @@ Context(hwnd, contexts*) {
     }
 	; contexts[] is an array of strings
 
-    win := GetWinItem(hwnd)
-    if win {
-        
-        appkey := GetAppkey(hwnd)
+    appkey := GetAppkey(hwnd)       ; the app key of the window being checked
+    if appkey {
 
-        if appkey {
+        for context in contexts {
 
-            for context in contexts {
+            carr := StrSplit(context, " ")
+            capp := carr[1]		;get the app key from the context string
 
-                carr := StrSplit(context, " ")
-                capp := carr[1]		;get the app key from the context string
+            if appkey == capp {
+                j := 2
+                if j > carr.Length {
+                    ; no windows to match with, so we've succeeded
+                    return true
+                }
 
-                if appkey == capp {
-                    j := 2
-                    if j > carr.Length {
-                        ; no windows to match with, so we've succeeded
-                        return true
-                    }
+                winkey := GetWinkey(hwnd)     ; the win key of the window being checked
 
-                    ; need to check for a match among the windows in the context
-                    winkey := win.key
+                ; need to check for a match among the windows in the context
+                while j <= carr.Length {
+                    cwin := App[appkey].Win[carr[j]]    ; get the winitem of the context item
+                    j++
 
-                    while j <= carr.Length {
-                        cwin := carr[j]
-                        j++
+                    cwinkey := cwin.key
 
-                        ; split out page context (pseudowindow) if there is one
-					    if (k := InStr(cwin, "/")) {
-                            cpag := SubStr(cwin, k + 1)
-                            cwin := SubStr(cwin, 1, k - 1)
-                        
-                            if winkey == cwin {
-                                ; found a window match
-                                ; now look for a pseudowindow match
-                                fn := App[appkey].Win[winkey].validate
-                                if fn && fn.Call() {
-                                    ; pseudowindow condition successfully validated
-                                    ; return success
-                                    return true
-                                }
+                    if cwinkey == winkey {
+                        ; found a window match
+                        ; if it is a pseudowindow requiring validation, need to call the validate function
+                        fn := cwin.validate
+                        if fn {
+                            if fn.Call() {
+                                ; pseudowindow condition successfully validated
+                                ; return success
+                                return true
                             }
-
-                        } else if winkey == cwin {
-
-                            ; no page context
-                            ; found a window match, so we've succeeded
+                        } else {
+                            ; no pseudowindow, so return success
                             return true
-
                         }
                     }
                 }
