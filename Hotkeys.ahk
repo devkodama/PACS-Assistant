@@ -264,19 +264,19 @@ $Space:: {
 				; check whether L mouse button is physically down
 				if GetKeyState("LButton", "P") {
 					; if L mouse being pressed, activate click lock, for when L mouse button is released (see LButton hotkey)
-					PASound("EIClickLockOn")
+					PlaySound("EIClickLockOn")
 					LButton_ClickLocktrigger := true	
 				} else {
 					; if L mouse not being pressed, logically release the L mouse button
 					if LButton_ClickLockon {
 						Click("U")
-						PASound("EIClickLockOff")
+						PlaySound("EIClickLockOff")
 						LButton_ClickLockon := false
 					}
 				}
 			} else {
 				; ClickLock already triggered, so untrigger it
-				PASound("EIClickLockOff")
+				PlaySound("EIClickLockOff")
 				LButton_ClickLocktrigger := false
 			}
 		} else {
@@ -332,7 +332,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 	if PAActive {
 		if LButton_ClickLockon {
 			Click("U")							; L mouse button up
-			PASound("EIClickLockOff")
+			PlaySound("EIClickLockOff")
 			LButton_ClickLockon := false
 		}
 	}
@@ -362,7 +362,7 @@ global LButton_lastdown := 0			; tick count of last L button down
 				LButton_lastdown := A_TickCount
 				SetTimer(_LButton_beep, -Setting["ClickLock_interval"].value)
 				if LButton_ClickLockon {
-					PASound("EIClickLockOff")
+					PlaySound("EIClickLockOff")
 					LButton_ClickLockon := false
 				}
 			}
@@ -395,7 +395,7 @@ LButton Up:: {
 			} else if LButton_ClickLockon {
 				; disengage Click Lock
 				Click("U")					; release logically held L mouse button
-				PASound("EIClickLockOff")
+				PlaySound("EIClickLockOff")
 				LButton_ClickLockon := false
 			}
 		} else if Setting["ClickLock"].value = "Auto" {
@@ -424,7 +424,7 @@ LButton Up:: {
 ; callback function for sounding beep when activating Auto click lock
 ; Auto doesn't work [wip]
 _LButton_beep() {
-	PASound("EIClickLockOn")
+	PlaySound("EIClickLockOn")
 }
 
 

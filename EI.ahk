@@ -53,7 +53,7 @@
 
 
 #Include <FindText>
-#Include "PAFindTextStrings.ahk"
+#Include "FindTextStrings.ahk"
 
 #Include Globals.ahk
 #include "PAInfo.ahk"
@@ -331,7 +331,7 @@ EIGetStudyMode() {
 ;
 EIOpen_EIdesktop() {
 
-	PASound("EI desktop opened")
+	PlaySound("EI desktop opened")
 
 	if Setting["EI_restoreatopen"].value {
 		; Restore EI window positions
@@ -362,7 +362,7 @@ EIOpen_EIdesktop() {
 ; This gets called either when desktop window is closed OR minimized
 ;
 EIClose_EIdesktop() {
-	PASound("EI desktop closed")
+	PlaySound("EI desktop closed")
 }
 
 
@@ -1242,7 +1242,7 @@ EICmdStartReading() {
 	if !EIClickImages("EI_StartReading") {
 		EIClickDesktop("EI_DesktopStartReading")
 	}
-	PASound("EIStartReading")
+	PlaySound("EIStartReading")
 }
 
 

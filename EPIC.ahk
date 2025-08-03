@@ -39,12 +39,17 @@
  */
 
 
+
+/*
+
 #Include <FindText>
-#Include PAFindTextStrings.ahk
+#Include FindTextStrings.ahk
+
 
 #Include Globals.ahk
 #Include PASound.ahk
 
+*/
 
 
 
@@ -150,7 +155,6 @@ EPICIsLogin() {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
-	;PASound("EPIC Is Login")	; debug
 				return true
 			}
 		} catch {
@@ -167,7 +171,6 @@ EPICIsTimezone() {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
-	;PASound("EPIC Is Timezone")	; debug
 				return true
 			}
 		} catch {
@@ -185,7 +188,6 @@ EPICIsChart() {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
-	;PASound("EPIC Is chart")
 				return true
 			}
 		} catch {
@@ -206,7 +208,7 @@ EPICIsChart() {
 ; When the Epic main window appears
 EPICOpened_EPICmain() {
 
-	PASound("Epic started")
+	PlaySound("Epic started")
 
 	if Setting["EPIC_restoreatopen"].value {
 		; Restore EPIC window positions
@@ -224,7 +226,7 @@ EPICOpened_EPICmain() {
 ; Hook function called when EPIC main window closed or minimized
 ;
 EPICClosed_EPICmain() {
-	PASound("Epic closed")
+	PlaySound("Epic closed")
 }
 
 

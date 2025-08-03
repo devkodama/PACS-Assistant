@@ -65,13 +65,13 @@
  * Includes
  */
 
-
+/*
 #Include <FindText>
-#Include PAFindTextStrings.ahk
+#Include FindTextStrings.ahk
 
 #Include Globals.ahk
 #Include PASound.ahk
-
+*/
 
 
 
@@ -311,7 +311,7 @@ PSOpen_PSmain() {
 	global _PSlastparent
 
 	if _PSlastparent = "login" {
-		PASound("PowerScribe opened")
+		PlaySound("PowerScribe opened")
 	}
 
 /*
@@ -369,7 +369,7 @@ PSOpen_PSreport() {
 		if !PSDictateIsOn(true) {			
 			; mic is not on so turn it on
 			PSSend("{F4}")						; Start Dictation
-			PASound("PSToggleMic")
+			PlaySound("PSToggleMic")
 		}
 	}	
 
@@ -445,7 +445,7 @@ PSClose_PSreport() {
 
 ; Hook function called when PS window appears
 PSOpen_PSlogout() {
-	PASound("logout")
+	PlaySound("logout")
 ; TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
 	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["logout"].CenterWindow(PSParent())
@@ -467,7 +467,7 @@ try{
 
 ; Hook function called when PS window appears
 PSOpen_PSsavespeech() {
-	PASound("save speech")
+	PlaySound("save speech")
 	if Setting["PScenter_dialog"].value {
 		App["PS"].Win["savespeech"].CenterWindow(PSParent())
 	}
@@ -906,61 +906,61 @@ RetrieveDataPS() {
 ; Send the Next field command (Tab) to PS
 PSCmdNextField() {
 	PSSend("{Tab}")
-	PASound("PSTab")
+	PlaySound("PSTab")
 }
 
 
 ; Send the Prev field command (Shift-Tab) to PS
 PSCmdPrevField() {
 	PSSend("{Blind}+{Tab}")
-	PASound("PSTab")
+	PlaySound("PSTab")
 }
 
 
 ; Move the cursor to the End of Line in PS
 PSCmdEOL() {
 	PSSend("{End}")
-	PASound("PSTab")
+	PlaySound("PSTab")
 }
 
 
 ; Move the cursor down one line then to the End of Line in PS
 PSCmdNextEOL() {
 	PSSend("{Down}{End}")
-	PASound("PSTab")
+	PlaySound("PSTab")
 }
 
 
 ; Move the cursor up one line then to the End of Line in PS
 PSCmdPrevEOL() {
 	PSSend("{Up}{End}")
-	PASound("PSTab")
+	PlaySound("PSTab")
 }
 
 
 ; Start/Stop Dictation (Toggle Microphone) => F4 in PS
 PSCmdToggleMic() {
 	PSSend("{F4}")							; Start/Stop Dictation
-	PASound("PSToggleMic")
+	PlaySound("PSToggleMic")
 }
 
 
 ; Sign report => F12 in PS
 PSCmdSignReport() {
 	PSSend("{F12}")							; Sign report
-	PASound("PSSignReport")
+	PlaySound("PSSignReport")
 }
 
 
 ; Save as Draft => F9 in PS
 PSCmdDraftReport() {
 	PSSend("{F9}")							; save as Draft
-	PASound("PSDraftReport")
+	PlaySound("PSDraftReport")
 }
 
 
 ; Save as Prelim => File > Prelim in PS
 PSCmdPreliminary() {
 	PSSend("{Alt down}fm{Alt up}")			; save as Prelim
-	PASound("PSSPreliminary")
+	PlaySound("PSSPreliminary")
 }

@@ -51,14 +51,18 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include <WinEvent>
 #Include <Cred>
+#Include <FindText>
 
 #Include <Peep.v2>				; for debugging
 
 #Include Utils.ahk
-#Include Globals.ahk
 
-#Include PASound.ahk
-#Include PAFindTextStrings.ahk
+#Include Globals.ahk
+#Include Settings.ahk
+
+#Include Sound.ahk
+#Include FindTextStrings.ahk
+
 
 #Include Daemon.ahk
 
@@ -70,8 +74,6 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include Hotkeys.ahk
 
 #Include PAInfo.ahk
-#Include Settings.ahk
-
 #Include PAICDCode.ahk
 
 #Include GUI.ahk

@@ -1,28 +1,36 @@
-/* PAFindTextStrings.ahk
-**
-** This file holds search strings for the FindText() function.
-**
-** Strings are stored in the PAText map object.
-**
-*/
+/**
+ * FindTextStrings.ahk
+ * 
+ * This file defines search strings for the FindText() function.
+ * 
+ * Strings are stored in the PAText map global object.
+ * 
+ * The strings are constructed with the FindText library.
+ * 
+ * Do not modify these strings!
+ * 
+ */
 
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
 
-#Include Globals.ahk
+
+
+; Dictionary (Map) of strings for FindText function
+global PAText
 
 
 
 
-; Dictionary of strings for FindText function
-;
-global PAText := Map()
+/**********************************************************
+ * String definitions
+ */
+
 
 ;EI Login left top edge of username or password fields (35px x 12px)
 PAText["EILoginField"] := "|<EILoginField>*168$21.zzzzzzzk006000U"
-
 
 
 ; EI Desktop toolbar Search button icon (magnifying glass)

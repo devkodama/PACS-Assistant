@@ -7,9 +7,11 @@
  * This module defines the following globals:
  *
  *  Setting             - Map() with program-wide modifiable settings
+ * 
  *  SettingsPage        - Array() ordered array of keys that determines which settings
  *                          are shown and the order in which they are shown on the 
- *                          GUI Settings page
+ *                          GUI Settings page. 
+ *                          This global is only used within the Settings.ahk module.
  * 
  *
  * This module defines the following classes:
@@ -40,12 +42,14 @@
 ** Includes
 */
 
-
+/*
 #Include <Cred>
 
 #Include Utils.ahk
 #Include Globals.ahk
 
+
+*/
 
 
 
@@ -157,8 +161,8 @@ Setting["run"] := SetItem("run", "num", 0, , "")
 ; PASettingsPage is an ordered array of keys that determines which settings
 ; are shown and the order in which they are shown on the GUI Settings page. 
 ;
-; Settings can be grouped into categories. When a key begins with a colon,
-; as in ":CategoryName", then CategoryName is used as the grouping title
+; Settings can be grouped into categories. When a key begins with a "#",
+; as in "#CategoryName", then CategoryName is used as the grouping title
 ;
 ; When a key is prefixed with ">", as in ">MouseJiggler_timeout", then
 ; the key is indented when displayed. A double indent ">>" can also be used.
@@ -240,11 +244,11 @@ SettingsPage.Push("EIcollaborator_show")
 ; Class to hold an individual setting within PACS Assistant
 ;
 ; Possible values for type:
-;   "bool"      - possiblevalues is ignored, as it assumed to be [true, false]
-;   "num"       - possiblevalues is an array of [lowerbound, upperbound], or empty if no limits
-;   "text"      - possiblevalues is an integer defining maximum length of text
-;   "select"    - possiblevalues is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
-;   "special"   - possiblevalues is a string defining what type of special value this is
+;   "bool"      - possible is ignored, as it assumed to be [true, false]
+;   "num"       - possible is an array of [lowerbound, upperbound], or empty if no limits
+;   "text"      - possible is an integer defining maximum length of text
+;   "select"    - possible is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
+;   "special"   - possible is a string defining what type of special value this is
 ;
 class SetItem {
     name := ""              ; Name of this setting. Should match the key used in 
@@ -596,7 +600,6 @@ SettingsReadAll() {
 ;
 SettingsWriteAll() {
     global Setting
-;    global CurrentUserCredentials
 
     ; ensure username has a value
     if Setting["username"].value {

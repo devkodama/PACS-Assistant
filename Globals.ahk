@@ -17,7 +17,7 @@
  */
 
 
-#Include <Cred>
+;#Include <Cred>
 
 
 
@@ -25,7 +25,7 @@
 /**********************************************************
  * Global constants
  * 
- * Should not change during program execution
+ * These don't change during program execution
  * 
  */
 
@@ -123,7 +123,7 @@ WINPOS_MINHEIGHT := 100
 ; Windows constant (style of visible windows)
 WS_VISIBLE := 0x10000000
 
-; Windows constants used in PS.ahk module.
+; Windows constants used in PS.ahk module
 WM_SETTEXT := 0x000C
 WM_GETTEXT := 0x000D
 EM_GETSEL := 0x00B0
@@ -131,8 +131,6 @@ EM_SETSEL := 0x00B1
 EM_SETREADONLY := 0x00CF
 
 ; Windows constants used in GUI.ahk module
-
-
 
 
 
@@ -155,11 +153,11 @@ FILE_SETTINGSBASE := "settings"
 ICD_CODEFILE := "icd10codes.txt"
 
 
-; Text/color to display when microphone is off
+; Text and color to display when microphone is off
 MICROPHONETEXT_OFF := "Microphone Off"
 MICROPHONECOLOR_OFF := "#303030"
 
-; Text to display when microphone is on
+; Text and color to display when microphone is on
 MICROPHONETEXT_ON := "Microphone On"
 MICROPHONECOLOR_ON := "#d02020"
 
@@ -223,6 +221,7 @@ global DispatchQueue := Array()
 ; Each entry is a {"key", SetItem()} pair. See Settings.ahk for Setting
 ; class and PASettings[] definitions.
 global Setting
+
 
 ; credentials of current user. See Crek.ahk for Credential
 ; class definition.
@@ -296,7 +295,7 @@ global PAApps := Array()
 global _HwndLookup := Map()
 
 
-; App is a Map which stores information about all the windows that belong to;
+; App is a Map which stores information about all the windows that belong to a
 ; specific application. 
 ;
 ; The following are valid keys for App:
@@ -394,4 +393,31 @@ App["EPIC"].Win["chart"] := WinItem(App["EPIC"], "chart", "Hyperspace - chart", 
 ; PAWindows["DLUNG"]["login"] := WindowItem("DLUNG", "login", "DynaCAD Lung - Main Screen", "DynaCAD Lung - Main", , "MeVisLabApp.exe")
 ; PAWindows["DLUNG"]["main"] := WindowItem("DLUNG", "main", "DynaCAD Lung - Main Screen", "DynaCAD Lung - Main", , "MeVisLabApp.exe")
 ; PAWindows["DLUNG"]["second"] := WindowItem("DLUNG", "second", "DynaCAD Lung - Second Screen", "DynaCAD Lung - Second", , "MeVisLabApp.exe")
+
+
+
+
+; Sounds map maps PA events to voice or audio feedback
+Sounds := Map()
+
+Sounds["PSTab"] := SoundItem( , [440, 10])
+Sounds["PSToggleMic"] := SoundItem( , 392)
+
+Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
+Sounds["PSDraftReport"] := SoundItem("Draft saved", , "Report saved as Draft")
+Sounds["PSSPreliminary"] := SoundItem("Preliminary saved", , "Report saved as Preliminary")
+
+Sounds["EIStartReading"] := SoundItem( , 480)
+Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])
+Sounds["EIClickLockOff"] := SoundItem(, [600, 100])
+
+Sounds["EPIC"] := SoundItem("EPIC was clicked")
+
+
+
+; PAText holds a dictionary of strings for the FindText function.
+; Strings are defined in the FindTextStrings.ahk module.
+global PAText := Map()
+
+
 
