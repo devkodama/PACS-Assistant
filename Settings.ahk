@@ -39,21 +39,6 @@
 
 
 /**********************************************************
-** Includes
-*/
-
-/*
-#Include <Cred>
-
-#Include Utils.ahk
-#Include Globals.ahk
-
-
-*/
-
-
-
-/**********************************************************
 ** Global variables and constants used or defined in this module
 */
 
@@ -318,7 +303,7 @@ class SetItem {
                                     ; username is non-empty
 
                                     ; add username to title bar
-                                    GUIPost("curuser", "innerHTML", " - " . newval)
+                                    GUISetPropVal("curuser", "innerHTML", " - " . newval)
 
                                     ; update password
                                     if !WorkstationIsHospital() {
@@ -347,7 +332,7 @@ class SetItem {
                                     ; username is empty
 
                                     ; update title bar
-                                    GUIPost("curuser", "innerHTML", "")
+                                    GUISetPropVal("curuser", "innerHTML", "")
 
                                     ; set password to empty
                                     Setting["password"].value := ""
@@ -850,7 +835,7 @@ SettingsGeneratePage(show := true) {
 
     if show {
         ; replace current form on GUI Settings page
-        GUIPost("settingsform", "innerHTML", form)
+        GUISetPropVal("settingsform", "innerHTML", form)
     }
     
     return form
@@ -894,7 +879,7 @@ HandleFormInput(WebView, id, newval) {
         ; validation succeeded, change the setting's value
         sett.value := newval
         ; clear any previous error
-        GUIPost(errid, "innerHTML", "")
+        GUISetPropVal(errid, "innerHTML", "")
 
     } else {
 
@@ -903,20 +888,20 @@ HandleFormInput(WebView, id, newval) {
         switch sett.type {
             case "num":
                 if IsObject(sett.possible) {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
                 } else {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid number")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid number")
                 }
             case "text", "special":
                 if sett.possible > 0 {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
                 } else {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid entry")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid entry")
                 }
             case "select":
-                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid choice")
+                GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid choice")
             default:
-                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
+                GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
         }
     }
 

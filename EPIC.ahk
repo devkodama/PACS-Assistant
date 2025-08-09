@@ -35,25 +35,6 @@
 
 
 /**********************************************************
- * Includes
- */
-
-
-
-/*
-
-#Include <FindText>
-#Include FindTextStrings.ahk
-
-
-#Include Globals.ahk
-#Include PASound.ahk
-
-*/
-
-
-
-/**********************************************************
  * Global variables and constants used in this module
  */
 
@@ -74,11 +55,11 @@ EPICSend(cmdstring := "") {
 		if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 			; at this point hwndPS is non-null and points to the current PS window
 			PAWindowBusy := true
-;			BlockInput true				; prevent user input from interfering
+			BlockInput true				; prevent user input from interfering
 			WinActivate(hwndEPIC)
 			Sleep(200)
 			Send(cmdstring)
-;			BlockInput false
+			BlockInput false
 			PAWindowBusy := false
 		}
 	}
@@ -92,18 +73,22 @@ _EPIC_DismissTimezone(initialize := false) {
 	static tick0 := 0
 
 	if initialize {
+TTip("0")
 		tick0 := A_TickCount
 		return					; return after initializing
 	}
 
 	if EPICIsTimezone() {
-		Sleep(500)
 		; dismiss Timezone dialog with Continue (Alt-O)
+TTip("a")
 		EPICSend("{Alt down}o{Alt up}")
-		;SetTimer(_EPIC_DismissTimezone, 0)
+		SetTimer(_EPIC_DismissTimezone, 0)
 	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
 		; timed out, stop checking
+TTip("b")
 		SetTimer(_EPIC_DismissTimezone, 0)
+	} else {
+TTip("c")
 	}
 }
 
@@ -155,6 +140,7 @@ EPICIsLogin() {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
+TTip("EPICIsLogin")
 				return true
 			}
 		} catch {
@@ -171,6 +157,7 @@ EPICIsTimezone() {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
+TTip("EPICIsTimezone")
 				return true
 			}
 		} catch {
@@ -188,6 +175,7 @@ EPICIsChart() {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
+TTip("EPICIsChart")
 				return true
 			}
 		} catch {
@@ -258,7 +246,7 @@ EPICStart(cred := CurrentUserCredentials) {
 	}
 	running := true
 
-	; if EPIC is not running, immediately return success
+	; if EPIC is already running, immediately return success
 	if EPICIsRunning() {
 		GUIStatus("Epic is already running")
 		running := false
@@ -289,7 +277,7 @@ EPICStart(cred := CurrentUserCredentials) {
 	; run Epic
 	; Run('"' . EXE_EPIC . '" env="PRD"')
 	Run('"' . EXE_EPIC . '" ' . EPIC_CLIOPTIONS)
-	Sleep(500)
+	Sleep(1000)
 	App["EPIC"].Update()
 
 	; wait for login window to exist
@@ -321,7 +309,7 @@ EPICStart(cred := CurrentUserCredentials) {
 			CoordMode("Mouse", "Screen")
 			BlockInput true				; prevent user input from interfering
 			MouseGetPos(&savex, &savey)	; save current mouse position
-
+			
 			Click(ok[1].x, ok[1].y)
 			Send("^a" . cred.username)
 

@@ -118,7 +118,7 @@ $^+CapsLock:: {
 ;
 $Tab:: {
 	if Setting["hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() {
+		if PSIsReport() || PSIsAddendum() {
 			PSCmdNextField()
 		} else {
 			Send("{Tab}")
@@ -129,7 +129,7 @@ $Tab:: {
 }
 $+Tab:: {
 	if Setting["+hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() {
+		if PSIsReport() || PSIsAddendum() {
 			PSCmdPrevField()
 		} else {
 			Send("+{Tab}")
@@ -140,7 +140,7 @@ $+Tab:: {
 }
 $^Tab:: {
 	if Setting["^hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() {
+		if PSIsReport() || PSIsAddendum() {
 			if A_PriorHotkey = ThisHotkey {
 				PSCmdNextEOL()
 			} else {
@@ -155,7 +155,7 @@ $^Tab:: {
 }
 $^+Tab:: {
 	if Setting["^+hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() {
+		if PSIsReport() || PSIsAddendum() {
 			PSCmdPrevEOL()
 		} else {
 			Send("^+{Tab}")
@@ -228,7 +228,7 @@ $+Esc:: {
 ;
 $^y:: {
 	if Setting["hkCtrlYZ"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() {
+		if PSIsReport() || PSIsAddendum() {
 			PSSend("^y")
 		} else {
 			Send("^y")
@@ -239,7 +239,7 @@ $^y:: {
 }
 $^z:: {
 	if Setting["hkCtrlYZ"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() {
+		if PSIsReport() || PSIsAddendum() {
 			PSSend("^z")
 		} else {
 			Send("^z")
@@ -310,8 +310,10 @@ $Space:: {
 			; Check to see if there is a text selection in the PS report area
 			; If so, smart delete it
 
+	Send("{Delete}")
+
 			; If not, send a space
-			Send("{Space}")
+;			Send("{Space}")
 		} else {
 			; If not, send a space
 			Send("{Space}")
@@ -497,13 +499,22 @@ PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 }
 
 
+; Callback function for the keys in PA_EIKeyList
+;
+; If the mouse is over an EI image window when the hotkey is pressed, this function will send a click
+; of XButton2 to make the series under the mouse cursor active.
 _PA_EIHotkey(key) {
-	global PADoubleClickSetting
-
 	if Setting["EIactivate"].enabled && Context(WindowUnderMouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
-		if !A_TimeSincePriorHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting {
-			
+		try {
+			if A_TimeSincePriorHotkey >= PADoubleClickSetting {
+				; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
+				if !GetKeyState("LButton") && !GetKeyState("RButton") {
+					Click("XButton2")
+					Sleep(100)	; allows time (ms) for viewport to become active before sending the shortcut key
+				}
+			}
+		} catch {
 			; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
 			if !GetKeyState("LButton") && !GetKeyState("RButton") {
 				Click("XButton2")
@@ -542,10 +553,14 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
+/*
 	if Context(WindowUnderMouse(), "PA") {
 		SoundBeep(440)
 		PAShowHome()
 	}
+*/
+
+	UpdateAll()
 }
 
 

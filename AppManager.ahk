@@ -53,20 +53,7 @@
 
 
 /**********************************************************
- * Includes
- */
-
-
-#Include <WinEvent>
-
-#Include Globals.ahk
-#Include Settings.ahk
-
-
-
-
-/**********************************************************
- * Global variables and constants used in this module
+** Global variables and constants used or defined in this module
  */
 
 
@@ -77,6 +64,111 @@ global _MonitorCount := 0
 ; coordinates for each monitor. The right and bottom coordinates are just outside
 ; the displayable area.
 global _MonitorCoords := Array()
+
+
+; App is a Map which stores information about all the windows that belong to a
+; specific application. 
+;
+; The following are valid keys for App:
+;
+;	"PA"     - id "PA", PACS Assistant
+;	"VPN"     - id "VPN", Cisco VPN
+;	"EI"     - id "EI", Agfa EI
+;	"EICLIN"     - id "EICLIN", Agfa EI ClinApps
+;	"PS" 	- id "PS", PowerScribe
+;	"PSSP" 	- id "PSSPELL", PowerScribe Spelling Window
+;	"EP" 	- id "EPIC", Epic Hyperspace
+;	"DCAD"     - id "DCAD", DynaCAD Prostate and Breast
+;	"DSTUDY"     - id "DCADSTUDY", DynaCAD Prostate and Breast
+;	"DLUNG"     - id "DLUNG", DynaCAD Lung
+;
+;
+global App
+
+; define apps
+App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant")
+App["VPN"] := AppItem("VPN", "vpnui.exe", "Cisco AnyConnect Secure Mobility Client")
+App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging")
+App["EICLIN"] := AppItem("EICLIN", "javawClinapps.exe", "Agfa HealthCare Enterprise Imaging")
+App["PS"] := AppItem("PS", "Nuance.PowerScribe360.exe", "PowerScribe 360")
+App["PSSP"] := AppItem("PSSP", "natspeak.exe", "PowerScribe 360 Spelling Window")
+App["EPIC"] := AppItem("EPIC", "Hyperdrive.exe", "Hyperspace – Production (PRD)")
+App["DCAD"] := AppItem("DCAD", "StudyManager.exe", "DynaCAD")
+App["DSTUDY"] := AppItem("DSTUDY", "MRW.exe", "DynaCAD Study")
+App["DLUNG"] := AppItem("DLUNG", "MeVisLabApp.exe", "DynaCAD Lung")
+
+
+; Add known windows of interest belonging to each app.
+
+; PACS Assistant
+App["PA"].Win["main"] := WinItem(App["PA"], "main", "PACS Assistant", "PACS Assistant")
+
+; Cisco VPN
+App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences", VPNOpen_VPNmain)
+App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Export Stats")
+App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco AnyConnect |", "Cisco AnyConnect |", "Username")
+App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco AnyConnect |", "Cisco AnyConnect |", "Answer")
+App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco AnyConnect", "Cisco AnyConnect", "Security policies")
+
+; Agfa EI
+App["EI"].Win["login"] := WinItem(App["EI"], "login", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
+App["EI"].Win["d"] := WinItem(App["EI"], "d", "Diagnostic Desktop - 8.2.2.062  - mivcsp.adventhealth.com - AHEIAE1", "Diagnostic Desktop - 8", , EIOpen_EIdesktop, EIClose_EIdesktop)
+App["EI"].Win["i1"] := WinItem(App["EI"], "i1", "Diagnostic Desktop - Images (1 of 2)", "Diagnostic Desktop - Images (1")
+App["EI"].Win["i2"] := WinItem(App["EI"], "i2", "Diagnostic Desktop - Images (2 of 2)", "Diagnostic Desktop - Images (2")
+App["EI"].Win["4dm"] := WinItem(App["EI"], "4dm" ,"4DM(Enterprise Imaging) v2017", "4DM", , "Corridor4DM.exe")
+App["EI"].Win["chat"] := WinItem(App["EI"], "chat", "Chat Tool", "Chat")
+; Agfa EI pseudowindows
+App["EI"].Win["list"] := WinItem(App["EI"], "list", "Desktop List page", , , , , App["EI"].Win["d"], EIIsList)
+App["EI"].Win["text"] := WinItem(App["EI"], "text", "Desktop Text page", , , , , App["EI"].Win["d"], EIIsText)
+App["EI"].Win["search"] := WinItem(App["EI"], "search", "Desktop Search page", , , , , App["EI"].Win["d"], EIIsSearch)
+App["EI"].Win["image"] := WinItem(App["EI"], "image", "Desktop Image page", , , , , App["EI"].Win["d"], EIIsImage)
+
+; Agfa ClinApps (e.g. MPR)
+App["EICLIN"].Win["mpr"] := WinItem(App["EICLIN"], "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
+
+; PowerScribe
+App["PS"].Win["main"] := WinItem(App["PS"], "main", "PowerScribe 360 | Reporting", "PowerScribe", , PSOpen_PSmain, PSClose_PSmain)
+App["PS"].Win["logout"] := WinItem(App["PS"], "logout", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you wish to log off the application?", PSOpen_PSlogout)
+App["PS"].Win["savespeech"] := WinItem(App["PS"], "savespeech", "PowerScribe 360 | Reporting", "PowerScribe", "Your speech files have changed. Do you wish to save the changes?", PSOpen_PSsavespeech)
+App["PS"].Win["savereport"] := WinItem(App["PS"], "savereport", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to save the changes to the", PSOpen_PSsavereport)
+App["PS"].Win["deletereport"] := WinItem(App["PS"], "deletereport", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to delete", PSOpen_PSdeletereport)
+App["PS"].Win["unfilled"] := WinItem(App["PS"], "unfilled", "PowerScribe 360 | Reporting", "PowerScribe", "This report has unfilled fields. Are you sure you wish to sign it?", PSOpen_PSunfilled)
+App["PS"].Win["confirmaddendum"] := WinItem(App["PS"], "confirmaddendum", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create an addendum", PSOpen_PSconfirmaddendum)
+App["PS"].Win["confirmanother"] := WinItem(App["PS"], "confirmanother", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create another addendum", PSOpen_PSconfirmanotheraddendum)
+App["PS"].Win["existing"] := WinItem(App["PS"], "existing", "PowerScribe 360 | Reporting", "PowerScribe", "is associated with an existing report", PSOpen_PSexisting)
+App["PS"].Win["continue"] := WinItem(App["PS"], "continue", "PowerScribe 360 | Reporting", "PowerScribe", "Do you wish to continue editing", PSOpen_PScontinue)
+App["PS"].Win["ownership"] := WinItem(App["PS"], "ownership", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to acquire ownership", PSOpen_PSownership)
+App["PS"].Win["microphone"] := WinItem(App["PS"], "microphone", "PowerScribe 360 | Reporting", "PowerScribe", "Your microphone is disconnected", PSOpen_PSmicrophone)
+App["PS"].Win["find"] := WinItem(App["PS"], "find", "Find and Replace", "Find and", , PSOpen_PSfind)
+; PowerScribe pseudowindows
+App["PS"].Win["login"] := WinItem(App["PS"], "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin, PSClose_PSlogin, App["PS"].Win["main"], PSIsLogin)
+App["PS"].Win["home"] := WinItem(App["PS"], "home", "PowerScribe 360 | Reporting", "PowerScribe", "Signing queue", PSOpen_PShome, PSClose_PShome, App["PS"].Win["main"], PSIsHome)
+App["PS"].Win["report"] := WinItem(App["PS"], "report", "PowerScribe 360 | Reporting", "PowerScribe", "Report -", PSOpen_PSreport, PSClose_PSreport, App["PS"].Win["main"], PSIsReport)
+App["PS"].Win["addendum"] := WinItem(App["PS"], "addendum", "PowerScribe 360 | Reporting", "PowerScribe", "Addendum -", PSOpen_PSreport, PSClose_PSreport, App["PS"].Win["main"], PSIsAddendum)
+
+; PowerScribe spelling window
+App["PSSP"].Win["spelling"] := WinItem(App["PSSP"], "spelling", "Spelling Window", "Spelling", , PSOpen_PSspelling)
+
+; for Epic
+App["EPIC"].Win["main"] := WinItem(App["EPIC"], "main", "Hyperspace – Production (PRD)", "Production", , EPICOpened_EPICmain, EPICClosed_EPICmain)
+App["EPIC"].Win["chat"] := WinItem(App["EPIC"], "chat", "Secure Chat", "Secure Chat")
+; pseudowindows, parent is main window App["EI"].Win["main"]
+App["EPIC"].Win["login"] := WinItem(App["EPIC"], "login", "Hyperspace - login", , , , , App["EPIC"].Win["main"])
+App["EPIC"].Win["timezone"] := WinItem(App["EPIC"], "timezone", "Hyperspace - time zone", , , , , App["EPIC"].Win["main"])
+App["EPIC"].Win["chart"] := WinItem(App["EPIC"], "chart", "Hyperspace - chart", , , , , App["EPIC"].Win["main"])
+
+
+
+; PAWindows["DCAD"]["keys"] := ["login", "main", "study"]
+; PAWindows["DCAD"]["login"] := WindowItem("DCAD", "login", "Login", "Login", , "StudyManager.exe")
+; PAWindows["DCAD"]["main"] := WindowItem("DCAD", "main", "Philips DynaCAD", "Philips DynaCAD", , "StudyManager.exe")
+; PAWindows["DCAD"]["study"] := WindowItem("DCAD", "study", , , , "MRW.exe")
+
+; PAWindows["DLUNG"]["keys"] := ["login", "main", "second"]
+; PAWindows["DLUNG"]["login"] := WindowItem("DLUNG", "login", "DynaCAD Lung - Main Screen", "DynaCAD Lung - Main", , "MeVisLabApp.exe")
+; PAWindows["DLUNG"]["main"] := WindowItem("DLUNG", "main", "DynaCAD Lung - Main Screen", "DynaCAD Lung - Main", , "MeVisLabApp.exe")
+; PAWindows["DLUNG"]["second"] := WindowItem("DLUNG", "second", "DynaCAD Lung - Second Screen", "DynaCAD Lung - Second", , "MeVisLabApp.exe")
+
 
 
 
@@ -426,18 +518,28 @@ class WinItem {
     }
 
     ; Returns diagnostic info about this window as a string
-    ; returns empty string for non-existing windows or pseudowindows unless showall is set to true
+    ; returns empty string for non-existing windows unless showall is set to true
     Print(showall := false) {
 
-        if showall || (this.hwnd && !this.parentwindow) {
+;        if showall || (this.hwnd && !this.parentwindow) {
+        if showall || this.hwnd {
             output := "&nbsp;&nbsp;&nbsp;&nbsp;"
 
             output .= this.key " (" this.hwnd 
-            
-            if this.hwnd {
-                output .= (this.visible ? "/visible" : " hidden") . (this.minimized ? "/minimized) - " : ") - ")
+            if !this.parentwindow {
+                ; this is a real window
+                if this.hwnd {
+                    output .= (this.visible ? "/visible" : "/hidden") . (this.minimized ? "/minimized) - " : ") - ")
+                } else {
+                    output .= ") - "
+                }
             } else {
-                output .= ") - "
+                ; this is a pseudowindow
+                if this.hwnd {
+                    output .= (this.validate.Call() ? "/yes" : "/no") . ") - "
+                } else {
+                    output .= ") - "
+                }
             }
 
 ;            output .= this.fulltitle " (" this.pos.x ", " this.pos.y ", " this.pos.w ", " this.pos.h ") / (" this.savepos.x ", " this.savepos.y ", " this.savepos.w ", " this.savepos.h ")"
@@ -679,7 +781,7 @@ class WinItem {
 ;
 ;   Win[]       - Map, all windows associated with the app
 ;
-;   pid         - process ID of this function
+;   pid         - (read only) process ID of this function, or 0 if not running
 ;   isrunning   - (read only) true if app has been started, false if not
 ;
 ;;;   wincount    - returns total number of windows being tracked
@@ -725,22 +827,12 @@ class AppItem {
         this.wintext := wintext
 
         this.Win := Map()
-        this.pid := 0
 
         ; store the search criteria for this window
         if searchtitle {
             this.criteria := searchtitle . " ahk_exe " . exename
         } else {
             this.criteria := "ahk_exe " . exename
-        }
-
-        ; check whether the app is running, get its PID
-        try {
-            ; found a running process
-            this.pid := WinGetPID(this.criteria)
-        } catch {
-            ; did not find a running process
-            this.pid := 0
         }
 
         ; * Currently the following events are supported: `Show`, `Create`, `Close`, `Exist`, `NotExist`, `Active`, `NotActive`, `Move`, 
@@ -757,45 +849,38 @@ class AppItem {
 
     }
 
+    pid {
+        get {
+            if this.criteria {
+                try {
+                    ; look for a running process and return its pid
+                    _pid := WinGetPID(this.criteria)
+                    return _pid
+                } catch {
+                    ; did not find a running process
+                    return 0
+                }
+            } else {
+                ; no criteria, cannot look for a running process
+                return 0
+            }
+        }
+    }
+
     isrunning {
         get {
-            ; look for a running app, get its PID
-            try {
-                this.pid := WinGetPID(this.criteria)
-            } catch {
-                ; didn't find a running process
-                this.pid := 0
-            }
             return this.pid ? true : false
         }
     }
 
-    ; Updates the pid for this app
-    ;
-    ; If the pid is non-zero, then updates all the windows in Win[] for this app
+    ; If the app is running, updates all the windows in Win[] for the app
     ;
     Update() {
-
-        if !this.criteria {
-            ; can't update
-            return
-        }
-
-        ; check whether the app is running, get its PID
-        ; DetectHiddenText(false)     ; Do not want to search hidden text when looking for windows
-        try {
-            ; found a running process
-            this.pid := WinGetPID(this.criteria)
-        } catch {
-            ; did not find a running process
-            this.pid := 0
-        }
-
-        ; if this.pid {
+        if this.isrunning {
             for , win in this.Win {
                 win.Update()
             }
-        ; }
+        }
     }
 
     ; Returns diagnostic info about the window(s) for this app as a string
@@ -812,11 +897,11 @@ class AppItem {
                 ; return info just for one window of this app
                 output .= this.Win[winkey].Print(showall)
             } else {
-                    ;return info for all windows of this app
-                    for k, w in this.Win {
-                        output .= w.Print(showall)
-                    }
+                ;return info for all windows of this app
+                for k, w in this.Win {
+                    output .= w.Print(showall)
                 }
+            }
         } else {
             output := ""
         }
@@ -1093,14 +1178,17 @@ Context(hwnd, contexts*) {
 	; contexts[] is an array of strings
 
     appkey := GetAppkey(hwnd)       ; the app key of the window being checked
+TTip("Context: " appkey)
     if appkey {
 
         for context in contexts {
 
             carr := StrSplit(context, " ")
-            capp := carr[1]		;get the app key from the context string
+            cappkey := carr[1]		;get the context app key from the context string
 
-            if appkey == capp {
+TTip("Context: " appkey " <?> " cappkey)
+
+            if cappkey == appkey {
                 j := 2
                 if j > carr.Length {
                     ; no windows to match with, so we've succeeded
@@ -1108,27 +1196,37 @@ Context(hwnd, contexts*) {
                 }
 
                 winkey := GetWinkey(hwnd)     ; the win key of the window being checked
+TTip("Context: " appkey "/" winkey " <?> " cappkey)
 
                 ; need to check for a match among the windows in the context
                 while j <= carr.Length {
                     cwin := App[appkey].Win[carr[j]]    ; get the winitem of the context item
                     j++
 
-                    cwinkey := cwin.key
-
-                    if cwinkey == winkey {
-                        ; found a window match
-                        ; if it is a pseudowindow requiring validation, need to call the validate function
-                        fn := cwin.validate
-                        if fn {
-                            if fn.Call() {
-                                ; pseudowindow condition successfully validated
-                                ; return success
-                                return true
-                            }
-                        } else {
-                            ; no pseudowindow, so return success
+                    if !cwin.parentwindow {
+                        ; this is a true window
+                        cwinkey := cwin.key   
+TTip("Context: " appkey "/" winkey " <?> " cappkey "/" cwinkey)
+                        if cwinkey == winkey {
+                            ; found a window match
                             return true
+                        }
+                    } else {
+                        ; this is a pseudowindow, get the parent window's winkey for comparing
+                        cwinkey := cwin.parentwindow.key
+TTip("Context: " appkey "/" winkey " <?> " cappkey "/" cwinkey)
+                        if cwinkey == winkey {
+                            ; found a parent window match
+                            ; need to call the validate function for pseudowindow validation
+                            fn := cwin.validate
+                            if fn {
+TTip("Context: " appkey "/" winkey " <?> " cappkey "/" cwinkey "/" fn.Call())
+                                if fn.Call() {
+                                    ; pseudowindow condition successfully validated
+                                    ; return success
+                                    return true
+                                }
+                            }
                         }
                     }
                 }

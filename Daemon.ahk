@@ -228,7 +228,7 @@ _RefreshGUI() {
 		GUIStatus("PACS Assistant disabled")
 		PAGui.PostWebMessageAsString("document.getElementById('tab-active').removeAttribute('checked');")
 	}
-;GUIPost("log", "innerHTML", PAActive " / " PASettings["active"].value)
+;GUISetPropVal("log", "innerHTML", PAActive " / " PASettings["active"].value)
 		
 	; Update app icon indicators
 	status := 0x00
