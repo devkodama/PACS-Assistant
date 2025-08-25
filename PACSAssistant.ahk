@@ -31,6 +31,9 @@
 
 /**********************************************************
  * Defaults
+ * 
+ * Don't change these without considering global implications!
+ *
  */
 
 
@@ -49,6 +52,7 @@ SetDefaultMouseSpeed 0			; 0 = fastest
  */
 
 
+; Libraries
 #Include <WebView2>
 #Include <WebViewToo>
 #Include <WinEvent>
@@ -57,13 +61,14 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include <FindText>
 #include <_MD_Gen>
 
-#Include <Peep.v2>				; for debugging
 
+; PACS Assistant modules
 #Include Utils.ahk
 
 #Include Globals.ahk
-#Include Settings.ahk
 #Include FindTextStrings.ahk
+
+#Include Settings.ahk
 
 #Include Sound.ahk
 
@@ -90,7 +95,9 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include Help.ahk
 
 
-; for debugging use
+
+; for debugging
+#Include <Peep.v2>				; for debugging
 #Include Debug.ahk
 
 
