@@ -5,7 +5,7 @@
  * 
  * Strings are stored in the PAText map global object.
  * 
- * The strings are constructed with the FindText library.
+ * The strings are constructed using the the FindText library.
  * 
  * Do not modify these strings!
  * 
