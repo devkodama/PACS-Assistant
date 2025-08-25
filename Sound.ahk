@@ -1,4 +1,4 @@
-/* PASound.ahk
+/* Sound.ahk
 **
 ** Provide audio feedback for PACS Assistant operations
 **
@@ -9,22 +9,30 @@
 #SingleInstance Force
 
 
-/*
-** Global variables and constants
+
+
+/**********************************************************
+** Global variables and constants used or defined in this module
+*/
+
+; Global sound object, used in this module
+_SoundObj := ComObject("SAPI.SpVoice")
+
+
+
+
+/**********************************************************
+** Classes defined by this module
 */
 
 
-#Include Globals.ahk
-
-
-
-; A sound/sounds to be played.
+; Holds a sound or voice to be played, and a status message to be displayed
 ;
 ; Can be a a spoken voice phrase and/or a beep or an audio file (.wav)
 ;
 ; To specify a voice phrase, pass a string
 ;
-; To specify a beep, pass an array of [frequency, duration_in_ms]
+; To specify a beep, pass a frequency or an array of [frequency, duration_in_ms]
 ;
 ; To specify an audio file, pass a filename ending in .wav
 ;
@@ -53,7 +61,7 @@ class SoundItem {
             this.beepfreq := soundarg
             this.beepdur := 150
         } else if IsObject(soundarg) {
-            ; this must be a beep array [freq, duration]
+            ; this must be a beep frequency or an array of [freq, duration]
             this.beepfreq := soundarg[1]
             if soundarg.Length > 1 {
                 this.beepdur := soundarg[2]
@@ -71,6 +79,8 @@ class SoundItem {
 }
 
 
+
+/*
 ; Sounds maps PA events to voice or audio feedback
 Sounds := Map()
 
@@ -86,12 +96,7 @@ Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])
 Sounds["EIClickLockOff"] := SoundItem(, [600, 100])
 
 Sounds["EPIC"] := SoundItem("EPIC was clicked")
-
-
-
-
-; Global sound object
-_SoundObj := ComObject("SAPI.SpVoice")
+*/
 
 
 
@@ -99,18 +104,26 @@ _SoundObj := ComObject("SAPI.SpVoice")
 
 
 
-
-
+; Plays the requested sound, passed in soundevent
 ;
+; Uses the global map Sounds
 ;
+; If voice usage is enabled (according to Setting["UseVoice"].value) and there is a voice phrase to speak,
+; then speaks the voice phrase.
 ;
-PASound(message) {
+; If sound file is available, plys the sound file.
+;
+; If beep is requested, plays the beep.
+;
+; If the soundevent is not found in Sounds, then if voice usage is enabled, speaks the soundevent string as a voice phrase.
+;
+PlaySound(soundevent) {
     global _SoundObj
     global Sounds
 
-    if Sounds.Has(message) {
+    if Sounds.Has(soundevent) {
     
-        sound := Sounds[message]
+        sound := Sounds[soundevent]
         if sound.statusmessage {
             GUIStatus(sound.statusmessage)
         }
@@ -142,7 +155,7 @@ PASound(message) {
 
     } else {
 
-        ; key not found in Sounds[], just speak the passed message string
+        ; key not found in Sounds[], just speak the passed string
 
         if Setting["UseVoice"].value {
             ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
@@ -152,11 +165,10 @@ PASound(message) {
             _SoundObj.Voice := voices.Item(Setting["Voice"].value)    ; use voice 1 (Zira) (0=Dave, 2=Mark)
 
             ; speak phrase
-            _SoundObj.Speak(message, 0x01)
+            _SoundObj.Speak(soundevent, 0x01)
         }
 
     }
 
 }
-
 

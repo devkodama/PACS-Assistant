@@ -17,7 +17,7 @@
  */
 
 
-#Include <Cred>
+;#Include <Cred>
 
 
 
@@ -25,7 +25,7 @@
 /**********************************************************
  * Global constants
  * 
- * Should not change during program execution
+ * These don't change during program execution
  * 
  */
 
@@ -45,11 +45,8 @@ WATCHWINDOWS_UPDATE_INTERVAL := 400
 ; interval (ms) for updating dictate button status
 WATCHDICTATE_UPDATE_INTERVAL := 100
 
-; interval (ms) for updating network connection status
-WATCHNETWORK_UPDATE_INTERVAL := 1000
-
-; interval (ms) for updating workstation status
-WATCHNETWORK_UPDATE_INTERVAL := 60000       ; 60000 = 1 minute
+; interval (ms) for updating network connection or workstation status
+WATCHNETWORK_UPDATE_INTERVAL := 5000       ; 5000 = 5 seconds
 
 ; interval (ms) for jiggling mouse to keeping screen awake
 JIGGLEMOUSE_UPDATE_INTERVAL := 120000		; 120000 = 2 minutes
@@ -77,9 +74,9 @@ VPN_URL := "vpn.adventhealth.com/SecureAuth"
 ; timeout (seconds) for starting up EI to get to login window
 EI_LOGIN_TIMEOUT := 60
 ; timeout (seconds) for getting to EI desktop window after login
-EI_DESKTOP_TIMEOUT := 60
+EI_DESKTOP_TIMEOUT := 120
 ; timeout (seconds) for allowing Collaborator window to appear after login
-EI_COLLABORATOR_TIMEOUT := 10
+EI_COLLABORATOR_TIMEOUT := 30
 ; timeout (seconds) for shutting down EI
 EI_SHUTDOWN_TIMEOUT := 60
 ; EI server string
@@ -123,7 +120,7 @@ WINPOS_MINHEIGHT := 100
 ; Windows constant (style of visible windows)
 WS_VISIBLE := 0x10000000
 
-; Windows constants used in PS.ahk module.
+; Windows constants used in PS.ahk module
 WM_SETTEXT := 0x000C
 WM_GETTEXT := 0x000D
 EM_GETSEL := 0x00B0
@@ -131,8 +128,6 @@ EM_SETSEL := 0x00B1
 EM_SETREADONLY := 0x00CF
 
 ; Windows constants used in GUI.ahk module
-
-
 
 
 
@@ -157,11 +152,11 @@ FILE_SETTINGSBASE := "settings"
 ICD_CODEFILE := "icd10codes.txt"
 
 
-; Text/color to display when microphone is off
+; Text and color to display when microphone is off
 MICROPHONETEXT_OFF := "Microphone Off"
 MICROPHONECOLOR_OFF := "#303030"
 
-; Text to display when microphone is on
+; Text and color to display when microphone is on
 MICROPHONETEXT_ON := "Microphone On"
 MICROPHONECOLOR_ON := "#d02020"
 
@@ -172,7 +167,7 @@ INFO_DOB_FORMAT := "M/d/yyyy"
 GUIWINDOWTITLE := "PACS Assistant"
 GUIHOMEPAGE := "pages/PACSAssistant.html"
 
-; Used in PAInfo.ahk. Format for returning DOB from Patient object.
+; Used in Info.ahk. Format for returning DOB from Patient object.
 INFO_DOB_FORMAT := "M/d/yyyy"
 
 ; Hospital workstation names
@@ -212,19 +207,19 @@ global _PAUpdate_Initial := true
 ; This is false at startup and set to true after the GUI is up and running.
 global _GUIIsRunning := false
 
-; updated with the handle of the window under the mouse cursor every time
-; _UpdateMouseWindow() is called
-global PA_WindowUnderMouse := 0
 
+; the main PACS Assistant GUI
+global PAGUI
 
 ; Global dispatch queue
-global DispatchQueue := Array()
+global DispatchQueue
 
 
 ; PASettings holds settings used across PACS Assistant.
 ; Each entry is a {"key", SetItem()} pair. See Settings.ahk for Setting
 ; class and PASettings[] definitions.
 global Setting
+
 
 ; credentials of current user. See Crek.ahk for Credential
 ; class definition.
@@ -278,6 +273,10 @@ global PACurState := Map(
 
 
 
+; App is a Map which stores information about all the windows that belong to a
+; specific application. See AppManager.ahk for more info.
+global App := Map()
+
 
 ; PAApps is a global Array() which tracks all of the applications of interest
 ; to PACS Assistant.
@@ -298,108 +297,36 @@ global PAApps := Array()
 global _HwndLookup := Map()
 
 
-; App is a Map which stores information about all the windows that belong to;
-; specific application. 
-;
-; The following are valid keys for App:
-;
-;	"PA"     - id "PA", PACS Assistant
-;	"VPN"     - id "VPN", Cisco VPN
-;	"EI"     - id "EI", Agfa EI
-;	"EICLIN"     - id "EICLIN", Agfa EI ClinApps
-;	"PS" 	- id "PS", PowerScribe
-;	"PSSP" 	- id "PSSPELL", PowerScribe Spelling Window
-;	"EP" 	- id "EPIC", Epic Hyperspace
-;	"DCAD"     - id "DCAD", DynaCAD Prostate and Breast
-;	"DSTUDY"     - id "DCADSTUDY", DynaCAD Prostate and Breast
-;	"DLUNG"     - id "DLUNG", DynaCAD Lung
-;
-;
-global App := Map()
 
-App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant")
-; [deprecated] App["VPN"] := AppItem("VPN", "vpnui.exe", "Cisco AnyConnect Secure Mobility Client")
-App["VPN"] := AppItem("VPN", "csc_ui.exe", "Cisco Secure Client")
-App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging")
-App["EICLIN"] := AppItem("EICLIN", "javawClinapps.exe", "Agfa HealthCare Enterprise Imaging")
-App["PS"] := AppItem("PS", "Nuance.PowerScribe360.exe", "PowerScribe 360")
-App["PSSP"] := AppItem("PSSP", "natspeak.exe", "PowerScribe 360 Spelling Window")
-App["EPIC"] := AppItem("EPIC", "Hyperdrive.exe", "Hyperspace – Production (PRD)")
-App["DCAD"] := AppItem("DCAD", "StudyManager.exe", "DynaCAD")
-App["DSTUDY"] := AppItem("DSTUDY", "MRW.exe", "DynaCAD Study")
-App["DLUNG"] := AppItem("DLUNG", "MeVisLabApp.exe", "DynaCAD Lung")
+; Sounds map maps PA events to voice or audio feedback
+Sounds := Map()
 
+Sounds["VPNConnected"] := SoundItem("VPN connected")
+Sounds["VPNDisconnected"] := SoundItem("VPN disconnected")
 
-; Add known windows of interest belonging to each app.
+Sounds["PSTab"] := SoundItem( , [440, 10])
+Sounds["PSToggleMic"] := SoundItem( , 392)
 
-App["PA"].Win["main"] := WinItem(App["PA"], "main", "PACS Assistant", "PACS Assistant")
+Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
+Sounds["PSDraftReport"] := SoundItem("Draft saved", , "Report saved as Draft")
+Sounds["PSSPreliminary"] := SoundItem("Preliminary saved", , "Report saved as Preliminary")
 
-; for Cisco VPN
-; [deprecated] App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences", VPNOpen_VPNmain)
-; [deprecated] App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Export Stats")
-; [deprecated] App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco AnyConnect |", "Cisco AnyConnect |", "Username")
-; [deprecated] App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco AnyConnect |", "Cisco AnyConnect |", "Answer")
-; [deprecated] App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco AnyConnect", "Cisco AnyConnect", "Security policies")
-App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco Secure Client", "Cisco Secure Client", "Preferences", VPNOpen_VPNmain)
-App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco Secure Client", "Cisco Secure Client", "Export Stats")
-App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco Secure Client |", "Cisco Secure Client |", "Username")
-App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco Secure Client |", "Cisco Secure Client |", "Answer")
-App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco Secure Client", "Cisco Secure Client", "Security policies")
+Sounds["EIStartReading"] := SoundItem( , 480)
+Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])
+Sounds["EIClickLockOff"] := SoundItem(, [600, 100])
 
-; for Agfa EI
-App["EI"].Win["login"] := WinItem(App["EI"], "login", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
-App["EI"].Win["d"] := WinItem(App["EI"], "d", "Diagnostic Desktop - 8.2.2.062  - mivcsp.adventhealth.com - AHEIAE1", "Diagnostic Desktop - 8", , EIOpen_EIdesktop, EIClose_EIdesktop)
-App["EI"].Win["i1"] := WinItem(App["EI"], "i1", "Diagnostic Desktop - Images (1 of 2)", "Diagnostic Desktop - Images (1")
-App["EI"].Win["i2"] := WinItem(App["EI"], "i2", "Diagnostic Desktop - Images (2 of 2)", "Diagnostic Desktop - Images (2")
-App["EI"].Win["4dm"] := WinItem(App["EI"], "4dm" ,"4DM(Enterprise Imaging) v2017", "4DM", , "Corridor4DM.exe")
-App["EI"].Win["collab"] := WinItem(App["EI"], "collab", "Collaborator", "Collaborator")
-; pseudowindows
-App["EI"].Win["list"] := WinItem(App["EI"], "list", "Desktop List page", , , , , App["EI"].Win["d"], EIIsList)
-App["EI"].Win["text"] := WinItem(App["EI"], "text", "Desktop Text page", , , , , App["EI"].Win["d"], EIIsText)
-App["EI"].Win["search"] := WinItem(App["EI"], "search", "Desktop Search page", , , , , App["EI"].Win["d"], EIIsSearch)
-App["EI"].Win["image"] := WinItem(App["EI"], "image", "Desktop Image page", , , , , App["EI"].Win["d"], EIIsImage)
-
-; for Agfa ClinApps (e.g. MPR)
-App["EICLIN"].Win["mpr"] := WinItem(App["EICLIN"], "mpr", "IMPAX Volume Viewing 3D + MPR Viewing", "IMPAX Volume")
-
-; for PowerScribe
-App["PS"].Win["login"] := WinItem(App["PS"], "login", "PowerScribe 360 | Reporting", "PowerScribe", "Disable speech", PSOpen_PSlogin, PSClose_PSlogin)
-App["PS"].Win["main"] := WinItem(App["PS"], "main", "PowerScribe 360 | Reporting", "PowerScribe", "Signing queue", PSOpen_PSmain, PSClose_PSmain)
-App["PS"].Win["report"] := WinItem(App["PS"], "report", "PowerScribe 360 | Reporting", "PowerScribe", "Report -", PSOpen_PSreport, PSClose_PSreport)
-App["PS"].Win["addendum"] := WinItem(App["PS"], "addendum", "PowerScribe 360 | Reporting", "PowerScribe", "Addendum -", PSOpen_PSreport, PSClose_PSreport)
-App["PS"].Win["logout"] := WinItem(App["PS"], "logout", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you wish to log off the application?", PSOpen_PSlogout)
-App["PS"].Win["savespeech"] := WinItem(App["PS"], "savespeech", "PowerScribe 360 | Reporting", "PowerScribe", "Your speech files have changed. Do you wish to save the changes?", PSOpen_PSsavespeech)
-App["PS"].Win["savereport"] := WinItem(App["PS"], "savereport", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to save the changes to the", PSOpen_PSsavereport)
-App["PS"].Win["deletereport"] := WinItem(App["PS"], "deletereport", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to delete", PSOpen_PSdeletereport)
-App["PS"].Win["unfilled"] := WinItem(App["PS"], "unfilled", "PowerScribe 360 | Reporting", "PowerScribe", "This report has unfilled fields. Are you sure you wish to sign it?", PSOpen_PSunfilled)
-App["PS"].Win["confirmaddendum"] := WinItem(App["PS"], "confirmaddendum", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create an addendum", PSOpen_PSconfirmaddendum)
-App["PS"].Win["confirmanother"] := WinItem(App["PS"], "confirmanother", "PowerScribe 360 | Reporting", "PowerScribe", "Do you want to create another addendum", PSOpen_PSconfirmanotheraddendum)
-App["PS"].Win["existing"] := WinItem(App["PS"], "existing", "PowerScribe 360 | Reporting", "PowerScribe", "is associated with an existing report", PSOpen_PSexisting)
-App["PS"].Win["continue"] := WinItem(App["PS"], "continue", "PowerScribe 360 | Reporting", "PowerScribe", "Do you wish to continue editing", PSOpen_PScontinue)
-App["PS"].Win["ownership"] := WinItem(App["PS"], "ownership", "PowerScribe 360 | Reporting", "PowerScribe", "Are you sure you want to acquire ownership", PSOpen_PSownership)
-App["PS"].Win["microphone"] := WinItem(App["PS"], "microphone", "PowerScribe 360 | Reporting", "PowerScribe", "Your microphone is disconnected", PSOpen_PSmicrophone)
-App["PS"].Win["find"] := WinItem(App["PS"], "find", "Find and Replace", "Find and", , PSOpen_PSfind)
-
-; for PowerScribe spelling window
-App["PSSP"].Win["spelling"] := WinItem(App["PSSP"], "spelling", "Spelling Window", "Spelling", , PSOpen_PSspelling)
-
-; for Epic
-App["EPIC"].Win["main"] := WinItem(App["EPIC"], "main", "Hyperspace – Production (PRD)", "Production", , EPICOpened_EPICmain, EPICClosed_EPICmain)
-App["EPIC"].Win["chat"] := WinItem(App["EPIC"], "chat", "Secure Chat", "Secure Chat")
-; pseudowindows, parent is main window App["EI"].Win["main"]
-App["EPIC"].Win["login"] := WinItem(App["EPIC"], "login", "Hyperspace - login", , , , , App["EPIC"].Win["main"])
-App["EPIC"].Win["timezone"] := WinItem(App["EPIC"], "timezone", "Hyperspace - time zone", , , , , App["EPIC"].Win["main"])
-App["EPIC"].Win["chart"] := WinItem(App["EPIC"], "chart", "Hyperspace - chart", , , , , App["EPIC"].Win["main"])
+Sounds["EPIC"] := SoundItem("EPIC was clicked")
 
 
 
-; PAWindows["DCAD"]["keys"] := ["login", "main", "study"]
-; PAWindows["DCAD"]["login"] := WindowItem("DCAD", "login", "Login", "Login", , "StudyManager.exe")
-; PAWindows["DCAD"]["main"] := WindowItem("DCAD", "main", "Philips DynaCAD", "Philips DynaCAD", , "StudyManager.exe")
-; PAWindows["DCAD"]["study"] := WindowItem("DCAD", "study", , , , "MRW.exe")
+; PAText holds a dictionary of strings for the FindText function.
+; Strings are defined in the FindTextStrings.ahk module.
+global PAText := Map()
 
-; PAWindows["DLUNG"]["keys"] := ["login", "main", "second"]
-; PAWindows["DLUNG"]["login"] := WindowItem("DLUNG", "login", "DynaCAD Lung - Main Screen", "DynaCAD Lung - Main", , "MeVisLabApp.exe")
-; PAWindows["DLUNG"]["main"] := WindowItem("DLUNG", "main", "DynaCAD Lung - Main Screen", "DynaCAD Lung - Main", , "MeVisLabApp.exe")
-; PAWindows["DLUNG"]["second"] := WindowItem("DLUNG", "second", "DynaCAD Lung - Second Screen", "DynaCAD Lung - Second", , "MeVisLabApp.exe")
+
+
+; Holds the icd-10 lookup table. See ICDCode.ahk.
+global ICDCodeTable
+
+
 

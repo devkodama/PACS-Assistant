@@ -1,24 +1,32 @@
-/* PAICDCode.ahk
-**
-** ICD Code functions for PACS Assistant
-**
-*/
-
-
-
 /**
- *
- * Global variables
+ * ICDCode.ahk
+ * 
+ * ICD Code functions for PACS Assistant
  * 
  */
 
 
-#Include Globals.ahk
+#Requires AutoHotkey v2.0
+#SingleInstance Force
 
+
+
+/**********************************************************
+ * Globals
+ * 
+ */
 
 
 ; Holds the icd-10 lookup table
-ICDCodeTable := ""
+global ICDCodeTable := ""
+
+
+
+
+/**********************************************************
+ * Functions defined by this module
+ * 
+ */
 
 
 ; Reads the ICD code table from the file named "icd10codes.txt"
@@ -37,7 +45,6 @@ ICDReadCodeFile(filename := ICD_CODEFILE) {
         GUIStatus("Could not read ICD Code table")
     }
 }
-
 
 
 ; Lookup an ICD-10 code (as string) and return the description as a string

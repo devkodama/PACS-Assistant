@@ -7,9 +7,11 @@
  * This module defines the following globals:
  *
  *  Setting             - Map() with program-wide modifiable settings
+ * 
  *  SettingsPage        - Array() ordered array of keys that determines which settings
  *                          are shown and the order in which they are shown on the 
- *                          GUI Settings page
+ *                          GUI Settings page. 
+ *                          This global is only used within the Settings.ahk module.
  * 
  *
  * This module defines the following classes:
@@ -32,19 +34,6 @@
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-
-
-
-
-/**********************************************************
-** Includes
-*/
-
-
-#Include <Cred>
-
-#Include Utils.ahk
-#Include Globals.ahk
 
 
 
@@ -157,8 +146,8 @@ Setting["run"] := SetItem("run", "num", 0, , "")
 ; PASettingsPage is an ordered array of keys that determines which settings
 ; are shown and the order in which they are shown on the GUI Settings page. 
 ;
-; Settings can be grouped into categories. When a key begins with a colon,
-; as in ":CategoryName", then CategoryName is used as the grouping title
+; Settings can be grouped into categories. When a key begins with a "#",
+; as in "#CategoryName", then CategoryName is used as the grouping title
 ;
 ; When a key is prefixed with ">", as in ">MouseJiggler_timeout", then
 ; the key is indented when displayed. A double indent ">>" can also be used.
@@ -240,11 +229,11 @@ SettingsPage.Push("EIcollaborator_show")
 ; Class to hold an individual setting within PACS Assistant
 ;
 ; Possible values for type:
-;   "bool"      - possiblevalues is ignored, as it assumed to be [true, false]
-;   "num"       - possiblevalues is an array of [lowerbound, upperbound], or empty if no limits
-;   "text"      - possiblevalues is an integer defining maximum length of text
-;   "select"    - possiblevalues is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
-;   "special"   - possiblevalues is a string defining what type of special value this is
+;   "bool"      - possible is ignored, as it assumed to be [true, false]
+;   "num"       - possible is an array of [lowerbound, upperbound], or empty if no limits
+;   "text"      - possible is an integer defining maximum length of text
+;   "select"    - possible is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
+;   "special"   - possible is a string defining what type of special value this is
 ;
 class SetItem {
     name := ""              ; Name of this setting. Should match the key used in 
@@ -314,7 +303,7 @@ class SetItem {
                                     ; username is non-empty
 
                                     ; add username to title bar
-                                    GUIPost("curuser", "innerHTML", " - " . newval)
+                                    GUISetPropVal("curuser", "innerHTML", " - " . newval)
 
                                     ; update password
                                     if !WorkstationIsHospital() {
@@ -343,7 +332,7 @@ class SetItem {
                                     ; username is empty
 
                                     ; update title bar
-                                    GUIPost("curuser", "innerHTML", "")
+                                    GUISetPropVal("curuser", "innerHTML", "")
 
                                     ; set password to empty
                                     Setting["password"].value := ""
@@ -384,7 +373,7 @@ class SetItem {
         }
     }
 
-    on {
+    enabled {
         get {
             return this._value ? true : false 
         }
@@ -432,7 +421,7 @@ class SetItem {
                         if !WorkstationIsHospital() {
                             ; not hospital, so save password to local storage if wanted
                             if Setting.Has("storepassword") {
-                                if Setting["storepassword"].on {
+                                if Setting["storepassword"].enabled {
                                     if this._value {
                                         CredWrite("PA_cred_" . Setting["username"].value, Setting["username"].value, this._value)
                                     }
@@ -596,7 +585,6 @@ SettingsReadAll() {
 ;
 SettingsWriteAll() {
     global Setting
-;    global CurrentUserCredentials
 
     ; ensure username has a value
     if Setting["username"].value {
@@ -847,7 +835,7 @@ SettingsGeneratePage(show := true) {
 
     if show {
         ; replace current form on GUI Settings page
-        GUIPost("settingsform", "innerHTML", form)
+        GUISetPropVal("settingsform", "innerHTML", form)
     }
     
     return form
@@ -891,7 +879,7 @@ HandleFormInput(WebView, id, newval) {
         ; validation succeeded, change the setting's value
         sett.value := newval
         ; clear any previous error
-        GUIPost(errid, "innerHTML", "")
+        GUISetPropVal(errid, "innerHTML", "")
 
     } else {
 
@@ -900,20 +888,20 @@ HandleFormInput(WebView, id, newval) {
         switch sett.type {
             case "num":
                 if IsObject(sett.possible) {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
                 } else {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid number")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid number")
                 }
             case "text", "special":
                 if sett.possible > 0 {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
                 } else {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid entry")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid entry")
                 }
             case "select":
-                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid choice")
+                GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid choice")
             default:
-                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
+                GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
         }
     }
 

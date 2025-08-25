@@ -48,20 +48,6 @@
 
 
 /**********************************************************
- * Includes
- */
-
-
-#Include <FindText>
-#Include "PAFindTextStrings.ahk"
-
-#Include Globals.ahk
-#include "PAInfo.ahk"
-
-
-
-
-/**********************************************************
  * Global variables and constants used in this module
  */
 
@@ -77,9 +63,9 @@
 ; Send keystroke commands to EI 
 ;
 ; Can specify which window to receive the commands. Options are:
-;	"desktop"
-;	"images1"
-;	"images2"
+;	"d" for desktop window
+;	"i1" for images 1 window
+;	"i2" for images 2 window
 ;
 ; Commands are sent to the images1 window by default.
 ;
@@ -100,7 +86,7 @@ EISend(cmdstring := "", targetwindow := "i1") {
 			PAWindowBusy := true
 ;			try {
 				WinActivate(hwndEI)
-				Sleep(200)
+				Sleep(100)
 				Send(cmdstring)
 ;			}
 			PAWindowBusy := false
@@ -331,9 +317,9 @@ EIGetStudyMode() {
 ;
 EIOpen_EIdesktop() {
 
-	PASound("EI desktop opened")
+	PlaySound("EI desktop opened")
 
-	if Setting["EI_restoreatopen"].value {
+	if Setting["EI_restoreatopen"].enabled {
 		; Restore EI window positions
 		App["EI"].RestorePositions()
 	}
@@ -362,7 +348,7 @@ EIOpen_EIdesktop() {
 ; This gets called either when desktop window is closed OR minimized
 ;
 EIClose_EIdesktop() {
-	PASound("EI desktop closed")
+	PlaySound("EI desktop closed")
 }
 
 
@@ -387,6 +373,10 @@ EIClose_EIdesktop() {
 ; If EI is not already running and network is connected, starts up EI
 ; and uses cred to log in. The parameter cred is an object with username 
 ; and password properties.
+;
+; Starting EI normally has side effects of starting PowerScribe and Epic.
+; This function monitors and waits for PowerScribe and Epic to start up
+; before returning.
 ;
 ; Periodically checks PACancelRequest to see if it the startup attempt
 ; should be cancelled
@@ -500,7 +490,7 @@ EIStart(cred := CurrentUserCredentials) {
 		; wait for EI login window to be visible (should already be)
 		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
 			GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			Sleep(500)
+			Sleep(750)
 			App["EI"].Win["login"].Update()
 			if PACancelRequest {
 				cancelled := true
@@ -519,7 +509,7 @@ EIStart(cred := CurrentUserCredentials) {
 			WinActivate(hwndlogin)
 
 			; delay to allow display of the username and password edit fields
-			sleep(1000)
+			sleep(1500)
 
 			if PACancelRequest {
 				cancelled := true
@@ -538,9 +528,13 @@ EIStart(cred := CurrentUserCredentials) {
 				MouseGetPos(&savex, &savey)
 
 				Click(ok[1].x, ok[1].y + 8)
+				Sleep(100)
 				Send("^a" . cred.username)
+				Sleep(100)
 				Click(ok[2].x, ok[2].y + 8)
+				Sleep(100)
 				Send("^a" . cred.password)
+				Sleep(100)
 				Send("!o")					; Presses OK key (Alt-O) to start login
 				
 				MouseMove(savex, savey)
@@ -572,6 +566,7 @@ EIStart(cred := CurrentUserCredentials) {
 			}
 
 			; EI desktop is running
+			
 			; now wait for EPIC and PS to complete loading
 			; in practice we can just wait for PS since it normally takes much longer then EPIC
 			tick1 := A_TickCount
@@ -617,12 +612,12 @@ EIStart(cred := CurrentUserCredentials) {
 		; if failure, or if no desktop window by now, return as failure
 		GUIStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
-
+/*
 	} else if PSfailed {
 	
 		GUIStatus("EI started, but could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
-	
+*/	
 	} else {
 
 		; success
@@ -645,7 +640,7 @@ EIStart(cred := CurrentUserCredentials) {
 ; immediately returns -1.
 ;
 ; Shutting down EI normally has side effects of closing PowerScribe and Epic.
-; This function monitors and waits for PowerScribe and Epic to fully close
+; This function monitors and waits for PowerScribe and Epic to shut down
 ; as well before returning.
 ;
 ; Wait time is defined by EI_SHUTDOWN_TIMEOUT. If complete shutdown does not
@@ -654,7 +649,7 @@ EIStart(cred := CurrentUserCredentials) {
 ; Periodically checks PACancelRequest to see if it the startup attempt
 ; should be cancelled.
 ;
-; Returns 1 if EI, PS, and Epic are all shut down is successful,
+; Returns 1 if EI shut down is successful,
 ; 0 if unsuccessful (e.g. after timeout or if user cancels).
 ;
 EIStop() {
@@ -714,7 +709,7 @@ EIStop() {
 		; wait for both PS & Epic to shut down
 		while !cancelled && (!resultPS || !resultEPIC) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 	
-			GUIStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			GUIStatus("Shutting down PS & Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			sleep(500)
 			App["PS"].Update()
 			App["EPIC"].Update()
@@ -725,7 +720,8 @@ EIStop() {
 				resultPS := true
 			} else if !pscloseflag && PSIsLogin() {
 				; We're at the login window. Close it.
-				PSSend("!{F4}")
+;				PSSend("!{F4}")
+				ProcessClose(App["PS"].pid)
 				pscloseflag := true
 			}
 	
@@ -754,9 +750,8 @@ EIStop() {
 		result := 0
 
 	} else if resultEI && resultPS && resultEPIC {
-
 		; shut down successful
-		
+
 		; After EI desktop is closed, a hidden EI login window persists in the background.
 		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
 		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
@@ -776,7 +771,7 @@ EIStop() {
 		; something went wrong
 		GUIStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
-		
+
 	} else if !resultPS {
 		
 		; something went wrong
@@ -965,6 +960,7 @@ _EIParsePatientInfo(&patientinfo := "", contents := "") {
 }
 
 
+; [wip]
 ; Retrieves data from Study Info section data of EI Desktop text page
 ;
 ; Should be passed a Patient object, with whom this study is associated
@@ -1114,6 +1110,7 @@ if n++ > 2 {
 }
 
 
+; [wip]
 ; Looks for data within the passed contents string to match the following items:
 ;	Accession number
 ;	Study description
@@ -1242,7 +1239,7 @@ EICmdStartReading() {
 	if !EIClickImages("EI_StartReading") {
 		EIClickDesktop("EI_DesktopStartReading")
 	}
-	PASound("EIStartReading")
+	PlaySound("EIStartReading")
 }
 
 

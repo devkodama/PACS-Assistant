@@ -31,6 +31,9 @@
 
 /**********************************************************
  * Defaults
+ * 
+ * Don't change these without considering global implications!
+ *
  */
 
 
@@ -49,39 +52,52 @@ SetDefaultMouseSpeed 0			; 0 = fastest
  */
 
 
+; Libraries
+#Include <WebView2>
+#Include <WebViewToo>
 #Include <WinEvent>
 #Include <Cred>
+#include <DateParse>
+#Include <FindText>
+#include <_MD_Gen>
 
-#Include <Peep.v2>				; for debugging
 
+; PACS Assistant modules
 #Include Utils.ahk
-#Include Globals.ahk
 
-#Include PASound.ahk
-#Include PAFindTextStrings.ahk
+#Include Globals.ahk
+#Include FindTextStrings.ahk
+
+#Include Settings.ahk
+
+#Include Sound.ahk
+
+#Include Info.ahk
+#Include ICDCode.ahk
 
 #Include Daemon.ahk
 
 #Include Network.ahk
 #Include EI.ahk
+
+
 #Include PS.ahk
 #Include EPIC.ahk
 
-#Include Hotkeys.ahk
-
-#Include PAInfo.ahk
-#Include Settings.ahk
-
-#Include PAICDCode.ahk
-
 #Include GUI.ahk
+
+
+
+#Include Hotkeys.ahk
 
 #Include AppManager.ahk
 
 #Include Help.ahk
 
 
-; for debugging use
+
+; for debugging
+#Include <Peep.v2>				; for debugging
 #Include Debug.ahk
 
 
@@ -167,14 +183,14 @@ _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
 
-; PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
+TTip("Show " hwnd ": ('" crit "','" text "') => ?")
 
 	for k, a in App {
 		for , w in a.Win {
 			if crit = w.criteria && text = w.wintext {
 				; found the window, update it with the new hwnd
 				w.Update(hwnd)
-; PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+TTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 				break 2		; break out of both for loops
 			}
 		}
@@ -260,15 +276,13 @@ PACSStart(cred := CurrentUserCredentials) {
 	resultNetwork := NetworkIsConnected(true)
 	if !resultNetwork {
 		if !WorkstationIsHospital() {
-		    resultVPN := VPNStart(cred)
-			resultNetwork := (resultVPN = 1)
+		    resultNetwork := (VPNStart(cred) = 1)
 		}
 	}
 
 	if resultNetwork {
-		; have network, try to start EI
-        resultEI := EIStart(cred)
-        resultEI := (resultEI = 1) ? true : false
+		; have network connection, try to start EI
+        resultEI := (EIStart(cred) = 1) ? true : false
     } else {
 		; no network connection, can't start EI
         resultEI := false
@@ -325,8 +339,7 @@ PACSStop() {
     resultEI := (EIStop() = 1)
 	if resultEI {
 		if !WorkstationIsHospital() {
-		    resultVPN := VPNStop()
-			resultNetwork := (resultVPN = 1)
+			resultNetwork := (VPNStop() = 1)
 		} else {
 			resultNetwork := true
 		}
@@ -373,12 +386,13 @@ PAInit() {
 	; Initialize systemwide settings
 	SettingsInit()
 
-	; Register Windows hooks to monitor window open and close events for all the
+	; Register Windows hooks to monitor window open (and close?) events for all the
 	; windows of interest
 	for k, a in App {
 		for , w in a.Win {
-			if w.criteria {
-				; register a hook for this window
+			if w.criteria && !w.parentwindow {
+				; this window has search criteria and is not a pseudowindow
+				; register a Show hook for this window
 				WinEvent.Show(_PAWindowShowCallback, w.criteria, , w.wintext)
 			}
 		}

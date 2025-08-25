@@ -31,15 +31,6 @@
 
 
 
-/**********************************************************
- * Includes
- */
-
-
-#Include Globals.ahk
-
-
-
 
 /**********************************************************
  * Global variables and constants used in this module
@@ -57,46 +48,35 @@
 
 
 /**********************************************************
- * Functions to retrieve info about the VPN
+ * Functions to retrieve info about the network and vpn
+ * 
  */
 
 
 ; Returns the host name (computer name) of this workstation
 ;
-; Host name is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
-; unless forceupdate is true.
-;
-NetworkGetHostName(forceupdate := false) {
-	hostname := ""				; cached host name
-	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
-
-	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
-		hostname := StrUpper(Trim(StdoutToVar('hostname').Output))
-	}
+NetworkGetHostName() {
+	hostname := StrUpper(Trim(StdoutToVar('hostname').Output))
 	return hostname
 }
 
 
 ; Returns the current IPv4 address of this workstation
+; 
+; Empty string is returned if no ip address
 ;
-; IP address is cached, checked every WATCHNETWORK_UPDATE_INTERVAL,
-; unless forceupdate is true.
-;
-NetworkGetIP(forceupdate := false) {
-	ipv4 := ""					; cached ip addr
-	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
+NetworkGetIP() {
 
-	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
-		cmdout := StdoutToVar('ipconfig').Output
+	cmdout := StdoutToVar('ipconfig').Output
 
-		; there can be multiple host adapters
-		; use the first ipv4 address found, this seems to be the correct one
-		if RegExMatch(cmdout, "IPv4 Address.+:\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", &regout) {
-			ipv4 := regout[1]
-		} else {
-			ipv4 := ""
-		}
+	; there can be multiple host adapters
+	; use the first ipv4 address found, this seems to be the correct one
+	if RegExMatch(cmdout, "IPv4 Address.+:\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", &regout) {
+		ipv4 := regout[1]
+	} else {
+		ipv4 := ""
 	}
+
 	return ipv4
 }
  
@@ -112,33 +92,35 @@ WorkstationIsHospital(forceupdate := false) {
 
 	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
 		ishospital := false
-
-		; check for matching ip addresses
-		ip := NetworkGetIP(forceupdate)
-		if RegExMatch(ip, "([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+", &regout) {	
-			for prefix in HOSPITAL_SUBNETPREFIXES {		
-				if regout[1] == prefix {
+		
+		; check for a matching hostname
+		host := NetworkGetHostName()
+		if host {
+			for prefix in HOSPITAL_WORKSTATIONPREFIXES {
+				if InStr(host, prefix, true) {
+					; found a match
 					ishospital := true
 					break			; for
 				}
 			}
-		} 
+		}
 
-		; or check for matching hostname
+		; if we didn't find a matching hostname, then try checking for a matching ip addresses (subnet)
 		if !ishospital {
-			host := NetworkGetHostName(forceupdate)
-			if host {
-				for prefix in HOSPITAL_WORKSTATIONPREFIXES {
-					if InStr(host, prefix, true) {
-						; found a match
+			; the /24 subnet prefix (xx.xx.xx) of the current ip is matched against list of known hospital network prefixes
+			ip := NetworkGetIP()
+			if RegExMatch(ip, "([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+", &regout) {	
+				for prefix in HOSPITAL_SUBNETPREFIXES {		
+					if regout[1] == prefix {
 						ishospital := true
 						break			; for
 					}
 				}
-			}
+			} 
 		}
+
+		lastcheck := A_TickCount
 	}
-	
 	return ishospital
 }
 
@@ -177,7 +159,7 @@ NetworkIsConnected(forceupdate := false) {
 	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
 
 		if WorkstationIsHospital(forceupdate) {
-			if NetworkGetIP(forceupdate) {
+			if NetworkGetIP() {
 				networkstatus := true
 			} else {
 				networkstatus := false
@@ -201,7 +183,7 @@ NetworkIsConnected(forceupdate := false) {
 
 ; Hook function called when VPN main window appears
 VPNOpen_VPNmain() {
-	if Setting["VPN_center"].value {
+	if Setting["VPN_center"].enabled {
 		; center on the current monitor
 		App["VPN"].Win["main"].CenterWindow()
 	}
@@ -251,7 +233,7 @@ VPNStart(cred := CurrentUserCredentials) {
 		return 1
 	}
 
-	; close OTP window if open, to get back to main vpn window
+	; close OTP window if currently open, to get back to main vpn window
 	hwndotp := App["VPN"].Win["otp"].WinExist()
 	if hwndotp {
 		ControlClick("Cancel", hwndotp, , , , "NA")
@@ -315,14 +297,12 @@ VPNStart(cred := CurrentUserCredentials) {
 		hwndotp := App["VPN"].Win["otp"].hwnd
 		if hwndotp {
 			; wait for user to enter otp and/or close window
-			GUIStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
+;			GUIStatus("Starting VPN - Please provide one time passcode from the Authenticate app")
+			WinActivate(hwndotp) 		; focus OTP window
 			while (App["VPN"].Win["otp"].WinExist()) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 				GUIStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
-				try {
-					WinActivate(hwndotp) 		; keep OTP window focused
-				} catch {
-				}
+;				WinActivate(hwndotp) 		; keep OTP window focused
 				if PACancelRequest {
 					cancelled := true
 					break			; inner while
@@ -407,18 +387,17 @@ VPNStart(cred := CurrentUserCredentials) {
 			; if VPN UI main window does not already exist, try to start it
 			; if startup fails after timeout, quit and return failure
 			;
-			; When the VPN connection is made, the main window self closes 
+			; nb: When the VPN connection is made, the main window self closes 
 			; to the system tray, which causes it to no longer exist. 
 			; There can be a brief window after it closes and before the
 			; connection successful dialog opens when it will look like 
 			; the VPN client is not running, and this code branch will be
 			; taken. We do not want to run the EXE_VPN again in this scenario,
-			; so we wait briefly then continue.
-
+			; so if runflag says we already ran the client, we just wait briefly
+			; then continue.
 			if runflag {
 				; already executed Run() so just wait
 				Sleep(300)
-
 			} else {
 				; only want to do this once, we set runflag to true
 				runflag := true		
@@ -448,6 +427,7 @@ VPNStart(cred := CurrentUserCredentials) {
 	GUIHideCancelButton()
 
 	if connected {
+		PlaySound("VPNConnected")
 		GUIStatus("VPN connected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		; if VPN main window is not closed, then close it (to windows tray)
 		App["VPN"].Win["main"].Close()
@@ -491,7 +471,7 @@ VPNStop() {
 	}
 	running := true
 
-	; if VPN is alraedy connected, immediately return success
+	; if VPN is not connected, immediately return success
 	connected := VPNIsConnected(true)
 	if !connected {
 		GUIStatus("VPN already disconnected")
@@ -509,9 +489,8 @@ VPNStop() {
 	GUIShowCancelButton()
 
 	; run CLI command to disconnect the VPN
-	vpnstate := StdoutToVar('"' . EXE_VPNCLI . '" disconnect').Output
+	StdoutToVar('"' . EXE_VPNCLI . '" disconnect')
 	connected := VPNIsConnected(true)
-	
 	while connected && !cancelled && A_TickCount - tick0 < VPN_DISCONNECT_TIMEOUT * 1000 {
 		GUIStatus("Disconnecting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(300)
@@ -524,6 +503,7 @@ VPNStop() {
 	GUIHideCancelButton()
 
 	if !connected {
+		PlaySound("VPNDisconnected")
 		GUIStatus("VPN disconnected (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 	} else if cancelled {
 		GUIStatus("VPN disconnection cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
