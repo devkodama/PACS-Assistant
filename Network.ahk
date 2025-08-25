@@ -371,7 +371,7 @@ VPNStart(cred := CurrentUserCredentials) {
 				BlockInput true
 				ControlSetText("", "Edit1", hwndmain)
 				ControlSendText(VPN_URL, "Edit1", hwndmain)
-				ControlClick("Connect", hwndmain, , , , "NA")
+				ControlClick("Button1", hwndmain, , , , "NA")
 				BlockInput false
 			} else if InStr(statustext, "Contacting ", true) {
 				GUIStatus("Starting VPN - Contacting server " . VPN_URL . "...")
@@ -401,7 +401,7 @@ VPNStart(cred := CurrentUserCredentials) {
 			} else {
 				; only want to do this once, we set runflag to true
 				runflag := true		
-				Run(EXE_VPN)
+				Run(EXE_VPNUI)
 
 				; wait for main window to be appear
 				tick1 := A_TickCount

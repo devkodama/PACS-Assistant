@@ -133,8 +133,10 @@ EM_SETREADONLY := 0x00CF
 
 
 ; Executable paths
-EXE_VPN := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpnui.exe"
-EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe"
+; [deprecated] EXE_VPNUI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpnui.exe"
+; [deprecated] EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe"
+EXE_VPNUI := "C:\Program Files (x86)\Cisco\Cisco Secure Client\UI\csc_ui.exe"
+EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco Secure Client\vpncli.exe"
 
 EXE_EI := "C:\Program Files (x86)\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
 

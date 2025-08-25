@@ -2,9 +2,9 @@
 
 ## Introduction
 
-PACS Assistant tries to make the combination of Agfa Enterprise Imaging (EI), PowerScribe, and Epic work together more seamlessly and efficiently.
+PACS Assistant makes the combination of Agfa Enterprise Imaging (EI), PowerScribe, and Epic work together more seamlessly and efficiently.
 
-PACS Assistant performs multiple functions which are described below. PACS Assistant is highly customizable--most of its functions can be selectively enabled or disabled from the Settings page.
+PACS Assistant has multiple functions which are described below. PACS Assistant is highly customizable--most of its functions can be selectively enabled or disabled from the Settings page.
 
 ## How to use
 
