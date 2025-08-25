@@ -87,7 +87,8 @@ global App
 
 ; define apps
 App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant")
-App["VPN"] := AppItem("VPN", "vpnui.exe", "Cisco AnyConnect Secure Mobility Client")
+; [deprecated] App["VPN"] := AppItem("VPN", "vpnui.exe", "Cisco AnyConnect Secure Mobility Client")
+App["VPN"] := AppItem("VPN", "csc_ui.exe", "Cisco Secure Client")
 App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging")
 App["EICLIN"] := AppItem("EICLIN", "javawClinapps.exe", "Agfa HealthCare Enterprise Imaging")
 App["PS"] := AppItem("PS", "Nuance.PowerScribe360.exe", "PowerScribe 360")
@@ -104,11 +105,16 @@ App["DLUNG"] := AppItem("DLUNG", "MeVisLabApp.exe", "DynaCAD Lung")
 App["PA"].Win["main"] := WinItem(App["PA"], "main", "PACS Assistant", "PACS Assistant")
 
 ; Cisco VPN
-App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences", VPNOpen_VPNmain)
-App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Export Stats")
-App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco AnyConnect |", "Cisco AnyConnect |", "Username")
-App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco AnyConnect |", "Cisco AnyConnect |", "Answer")
-App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco AnyConnect", "Cisco AnyConnect", "Security policies")
+; [deprecated] App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Preferences", VPNOpen_VPNmain)
+; [deprecated] App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco AnyConnect Secure Mobility Client", "Cisco AnyConnect Secure Mobility Client", "Export Stats")
+; [deprecated] App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco AnyConnect |", "Cisco AnyConnect |", "Username")
+; [deprecated] App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco AnyConnect |", "Cisco AnyConnect |", "Answer")
+; [deprecated] App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco AnyConnect", "Cisco AnyConnect", "Security policies")
+App["VPN"].Win["main"] := WinItem(App["VPN"], "main", "Cisco Secure Client", "Cisco Secure Client", "Preferences", VPNOpen_VPNmain)
+App["VPN"].Win["prefs"] := WinItem(App["VPN"], "prefs", "Cisco Secure Client", "Cisco Secure Client", "Export Stats")
+App["VPN"].Win["login"] := WinItem(App["VPN"], "login", "Cisco Secure Client |", "Cisco Secure Client |", "Username")
+App["VPN"].Win["otp"] := WinItem(App["VPN"], "otp", "Cisco Secure Client |", "Cisco Secure Client |", "Answer")
+App["VPN"].Win["connected"] := WinItem(App["VPN"], "connected", "Cisco Secure Client", "Cisco Secure Client", "Security policies")
 
 ; Agfa EI
 App["EI"].Win["login"] := WinItem(App["EI"], "login", "Agfa HealthCare Enterprise Imaging", "Agfa HealthCare Enterprise Imaging")
