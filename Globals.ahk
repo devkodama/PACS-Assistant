@@ -64,11 +64,11 @@ VPN_CONNECT_TIMEOUT := 120
 VPN_DISCONNECT_TIMEOUT := 10
 ; timeout (seconds) for starting up VPN UI (main window)
 ; or for waiting for initial login window to appear
-VPN_DIALOG_TIMEOUT := 10
-; number of failed login attempts (username/password failures) allowed
+VPN_DIALOG_TIMEOUT := 30
+; number of failed login attempts (username/password failures) in total allowed
 VPN_FAILEDLOGINS_MAX := 5
 ; VPN URL string
-VPN_URL := "vpn.adventhealth.com/SecureAuth"
+VPN_DEFAULTURL := "vpn.adventhealth.com/SecureAuth"
 
 
 ; timeout (seconds) for starting up EI to get to login window
@@ -113,7 +113,6 @@ PA_DEFAULTHEIGHT := 350
 ; minimum width and height to consider a window position valid
 WINPOS_MINWIDTH := 100
 WINPOS_MINHEIGHT := 100
-
 
 
 

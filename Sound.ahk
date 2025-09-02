@@ -121,6 +121,7 @@ PlaySound(soundevent) {
     global _SoundObj
     global Sounds
 
+    ; if soundevent matches a key in the Sounds[] global map, play the associated SoundItem.
     if Sounds.Has(soundevent) {
     
         sound := Sounds[soundevent]
@@ -156,7 +157,6 @@ PlaySound(soundevent) {
     } else {
 
         ; key not found in Sounds[], just speak the passed string
-
         if Setting["UseVoice"].value {
             ; retrieve list of available voices (each voice is a SpeechSynthesisVoice object)
             voices := _SoundObj.GetVoices()

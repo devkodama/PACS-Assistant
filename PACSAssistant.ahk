@@ -70,17 +70,15 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 #Include Settings.ahk
 
-#Include Sound.ahk
+#Include AppManager.ahk
 
+#Include Sound.ahk
 #Include Info.ahk
 #Include ICDCode.ahk
-
 #Include Daemon.ahk
 
 #Include Network.ahk
 #Include EI.ahk
-
-
 #Include PS.ahk
 #Include EPIC.ahk
 
@@ -89,8 +87,6 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 
 
 #Include Hotkeys.ahk
-
-#Include AppManager.ahk
 
 #Include Help.ahk
 
@@ -164,6 +160,24 @@ PAShowWindows() {
 /**********************************************************
  * Functions to retrieve info from PACS Assistant
  */
+
+
+
+
+/**********************************************************
+ * Hook functions called on PACS Assistant events
+ */
+
+
+; Hook function called when PS main window opens
+PAShow_main(hwnd, hook, dwmsEventTime) {
+	App["PA"].Win["main"].hwnd := hwnd
+
+	crit := hook.MatchCriteria[1]
+	text := hook.MatchCriteria[2]
+	TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
+	PlaySound("PACS Assistant show main")
+}
 
 
 
@@ -365,7 +379,7 @@ PACSStop() {
 
 
 /**********************************************************
- * Main and initialization functions for PACS Assistant
+ *  Initialization and main functions for PACS Assistant
  */
 
 
@@ -379,6 +393,7 @@ PAInit() {
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")
 
 	; initialize the PAApps[] global with all of the defined App objects
+	; [todo] is this ever used??
 	for k, a in App {
 		PAApps.Push(a)
 	}
@@ -386,20 +401,24 @@ PAInit() {
 	; Initialize systemwide settings
 	SettingsInit()
 
-	; Register Windows hooks to monitor window open (and close?) events for all the
+	; Register Windows hooks to monitor window show events for all the
 	; windows of interest
-	for k, a in App {
-		for , w in a.Win {
-			if w.criteria && !w.parentwindow {
-				; this window has search criteria and is not a pseudowindow
-				; register a Show hook for this window
-				WinEvent.Show(_PAWindowShowCallback, w.criteria, , w.wintext)
+	for appkey, a in App {
+		for wkey, w in a.Win {
+			if !w.parentwindow && w.criteria {
+				; this is a real window and it has search criteria
+				if w.hook_show {
+					; register the Show hook for this window
+					WinEvent.Show(w.hook_show, w.criteria, , w.wintext)
+				}
+				
+				; if w.hook_close {
+				; 	; register the Close hook for this window
+				; 	WinEvent.Close(w.hook_close, w.criteria, 1, w.wintext)
+				; }
 			}
 		}
 	}
-
-;	This causes PA to crash on exit
-;	WinEvent.Close(_PAWindowCloseCallback, App["PS"].Win["logout"].criteria, , App["PS"].Win["logout"].wintext)
 
 	; Update all windows
 	UpdateAll()
