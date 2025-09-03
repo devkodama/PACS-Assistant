@@ -49,7 +49,7 @@ WATCHDICTATE_UPDATE_INTERVAL := 100
 WATCHNETWORK_UPDATE_INTERVAL := 5000       ; 5000 = 5 seconds
 
 ; interval (ms) for jiggling mouse to keeping screen awake
-JIGGLEMOUSE_UPDATE_INTERVAL := 120000		; 120000 = 2 minutes
+JIGGLEMOUSE_UPDATE_INTERVAL := 60000		; 60000 = 1 minute
 
 ; interval (ms) for clearing CapsLock after no keyboard input
 CAPSLOCK_TIMEOUT := 10000		; 10000 = 10 sec
@@ -132,8 +132,6 @@ EM_SETREADONLY := 0x00CF
 
 
 ; Executable paths
-; [deprecated] EXE_VPNUI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpnui.exe"
-; [deprecated] EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe"
 EXE_VPNUI := "C:\Program Files (x86)\Cisco\Cisco Secure Client\UI\csc_ui.exe"
 EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco Secure Client\vpncli.exe"
 

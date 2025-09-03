@@ -231,52 +231,202 @@ PSIsRunning() {
 }
 
 
-; Detect whether a specific PS window is showing. 
+; Detect whether a specific PS window or pseudowindow is showing.
 ;
-; PS windows are login, main, or report. The addendum window is considered a report window.
+; PS main window is main
+; 	PS pseudowindows which are subwindows of main are login, home, report, addendum.
 ;
-; Returns true if the page is showing, false if not.
+; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
 ;
 PSIsLogin() {
-	try {
-		; look for a PS main window with login pseudowindow wintext string
-;TTip("PSIsLogin(): " App["PS"].Win["main"].criteria " wintext=" App["PS"].Win["login"].wintext)
-		return WinExist(App["PS"].Win["main"].criteria, App["PS"].Win["login"].wintext) ? true : false
-	} catch {
-		; invalid hwnd so return false
-		return false
+	PShwnd := App["PS"].Win["main"].IsReady() 
+	if PShwnd {
+		; look for the wintext string within the PS main window
+		try {
+			if InStr(WinGetText(PShwnd), App["PS"].Win["login"].wintext) {
+				; found the wintext string, return the hwnd of the parent window
+				return PShwnd
+			}
+		} catch { 
+		}
 	}
+	return 0
 }
 PSIsHome() {
-	try {
-		; look for a PS main window with home pseudowindow wintext string
-;TTip("PSIsHome(): " App["PS"].Win["main"].criteria " wintext=" App["PS"].Win["home"].wintext)
-		return WinExist(App["PS"].Win["main"].criteria, App["PS"].Win["home"].wintext) ? true : false
-	} catch {
-		; invalid hwnd so return false
-		return false
+	PShwnd := App["PS"].Win["main"].IsReady() 
+	if PShwnd {
+		; look for the wintext string within the PS main window
+		try {
+			if InStr(WinGetText(PShwnd), App["PS"].Win["home"].wintext) {
+				; found the wintext string, return the hwnd of the parent window
+				return PShwnd
+			}
+		} catch { 
+		}
 	}
+	return 0
 }
 PSIsReport() {
-	try {
-		; look for a PS main window with report pseudowindow wintext string
-;TTip("PSIsReport(): " App["PS"].Win["main"].criteria " wintext=" App["PS"].Win["report"].wintext)
-		return WinExist(App["PS"].Win["main"].criteria, App["PS"].Win["report"].wintext) ? true : false
-	} catch {
-		; invalid hwnd so return false
-		return false
+	PShwnd := App["PS"].Win["main"].IsReady() 
+	if PShwnd {
+		; look for the wintext string within the PS main window
+		try {
+			if InStr(WinGetText(PShwnd), App["PS"].Win["report"].wintext) {
+				; found the wintext string, return the hwnd of the parent window
+				return PShwnd
+			}
+		} catch { 
+		}
 	}
+	return 0
 }
 PSIsAddendum() {
-	try {
-		; look for a PS main window with addendum pseudowindow wintext string
-;TTip("PSIsAddendum(): " App["PS"].Win["main"].criteria " wintext=" App["PS"].Win["addendum"].wintext)
-		return WinExist(App["PS"].Win["main"].criteria, App["PS"].Win["addendum"].wintext) ? true : false
-	} catch {
-		; invalid hwnd so return false
-		return false
+	PShwnd := App["PS"].Win["main"].IsReady() 
+	if PShwnd {
+		; look for the wintext string within the PS main window
+		try {
+			if InStr(WinGetText(PShwnd), App["PS"].Win["addendum"].wintext) {
+				; found the wintext string, return the hwnd of the parent window
+				return PShwnd
+			}
+		} catch { 
+		}
 	}
+	return 0
 }
+
+
+
+
+/**********************************************************
+ * Callback functions called on PS window events
+ */
+
+
+PSShow_main(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["main"].hwnd := hwnd
+	PlaySound("PS show main")
+}
+
+PSShow_logout(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["logout"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["logout"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show logout")
+}
+
+PSShow_savespeech(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["savespeech"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["savespeech"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show savespeech")
+}
+
+PSShow_savereport(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["savereport"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["savereport"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show savereport")
+}
+
+PSShow_deletereport(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["deletereport"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["deletereport"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show deletereport")
+}
+
+PSShow_unfilled(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["unfilled"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["unfilled"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show unfilled")
+}
+
+PSShow_confirmaddendum(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["confirmaddendum"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["confirmaddendum"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show confirmaddendum")
+}
+
+PSShow_confirmanother(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["confirmanother"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["confirmanother"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show confirmanother")
+}
+
+PSShow_existing(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["existing"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["existing"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show existing")
+}
+
+PSShow_continue(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["continue"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["continue"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show continue")
+}
+
+PSShow_ownership(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["ownership"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["ownership"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show ownership")
+}
+
+PSShow_microphone(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["microphone"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["microphone"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show microphone")
+}
+
+PSShow_find(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["find"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["find"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show find")
+}
+
+
+PSSPShow_spelling(hwnd, hook, dwmsEventTime)
+{
+	App["PSSP"].Win["spelling"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
+	}
+	PlaySound("PS show spelling")
+}
+
 
 
 
@@ -587,14 +737,13 @@ PSStart(cred := CurrentUserCredentials) {
 	; run PS
 	Run('"' . EXE_PS . '"')
 	Sleep(500)
-	App["PS"].Update()
+	; App["PS"].Update()
 
 	; wait for login window to exist
 	tick1 := A_TickCount
-	while !(hwndlogin := App["PS"].Win["login"].hwnd) && (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
+	while !(hwndlogin := App["PS"].Win["login"].IsReady()) && (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
 		GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
-		App["PS"].Win["login"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break		; while
@@ -603,20 +752,19 @@ PSStart(cred := CurrentUserCredentials) {
 
 	if !cancelled {
 
-		if !App["PS"].Win["login"].visible {
-			
-			; if PS Login window still not visible after time out, return failure
+		if !hwndlogin {
+			; if PS Login window still not ready after time out, return failure
 			failed := true
 
 		} else {
-			; PS login window is visible
-
-			; WinActivate(hwndlogin)
+			; PS login window is ready
 
 			; delay to allow enabling of Log On button
 			sleep(1000)
 
-			; Need to wait until "Loading system components..." has completed
+;			WinActivate(hwndlogin)
+
+			; Need to wait until "Loading system components..." has completed and text is gone
 			; so that Log On button will be enabled
 			while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
 				GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -633,6 +781,7 @@ PSStart(cred := CurrentUserCredentials) {
 
 			if !cancelled {
 
+				; we have a fully loaded login form
 				; enter username and password and press OK
 				; the r7 is the PS version number, probably requires updating with version upgrades
 				BlockInput true
@@ -642,14 +791,12 @@ PSStart(cred := CurrentUserCredentials) {
 				BlockInput false
 				
 				Sleep(500)
-				App["PS"].Update()
 
-				; waits for PS main window to appear
+				; waits for PS home window to appear
 				tick1 := A_TickCount
-				while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
+				while !cancelled && !(hwndmain := App["PS"].Win["home"].IsReady()) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
 					GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 					Sleep(500)
-					App["PS"].Win["main"].Update()
 					if PACancelRequest {
 						cancelled := true
 						break		; while
@@ -678,7 +825,7 @@ PSStart(cred := CurrentUserCredentials) {
 				ProcessClose(App["PS"].pid)
 			}
 			Sleep(500)
-			App["PS"].Update()
+			; App["PS"].Update()
 		}
 
 		GUIStatus("PowerScribe startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -758,7 +905,7 @@ PSStop() {
 			; We're at the login window. Close it.
 			PSSend("!{F4}")
 		}
-		App["PS"].Update()
+		; App["PS"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break

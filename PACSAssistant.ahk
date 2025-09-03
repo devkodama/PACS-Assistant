@@ -39,8 +39,8 @@
 
 #MaxThreads 64
 
-DetectHiddenWindows true		; this needs to be true so we can detect hidden windows
-DetectHiddenText false			; don't search hidden text by default
+DetectHiddenWindows true		; true - this needs to be true so we can detect hidden windows
+DetectHiddenText false			; false - don't search hidden text by default
 
 SetDefaultMouseSpeed 0			; 0 = fastest
 
@@ -175,7 +175,7 @@ PAShow_main(hwnd, hook, dwmsEventTime) {
 
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
-	TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
+TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
 	PlaySound("PACS Assistant show main")
 }
 
@@ -203,7 +203,7 @@ TTip("Show " hwnd ": ('" crit "','" text "') => ?")
 		for , w in a.Win {
 			if crit = w.criteria && text = w.wintext {
 				; found the window, update it with the new hwnd
-				w.Update(hwnd)
+				; w.Update(hwnd)
 TTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 				break 2		; break out of both for loops
 			}

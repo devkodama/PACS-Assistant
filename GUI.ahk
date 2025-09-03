@@ -311,17 +311,6 @@ GUISaveWindowPositions(*) {
 ;    Peep(App["PS"].Win["login"].savepos)
 ;    Peep(App["PS"].Win["main"].savepos)
 
-    ; PS login window is a special case. It's saved position should be set to the same as the PS main window,
-    ; unless the main window does not have a saved position.
-    if App["PS"].Win["main"].savepos.w < WINPOS_MINWIDTH || App["PS"].Win["main"].savepos.h < WINPOS_MINHEIGHT {
-        App["PS"].Win["main"].savepos := App["PS"].Win["login"].savepos
-    } else {
-        App["PS"].Win["login"].savepos := App["PS"].Win["main"].savepos
-    }
-
-;    Peep(App["PS"].Win["login"].savepos)
-;    Peep(App["PS"].Win["main"].savepos)
-
     ; write to settings file
     WritePositionsAll()
 
@@ -381,7 +370,7 @@ GUIMain(*) {
     PAGUI.AddCallbackToScript("ClickId", ClickId)
     PAGUI.AddCallbackToScript("HandleFormInput", HandleFormInput)
 
-    PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; don't want to continue to use this for hovers
+    PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; [todo] don't want to continue to use this for hovers
 
 
     ; get previously saved PACS Assistant window position
@@ -417,13 +406,13 @@ GUIMain(*) {
 
     ; now show the PACS Assistant GUI window
     PAGUI.Show("x" x " y" y " w" w " h" h)
-    Sleep(500)                      ; need time for GUI to be set up
+    Sleep(750)                      ; need time for GUI to be set up
 
     ; PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
 
     GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
 
-    PAmain.Update()
+;    PAmain.Update()
 
     ; declare GUI to be up and running
     _GUIIsRunning := true

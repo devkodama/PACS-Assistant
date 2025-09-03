@@ -79,8 +79,8 @@ Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "O
 Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 ; VPN settings
-Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
 Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When VPN window appears, center it on the screen")
+Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
 
 ; EI settings
 Setting["EI_restoreatopen"] := SetItem("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")

@@ -388,7 +388,8 @@ VPNStart(cred := CurrentUserCredentials) {
 			; If it failed, we might be on the wrong server, so cancel the login window
 			; and return to the main UI so the correct server can be populated.
 			; If we've already tried twice, ask the user for another password.
-			if hwndmain := App["VPN"].Win["main"].IsReady()  && ControlGetText("Static2", hwndmain) = "Login failed." {
+			hwndmain := App["VPN"].Win["main"].IsReady()
+			if hwndmain && ControlGetText("Static2", hwndmain) = "Login failed." {
 				; Last login failed, keep track of it
 				failedlogins++
 				ControlClick("Cancel", hwndlogin, , , , "NA")
@@ -402,7 +403,7 @@ VPNStart(cred := CurrentUserCredentials) {
 					}
 				}
 			} else {
-				; enter username and password and press OK
+				; go ahead and enter username and password and press OK
 				BlockInput true
 				ControlSetText(cred.username, "Edit1", hwndlogin)
 				ControlSetText(cred.password, "Edit2", hwndlogin)

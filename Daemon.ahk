@@ -382,12 +382,12 @@ _WatchWindows() {
 
 
 	; update window info for GUI
-	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 
 
-; Performs focu following by activiating the window under the mouse when appropriate.
+; Performs focus following by activiating the window under the mouse when appropriate.
 ;
 ; Focus following is suspended if any of the following are true:
 ;	Setting["FocusFollow"].enabled is false
@@ -399,34 +399,9 @@ _WatchWindows() {
 ;
 _WatchMouse() {
 	global PAActive
-	global PA_WindowUnderMouse
 	global PAWindowBusy
 	global App
 	static running := false
-	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
-
-
-/*	
-	; local function to restore windows that have been enlarged
-	_RestoreSaved() {
-		if restore_EPICchat {
-			hwndEPICchat := App["EPIC"].Win["chat"].hwnd
-			try {
-				WinGetPos(&x, &y, &w, &h, hwndEPICchat)
-				if x != restore_EPICchat[1] || y != restore_EPICchat[2] || w != restore_EPICchat[3] || h != restore_EPICchat[5] {
-					; user moved the window after it was enlarged, don't restore
-				} else {
-					if hwndEPICchat {
-						WinMove(restore_EPICchat[1], restore_EPICchat[2], restore_EPICchat[3], restore_EPICchat[4], hwndEPICchat)
-					}
-				}
-				restore_EPICchat := 0
-			} catch {
-				App["EPIC"].Win["chat"].Update()
-			}
-		}
-	}
-*/
 
 	; local function to autoclose the PS spelling window
 	_ClosePSspelling() {
@@ -435,14 +410,13 @@ _WatchMouse() {
 		}
 	}
 
-
 	; don't allow reentry
 	if running {
 		return
 	}
 	running := true
 
-	; check if we should focus follow
+	; check if we should do focus following, if not return
 	if !PAActive || PAWindowBusy || !Setting["FocusFollow"].enabled {
 		running := false
 		return
@@ -451,15 +425,16 @@ _WatchMouse() {
 	; get the handle of the window under the mouse
 	hwnd := WindowUnderMouse()
 
-	; store it
-	PA_WindowUnderMouse := hwnd
+	; Activate the window under the mouse
 
-	; activate window under the mouse, if appropriate
-	;
-	; only activate window if another window is not busy
-	; and Lshift is not being held down
-	; and if not already active
-	if !WinActive(hwnd) && !GetKeyState("LShift", "P") {
+	; If the desired window is already active, just return
+	if WinExist("A") = hwnd {
+		running := false
+		return
+	}
+
+	; only activate window if Lshift is not being held down
+	if !GetKeyState("LShift", "P") {
 
 		appkey := GetAppkey(hwnd)
 		winkey := GetWinkey(hwnd)
@@ -468,55 +443,28 @@ _WatchMouse() {
 				case "EI":
 					; close PS Spelling window
 					_ClosePSspelling()
-					WinActivate(hwnd)
+					try {
+						WinActivate(hwnd)
+					}
 /*
 					; don't activate if there are more than one PS windows open
 					if App["PS"].CountOpenWindows() < 2 {
-;						_RestoreSaved()
 						WinActivate(hwnd)
 					}
 */
-
 				case "PS":
-;					_RestoreSaved()
-					WinActivate(hwnd)
+					try {
+						WinActivate(hwnd)
+					}
 				case "PA":
-;					_RestoreSaved()
-					WinActivate(hwnd)
+					_ClosePSspelling()
+					try {
+						WinActivate(hwnd)
+					}
 				case "EPIC":
-					switch winkey {
-						case "chat":
-							if !restore_EPICchat {
-								WinGetPos(&x, &y, &w, &h, hwnd)
-								if w >= WINPOS_MINWIDTH && h >= WINPOS_MINHEIGHT {
-									extended_h := (h < 600) ? 600 : h
-									restore_EPICchat := [x, y, w, h, extended_h]
-									WinMove(x, y, w, extended_h, hwnd)
-									; [todo] if mouse was in bottom 70px of the chat window, move the mouse down by the same amount as the window was extended downwards
-									CoordMode "Mouse", "Screen"
-									MouseGetPos(&mousex, &mousey)
-									;							msgbox x ", " y ", " w ", " h "/" extended_h ", " mousex ", " mousey
-									if mousey >= y + h - 70 {
-										MouseMove(mousex, mousey + extended_h - h)
-									}
-								} else {
-									restore_EPICchat := 0
-								}
-							}
-							_ClosePSspelling()
-							; don't activate if there are more than one PS windows open
-							; if _WindowKeys.CountAppWindows("PS") < 2 {
-							if App["PS"].CountOpenWindows() < 2 {
-								WinActivate(hwnd)
-							}
-						default:
-							_ClosePSspelling()
-							; don't activate if there are more than one PS windows open
-							; if _WindowKeys.CountAppWindows("PS") < 2 {
-							if App["PS"].CountOpenWindows() < 2 {
-;								_RestoreSaved()
-								WinActivate(hwnd)
-							}
+					_ClosePSspelling()
+					try {
+						WinActivate(hwnd)
 					}
 				default:
 					; do nothing

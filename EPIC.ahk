@@ -135,7 +135,7 @@ EPICIsRunning() {
 ; Returns true if the Epic login page is showing
 ;
 EPICIsLogin() {
-	App["EPIC"].Win["main"].Update()
+	; App["EPIC"].Win["main"].Update()
 	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
@@ -152,8 +152,8 @@ TTip("EPICIsLogin")
 ; Returns true if the Epic time zone confirmation page is showing
 ;
 EPICIsTimezone() {
-	App["EPIC"].Win["main"].Update()
-	if (hwndEPIC := App["EPIC"].Win["main"].hwnd) {
+	; App["EPIC"].Win["main"].Update()
+	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
@@ -170,7 +170,7 @@ TTip("EPICIsTimezone")
 ; Returns true if the Epic main chart page is showing
 ;
 EPICIsChart() {
-	App["EPIC"].Win["main"].Update()
+	; App["EPIC"].Win["main"].Update()
 	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
@@ -183,6 +183,27 @@ TTip("EPICIsChart")
 	}
 	return false
 }
+
+
+
+
+/**********************************************************
+ * Callback functions called on Network window events
+ */
+
+
+EPICShow_main(hwnd, hook, dwmsEventTime)
+{
+	App["EPIC"].Win["main"].hwnd := hwnd
+	PlaySound("EPIC show main")
+}
+
+EPICShow_chat(hwnd, hook, dwmsEventTime)
+{
+	App["EPIC"].Win["chat"].hwnd := hwnd
+	PlaySound("EPIC show chat")
+}
+
 
 
 
@@ -278,7 +299,7 @@ EPICStart(cred := CurrentUserCredentials) {
 	; Run('"' . EXE_EPIC . '" env="PRD"')
 	Run('"' . EXE_EPIC . '" ' . EPIC_CLIOPTIONS)
 	Sleep(1000)
-	App["EPIC"].Update()
+	; App["EPIC"].Update()
 
 	; wait for login window to exist
 	while !cancelled && !(islogin := EPICIsLogin()) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
@@ -434,7 +455,7 @@ EPICStop() {
 	while !cancelled && App["EPIC"].Win["main"].hwnd && (A_TickCount-tick0 < EPIC_SHUTDOWN_TIMEOUT * 1000) {
 		GUIStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
-		App["EPIC"].Update()
+		; App["EPIC"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break		; while
