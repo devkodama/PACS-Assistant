@@ -306,7 +306,9 @@ PSIsAddendum() {
 PSShow_main(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["main"].hwnd := hwnd
-	PlaySound("PS show main")
+
+	if Setting["Debug"].enabled
+		PlaySound("PS show main")
 }
 
 PSShow_logout(hwnd, hook, dwmsEventTime)
@@ -315,7 +317,9 @@ PSShow_logout(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["logout"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show logout")
+	
+	if Setting["Debug"].enabled
+		PlaySound("PS show logout")
 }
 
 PSShow_savespeech(hwnd, hook, dwmsEventTime)
@@ -324,16 +328,20 @@ PSShow_savespeech(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["savespeech"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show savespeech")
+	if Setting["Debug"].enabled
+		PlaySound("PS show savespeech")
 }
 
 PSShow_savereport(hwnd, hook, dwmsEventTime)
 {
+TTip("savereporthwnd=" App["PS"].Win["savereport"].hwnd " hwnd=" hwnd)
+
 	App["PS"].Win["savereport"].hwnd := hwnd
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["savereport"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show savereport")
+	if Setting["Debug"].enabled
+		PlaySound("PS show savereport")
 }
 
 PSShow_deletereport(hwnd, hook, dwmsEventTime)
@@ -342,7 +350,8 @@ PSShow_deletereport(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["deletereport"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show deletereport")
+	if Setting["Debug"].enabled
+		PlaySound("PS show deletereport")
 }
 
 PSShow_unfilled(hwnd, hook, dwmsEventTime)
@@ -351,7 +360,8 @@ PSShow_unfilled(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["unfilled"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show unfilled")
+	if Setting["Debug"].enabled
+		PlaySound("PS show unfilled")
 }
 
 PSShow_confirmaddendum(hwnd, hook, dwmsEventTime)
@@ -360,7 +370,8 @@ PSShow_confirmaddendum(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["confirmaddendum"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show confirmaddendum")
+	if Setting["Debug"].enabled
+		PlaySound("PS show confirmaddendum")
 }
 
 PSShow_confirmanother(hwnd, hook, dwmsEventTime)
@@ -369,7 +380,8 @@ PSShow_confirmanother(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["confirmanother"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show confirmanother")
+	if Setting["Debug"].enabled
+		PlaySound("PS show confirmanother")
 }
 
 PSShow_existing(hwnd, hook, dwmsEventTime)
@@ -378,7 +390,8 @@ PSShow_existing(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["existing"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show existing")
+	if Setting["Debug"].enabled
+		PlaySound("PS show existing")
 }
 
 PSShow_continue(hwnd, hook, dwmsEventTime)
@@ -387,7 +400,8 @@ PSShow_continue(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["continue"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show continue")
+	if Setting["Debug"].enabled
+		PlaySound("PS show continue")
 }
 
 PSShow_ownership(hwnd, hook, dwmsEventTime)
@@ -396,7 +410,8 @@ PSShow_ownership(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["ownership"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show ownership")
+	if Setting["Debug"].enabled
+		PlaySound("PS show ownership")
 }
 
 PSShow_microphone(hwnd, hook, dwmsEventTime)
@@ -405,7 +420,26 @@ PSShow_microphone(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["microphone"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show microphone")
+	if Setting["Debug"].enabled
+		PlaySound("PS show microphone")
+}
+
+PSShow_ras(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["ras"].hwnd := hwnd
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["ras"].CenterWindow(App["PS"].Win["main"])
+	}
+	if Setting["Debug"].enabled
+		PlaySound("PS show ras")
+
+	if Setting["PSras_dismiss"].enabled {
+		try {
+			SetControlDelay -1
+			ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
+		} catch {			
+		}
+	}
 }
 
 PSShow_find(hwnd, hook, dwmsEventTime)
@@ -414,7 +448,8 @@ PSShow_find(hwnd, hook, dwmsEventTime)
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["find"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show find")
+	if Setting["Debug"].enabled
+		PlaySound("PS show find")
 }
 
 
@@ -422,9 +457,10 @@ PSSPShow_spelling(hwnd, hook, dwmsEventTime)
 {
 	App["PSSP"].Win["spelling"].hwnd := hwnd
 	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
+		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
 	}
-	PlaySound("PS show spelling")
+	if Setting["Debug"].enabled
+		PlaySound("PS show spelling")
 }
 
 

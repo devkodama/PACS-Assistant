@@ -75,19 +75,21 @@ Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus f
 Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
-Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
-Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
-
 ; VPN settings
-Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When VPN window appears, center it on the screen")
 Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
+Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
 Setting["EI_restoreatopen"] := SetItem("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
-Setting["EIcollaborator_show"] := SetItem("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
+Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
+Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
+
+Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
+Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
 
 ; PS settings
 Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
 
 Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
 Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
@@ -106,7 +108,8 @@ Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 1,
 Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
 Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
 
-Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
+Setting["PSras_dismiss"] := SetItem("PSRAS_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' message")
+Setting["PSras_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
 
 Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except when within the PowerScribe window")
 
@@ -137,7 +140,7 @@ Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Spacebar to 
 Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar to delete text in PowerScribe")
 
 ; Advanced
-Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
+Setting["Debug"] := SetItem("Debug", "bool", true, , "Enable debugging messages")
 
 ; Misc settings
 Setting["run"] := SetItem("run", "num", 0, , "")
@@ -179,19 +182,21 @@ SettingsPage.Push("#EI")
 SettingsPage.Push("EI_restoreatopen")
 SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
+SettingsPage.Push("EIactivate")
 
 SettingsPage.Push("#PowerScribe")
 SettingsPage.Push("PS_restoreatopen")
 SettingsPage.Push("PS_dictate_autoon")
 SettingsPage.Push("PS_dictate_idleoff")
 SettingsPage.Push(">PS_dictate_idletimeout")
+SettingsPage.Push("PScenter_dialog")
 SettingsPage.Push("PSconfirmaddendum_dismiss")
 SettingsPage.Push("PSlogout_dismiss")
 SettingsPage.Push("PSsavespeech_dismiss")
 SettingsPage.Push(">PSsavespeech_dismiss_reply")
 SettingsPage.Push("PSmicrophone_dismiss")
+SettingsPage.Push("PSras_dismiss")
 SettingsPage.Push("PSSPspelling_autoclose")
-SettingsPage.Push("PScenter_dialog")
 
 SettingsPage.Push("#Epic")
 SettingsPage.Push("EPIC_restoreatopen")
@@ -214,11 +219,11 @@ SettingsPage.Push("hkCtrlYZ")
 SettingsPage.Push("hkSpaceClick")
 
 SettingsPage.Push("#Advanced")
-SettingsPage.Push("EIactivate")
+SettingsPage.Push("Debug")
 
 SettingsPage.Push("#Beta - Experimental, not working yet")
 SettingsPage.Push("hkSpaceDelete")
-SettingsPage.Push("EIcollaborator_show")
+SettingsPage.Push("EIchat_show")
 
 
 

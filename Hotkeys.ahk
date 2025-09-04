@@ -70,14 +70,18 @@ F2:: {
 ; In effect for EI, PS, PA, and EPIC windows.
 ;
 $CapsLock:: {
-	if Setting["hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
+	if Setting["hkCapsLock"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC")
+	{
 		PSCmdToggleMic()
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}
 }
 $+CapsLock:: {
-	if Setting["+hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
+	if Setting["+hkCapsLock"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC")
+	{
 		if PSIsReport() {
 			; PS has an open report, so sign the report
 			PSCmdSignReport()
@@ -90,14 +94,18 @@ $+CapsLock:: {
 	}
 }
 $^CapsLock:: {
-	if Setting["^hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
+	if Setting["^hkCapsLock"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC")
+	{
 		PSCmdDraftReport()
 	} else {
 		; do nothing
 	}
 }
 $^+CapsLock:: {
-	if Setting["^+hkCapsLock"].enabled && Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC") {
+	if Setting["^+hkCapsLock"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC")
+	{
 		PSCmdPreliminary() 
 	} else {
 		; do nothing
@@ -114,52 +122,48 @@ $^+CapsLock:: {
 ;
 ; In effect for EI, PS, and PA windows with the conditions:
 ;	only when PS report or addendum window is showing
-;	if EI desktop, only if text or list window is showing
+;	if EI desktop, only if text or list or image window is showing
 ;
 $Tab:: {
-	if Setting["hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() || PSIsAddendum() {
-			PSCmdNextField()
-		} else {
-			Send("{Tab}")
-		}
+	if Setting["hkTab"].enabled 
+		&& (PSIsReport() || PSIsAddendum())
+		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
+	{
+		PSCmdNextField()
 	} else {
 		Send("{Tab}")
 	}
 }
 $+Tab:: {
-	if Setting["+hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() || PSIsAddendum() {
-			PSCmdPrevField()
-		} else {
-			Send("+{Tab}")
-		}
+	if Setting["+hkTab"].enabled 
+		&& (PSIsReport() || PSIsAddendum())
+		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
+	{
+		PSCmdPrevField()
 	} else {
 		Send("+{Tab}")
 	}
 }
 $^Tab:: {
-	if Setting["^hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() || PSIsAddendum() {
-			if A_PriorHotkey = ThisHotkey {
-				PSCmdNextEOL()
-			} else {
-				PSCmdEOL()
-			}
+	if Setting["^hkTab"].enabled 
+		&& (PSIsReport() || PSIsAddendum())
+		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
+	{
+		if A_PriorHotkey = ThisHotkey {
+			PSCmdNextEOL()
 		} else {
-			Send("^{Tab}")
+			PSCmdEOL()
 		}
 	} else {
 		Send("^{Tab}")
 	}
 }
 $^+Tab:: {
-	if Setting["^+hkTab"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() || PSIsAddendum() {
-			PSCmdPrevEOL()
-		} else {
-			Send("^+{Tab}")
-		}
+	if Setting["^+hkTab"].enabled 
+		&& (PSIsReport() || PSIsAddendum())
+		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
+	{
+		PSCmdPrevEOL()
 	} else {
 		Send("^+{Tab}")
 	}
@@ -178,21 +182,27 @@ $^+Tab:: {
 ; In effect for EI, PS, EPIC, and PA windows.
 ;
 $`:: {
-	if Setting["hkBacktick"].enabled && Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA") {
+	if Setting["hkBacktick"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA")
+	{
 		EICmdDisplayStudyDetails()
 	} else {
 		Send("``")
 	}
 }
 $+`:: {
-	if Setting["+hkBacktick"].enabled && Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA") {
+	if Setting["+hkBacktick"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA")
+	{
 		EICmdToggleListText()
 	} else {
 		Send("+``")
 	}
 }
 $^`:: {
-	if Setting["^hkBacktick"].enabled && Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA") {
+	if Setting["^hkBacktick"].enabled
+		&& Context(WindowUnderMouse(), "EI", "PS", "EPIC", "PA")
+	{
 		if A_PriorHotkey = ThisHotkey {
 			EICmdResetSearch()
 		} else {
@@ -210,7 +220,9 @@ $^`:: {
 ; In effect for EI images1 and images2 windows.
 ;
 $+Esc:: {
-	if Setting["+hkEsc"].enabled && Context(WindowUnderMouse(), "EI i1 i2") {
+	if Setting["+hkEsc"].enabled
+		&& Context(WindowUnderMouse(), "EI i1 i2")
+	{
 		EICmdRemoveFromList()
 	} else {
 		Send("+{Esc}")
@@ -227,23 +239,21 @@ $+Esc:: {
 ;	if EI desktop, only if text or list window is showing
 ;
 $^y:: {
-	if Setting["hkCtrlYZ"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() || PSIsAddendum() {
-			PSSend("^y")
-		} else {
-			Send("^y")
-		}
+	if Setting["hkCtrlYZ"].enabled
+		&& (PSIsReport() || PSIsAddendum())
+		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA")
+	{
+		PSSend("^y")
 	} else {
 		Send("^y")
 	}
 }
 $^z:: {
-	if Setting["hkCtrlYZ"].enabled && Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA") {
-		if PSIsReport() || PSIsAddendum() {
-			PSSend("^z")
-		} else {
-			Send("^z")
-		}
+	if Setting["hkCtrlYZ"].enabled
+		&& (PSIsReport() || PSIsAddendum())
+		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA")
+	{
+		PSSend("^z")
 	} else {
 		Send("^z")
 	}

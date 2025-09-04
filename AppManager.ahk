@@ -127,7 +127,7 @@ App["EI"].Win["search"] := WinItem("search", App["EI"], App["EI"].Win["d"], , , 
 App["EI"].Win["image"] := WinItem("image", App["EI"], App["EI"].Win["d"], , , , , EIIsImage)
 
 ; Agfa ClinApps (e.g. MPR)
-App["EICLIN"].Win["mpr"] := WinItem("mpr", App["EICLIN"], , "IMPAX Volume", , EICLINShow_mpr)
+App["EICLIN"].Win["mpr"] := WinItem("mpr", App["EICLIN"], , "IMPAX Volume", , , EICLINShow_mpr)
 
 ; PowerScribe
 App["PS"].Win["main"] := WinItem("main", App["PS"], , "PowerScribe", , PSShow_main)
@@ -142,6 +142,7 @@ App["PS"].Win["existing"] := WinItem("existing", App["PS"], , "PowerScribe", "is
 App["PS"].Win["continue"] := WinItem("continue", App["PS"], , "PowerScribe", "Do you wish to continue editing", PSShow_continue)
 App["PS"].Win["ownership"] := WinItem("ownership", App["PS"], , "PowerScribe", "Are you sure you want to acquire ownership", PSShow_ownership)
 App["PS"].Win["microphone"] := WinItem("microphone", App["PS"], , "PowerScribe", "Your microphone is disconnected", PSShow_microphone)
+App["PS"].Win["ras"] := WinItem("ras", App["PS"], , "PowerScribe", "The call to RAS timed out", PSShow_ras)
 App["PS"].Win["find"] := WinItem("find", App["PS"], , "Find and", , PSShow_find)
 ; PowerScribe pseudowindows
 App["PS"].Win["login"] := WinItem("login", App["PS"], App["PS"].Win["main"], "PowerScribe", "Disable speech", PSOpen_PSlogin, PSClose_PSlogin, PSIsLogin)
@@ -395,18 +396,21 @@ class AppItem {
 ;   parentapp   - AppItem, parent app to which this window belongs
 ;   parentwindow - WinItem, parent window if this is a pseudowindow, zero if this is a true window
 ;
-;	searchtitle	- string, short title of window, used for matching
+;	searchtitle	- string, short title of window for matching, used in criteria
+;;;   ahk_class   - string, ahk_class for matching, used in criteria
 ;	wintext		- string, window text to match, used for matching
 ;
 ;	hook_show	- function to be called when this window is opened
 ;               - does not apply to pseudowindows
 ;
-; hook_close	- function to be called when this window is closed
+;   hook_close	- function to be called when this window is closed
 ;               - does not apply to pseudowindows
 ;
 ;   validate    - function to be called to determine whether this pseudowindow is present
 ;
-;	criteria	- string, combined search string generated from exename of parent app and searchtitle of this window. It is used along with wintext to find windows.
+;	criteria	- string, combined search string generated from exename of parent app,
+;               -   searchtitle of this window, and ahk_class of this window.
+;               -   It is used along with wintext to find windows.
 ;               - for pseudowindows, criteria is empty string
 ;
 ;   hwnd        - handle to window, or 0 if the window doesn't exist
@@ -469,6 +473,7 @@ class WinItem {
         this.parentapp := parentapp
         this.parentwindow := parentwindow
         this.searchtitle := searchtitle
+;        this.ahk_class := ahk_class
         this.wintext := wintext
 
         this.hook_show := hook_show
@@ -489,7 +494,10 @@ class WinItem {
                     this.criteria := searchtitle . " ahk_exe " . parentapp.exename
                 } else {
                     this.criteria := "ahk_exe " . parentapp.exename
-                }    
+                }
+;                if ahk_class {
+;                    this.criteria .= " ahk_class " . ahk_class
+;                }
             } else {
                 ; must have a parent app with exename to have valid search criteria, so set to empty
                 this.criteria := ""
@@ -754,7 +762,10 @@ class WinItem {
 
     ; Updates ? for this window
     Update() {
-ttip("Update()")
+
+        if Setting["Debug"].enabled
+            ttip("Update()")
+
         ; do nothing
 
     }
@@ -874,22 +885,20 @@ ttip("Update()")
                     cw := 0
                     pw := 0
                     ; get child and parent window positions and dimensions
-                    if this.hwnd {
-                        WinGetPos( , , &cw, &ch, this.hwnd)
-                    }
-                    if parent.hwnd {
-                        WinGetPos(&px, &py, &pw, &ph, parent.hwnd)
-                    }
+                    WinGetPos( , , &cw, &ch, this._hwnd)
+                    WinGetPos(&px, &py, &pw, &ph, parent.hwnd)
+
                     if cw = 0 || pw = 0 {
                         return false
                     }
+
                     ; calculate new position
                     nx := px + (pw - cw) / 2
                     ny := py + (ph - ch) / 2
 
                     ; move child window to center of parentwindow
-                    WinMove(nx, ny, , , this.hwnd)
-                
+                    WinMove(nx, ny, , , this._hwnd)
+
                     return true
                 }
             } else {
@@ -897,18 +906,18 @@ ttip("Update()")
                 try {
                     cw := 0
                     ; get child window position and dimensions
-                    if this.hwnd {
-                        WinGetPos( , , &cw, &ch, this.hwnd)
-                    }
+                    WinGetPos( , , &cw, &ch, this._hwnd)
+
                     if cw = 0 {
                         return false
                     }
+
                     ; calculate new position
                     nx := parent.x + (parent.w - cw) / 2
                     ny := parent.y + (parent.h - ch) / 2
 
                     ; move child window to center of parentwindow
-                    WinMove(nx, ny, , , this.hwnd)
+                    WinMove(nx, ny, , , this._hwnd)
 
                     return true
                 }
@@ -923,12 +932,12 @@ ttip("Update()")
             if parent >= 1 && parent <= MonitorCount() {
                 cw := 0
                 ; get child window position and dimensions
-                if this.hwnd {
-                    WinGetPos( , , &cw, &ch, this.hwnd)
-                }
+                WinGetPos( , , &cw, &ch, this._hwnd)
+
                 if cw = 0 {
                     return false
                 }
+
                 ; get position of monitor N (parent)
                 monpos := MonitorPos(parent)
 
@@ -937,7 +946,7 @@ ttip("Update()")
                 ny := monpos.y + (monpos.h - ch) / 2
 
                 ; move child window to center of parentwindow
-                WinMove(nx, ny, , , this.hwnd)
+                WinMove(nx, ny, , , this._hwnd)
 
                 return true
             }
@@ -1236,7 +1245,9 @@ Context(hwnd, contexts*) {
     if appkey {
         
         winkey := GetWinkey(hwnd)     ; the win key of the window being checked
-TTip("Context(" appkey "/" winkey ")")
+
+        if Setting["Debug"].enabled
+            TTip("Context(" appkey "/" winkey ")", 700)
 
         for context in contexts {
 
@@ -1247,7 +1258,10 @@ TTip("Context(" appkey "/" winkey ")")
                 j := 2
                 if j > carr.Length {
                     ; no windows to match with, so we've succeeded
-TTip("Context(" appkey "/" winkey ") == " cappkey)                    
+        
+                    if Setting["Debug"].enabled
+                        TTip("Context(" appkey "/" winkey ") == " cappkey, 700)
+        
                     return true
                 }    
 
@@ -1261,7 +1275,10 @@ TTip("Context(" appkey "/" winkey ") == " cappkey)
                         cwinkey := cwin.key   
                         if cwinkey == winkey {
                             ; found a window match
-TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey)
+
+                            if Setting["Debug"].enabled
+                                TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey, 700)
+
                             return true
                         }
                     } else {
@@ -1275,7 +1292,10 @@ TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey)
                                 if fn.Call() {
                                     ; pseudowindow condition successfully validated
                                     ; return success
-TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey "/" fn.Call())
+
+                                    if Setting["Debug"].enabled
+                                        TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey "/" cwin.key, 700)
+
                                     return true
                                 }
                             }
