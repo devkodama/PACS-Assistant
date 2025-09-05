@@ -86,7 +86,8 @@ global _MonitorCoords := Array()
 global App
 
 ; define apps
-App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
+; App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
+App["PA"] := AppItem("PA", "AutoHotkey.exe", "PACS Assistant", "main")
 App["VPN"] := AppItem("VPN", "csc_ui.exe", "Cisco Secure Client", "main")
 App["EILOGIN"] := AppItem("EILOGIN", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "login")
 App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "d")
@@ -102,7 +103,7 @@ App["DLUNG"] := AppItem("DLUNG", "MeVisLabApp.exe", "DynaCAD Lung", "main")
 ; Add known windows of interest belonging to each app.
 
 ; PACS Assistant
-App["PA"].Win["main"] := WinItem("main", App["PA"], , "PACS Assistant", "Chrome Legacy Window", , PAShow_main)
+App["PA"].Win["main"] := WinItem("main", App["PA"], , "PACS Assistant", , , PAShow_main)
 
 ; Cisco VPN
 App["VPN"].Win["main"] := WinItem("main", App["VPN"], , "Cisco Secure Client", "Preferences", , VPNShow_main)
