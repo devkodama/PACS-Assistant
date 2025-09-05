@@ -1,5 +1,5 @@
 /**
- * PAInfo.ahk
+ * Info.ahk
  * 
  * Classes for handling Patient Info, Study Info, other pertinent information.
  *
@@ -11,21 +11,11 @@
 
 
 
-/*
-** Includes
-*/
 
-#include <DateParse>
-
-#Include Globals.ahk
-
-
-
-/*
-** Globals
-*/
-
-
+/**********************************************************
+ * Classes defined by this module
+ * 
+ */
 
 
 ; Patient class
@@ -289,7 +279,6 @@ class Patient {
 }
 
 
-
 ; Study class
 ;
 ; Stores info about a single study
@@ -459,4 +448,3 @@ class Study {
     }
 
 }
-

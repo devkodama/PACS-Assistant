@@ -31,15 +31,19 @@
 
 /**********************************************************
  * Defaults
+ * 
+ * Don't change these without considering global implications!
+ *
  */
 
 
 #MaxThreads 64
 
-DetectHiddenWindows true		; this needs to be true so we can detect hidden windows
-DetectHiddenText false			; don't search hidden text by default
+DetectHiddenWindows true		; true - this needs to be true so we can detect hidden windows
+DetectHiddenText false			; false - don't search hidden text by default
 
 SetDefaultMouseSpeed 0			; 0 = fastest
+SetControlDelay 0				; 0 = shortest possible delay
 
 
 
@@ -49,17 +53,29 @@ SetDefaultMouseSpeed 0			; 0 = fastest
  */
 
 
+; Libraries
+#Include <WebView2>
+#Include <WebViewToo>
 #Include <WinEvent>
 #Include <Cred>
+#include <DateParse>
+#Include <FindText>
+#include <_MD_Gen>
 
-#Include <Peep.v2>				; for debugging
 
+; PACS Assistant modules
 #Include Utils.ahk
+
 #Include Globals.ahk
+#Include FindTextStrings.ahk
 
-#Include PASound.ahk
-#Include PAFindTextStrings.ahk
+#Include Settings.ahk
 
+#Include AppManager.ahk
+
+#Include Sound.ahk
+#Include Info.ahk
+#Include ICDCode.ahk
 #Include Daemon.ahk
 
 #Include Network.ahk
@@ -67,21 +83,18 @@ SetDefaultMouseSpeed 0			; 0 = fastest
 #Include PS.ahk
 #Include EPIC.ahk
 
-#Include Hotkeys.ahk
-
-#Include PAInfo.ahk
-#Include Settings.ahk
-
-#Include PAICDCode.ahk
-
 #Include GUI.ahk
 
-#Include AppManager.ahk
+
+
+#Include Hotkeys.ahk
 
 #Include Help.ahk
 
 
-; for debugging use
+
+; for debugging
+#Include <Peep.v2>				; for debugging
 #Include Debug.ahk
 
 
@@ -153,6 +166,24 @@ PAShowWindows() {
 
 
 /**********************************************************
+ * Hook functions called on PACS Assistant events
+ */
+
+
+; Hook function called when PS main window opens
+PAShow_main(hwnd, hook, dwmsEventTime) {
+	App["PA"].Win["main"].hwnd := hwnd
+
+	crit := hook.MatchCriteria[1]
+	text := hook.MatchCriteria[2]
+TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
+	PlaySound("PACS Assistant show main")
+}
+
+
+
+
+/**********************************************************
  * Local functions defined by this module
  * 
  */
@@ -167,14 +198,14 @@ _PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
 	crit := hook.MatchCriteria[1]
 	text := hook.MatchCriteria[2]
 
-; PAToolTip("Show " hwnd ": ('" crit "','" text "') => ?")
+TTip("Show " hwnd ": ('" crit "','" text "') => ?")
 
 	for k, a in App {
 		for , w in a.Win {
 			if crit = w.criteria && text = w.wintext {
 				; found the window, update it with the new hwnd
-				w.Update(hwnd)
-; PAToolTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
+				; w.Update(hwnd)
+TTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
 				break 2		; break out of both for loops
 			}
 		}
@@ -260,15 +291,13 @@ PACSStart(cred := CurrentUserCredentials) {
 	resultNetwork := NetworkIsConnected(true)
 	if !resultNetwork {
 		if !WorkstationIsHospital() {
-		    resultVPN := VPNStart(cred)
-			resultNetwork := (resultVPN = 1)
+		    resultNetwork := (VPNStart(cred) = 1)
 		}
 	}
 
 	if resultNetwork {
-		; have network, try to start EI
-        resultEI := EIStart(cred)
-        resultEI := (resultEI = 1) ? true : false
+		; have network connection, try to start EI
+        resultEI := (EIStart(cred) = 1) ? true : false
     } else {
 		; no network connection, can't start EI
         resultEI := false
@@ -325,8 +354,7 @@ PACSStop() {
     resultEI := (EIStop() = 1)
 	if resultEI {
 		if !WorkstationIsHospital() {
-		    resultVPN := VPNStop()
-			resultNetwork := (resultVPN = 1)
+			resultNetwork := (VPNStop() = 1)
 		} else {
 			resultNetwork := true
 		}
@@ -352,43 +380,51 @@ PACSStop() {
 
 
 /**********************************************************
- * Main and initialization functions for PACS Assistant
+ *  Initialization and main functions for PACS Assistant
  */
 
 
 ; Called once at startup to do necessary initialization
 ;
 PAInit() {
-	global PAApps
 	global App
+	global PollShow
+	global PollClose
 
 	; Get Windows system double click setting
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")
 
-	; initialize the PAApps[] global with all of the defined App objects
-	for k, a in App {
-		PAApps.Push(a)
-	}
-
 	; Initialize systemwide settings
 	SettingsInit()
 
-	; Register Windows hooks to monitor window open and close events for all the
-	; windows of interest
-	for k, a in App {
-		for , w in a.Win {
-			if w.criteria {
-				; register a hook for this window
-				WinEvent.Show(_PAWindowShowCallback, w.criteria, , w.wintext)
+
+
+	; Register Windows hooks to monitor window show events for all the windows of interest.
+	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.
+	for appkey, a in App {
+		for wkey, w in a.Win {
+			if !w.parentwindow && w.criteria {
+				; this is a real window and it has search criteria
+
+				if w.hook_show {
+					if w.pollflag {
+						; this requires polling, add this window (WinItem) to the polling queue for show callbacks
+						PollShow.Push(w)
+					} else {
+						; use the Windows event system, register a WinEvent.Show callback
+						WinEvent.Show(w.hook_show, w.criteria, , w.wintext)
+					}
+				}
+				
+				if w.hook_close {
+					; close hooks all require polling, add this window (WinItem) to the polling queue for close callbacks
+					PollClose.Push(w)
+				}
 			}
 		}
 	}
 
-;	This causes PA to crash on exit
-;	WinEvent.Close(_PAWindowCloseCallback, App["PS"].Win["logout"].criteria, , App["PS"].Win["logout"].wintext)
 
-	; Update all windows
-	UpdateAll()
 
 	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()

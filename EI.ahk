@@ -48,20 +48,6 @@
 
 
 /**********************************************************
- * Includes
- */
-
-
-#Include <FindText>
-#Include "PAFindTextStrings.ahk"
-
-#Include Globals.ahk
-#include "PAInfo.ahk"
-
-
-
-
-/**********************************************************
  * Global variables and constants used in this module
  */
 
@@ -77,9 +63,9 @@
 ; Send keystroke commands to EI 
 ;
 ; Can specify which window to receive the commands. Options are:
-;	"desktop"
-;	"images1"
-;	"images2"
+;	"d" for desktop window
+;	"i1" for images 1 window
+;	"i2" for images 2 window
 ;
 ; Commands are sent to the images1 window by default.
 ;
@@ -100,7 +86,7 @@ EISend(cmdstring := "", targetwindow := "i1") {
 			PAWindowBusy := true
 ;			try {
 				WinActivate(hwndEI)
-				Sleep(200)
+				Sleep(100)
 				Send(cmdstring)
 ;			}
 			PAWindowBusy := false
@@ -234,52 +220,59 @@ EIClickImages(buttonname) {
 ; Returns TRUE if EI desktop is running, FALSE if not
 ;
 EIIsRunning() {
-	App["EI"].Update()
-	return App["EI"].Win["d"].hwnd ? true : false
+	return App["EI"].isrunning ? true : false
 }
 
 
-; Functions to detect whether a specific EI desktop page is showing. 
+; Detect whether a specific EI window or pseudowindow is showing.
 ;
 ; Checks whether the corresponding button is on or off in EI
 ;
-; Returns true if the page is showing, false if not.
+; EI main window is d
+; 	EI pseudowindows which are subwindows of d are search, list, text, image
+;
+; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
 ;
 EIIsSearch() {
-	if hwndEI := App["EI"].Win["d"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+	EIhwnd := App["EI"].Win["d"].IsReady()
+	if EIhwnd {
+		; look for image match
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EISearchOn"]) {
-			return true
+			return EIhwnd
 		}
 	}
-	return false
+	return 0
 }
 EIIsList() {
-	if hwndEI := App["EI"].Win["d"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+	EIhwnd := App["EI"].Win["d"].IsReady()
+	if EIhwnd {
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EIListOn"]) {
-			return true
+			return EIhwnd
 		}
 	}
-	return false
+	return 0
 }
 EIIsText() {
-	if hwndEI := App["EI"].Win["d"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+	EIhwnd := App["EI"].Win["d"].IsReady()
+	if EIhwnd {
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EITextOn"]) {
-			return true
+			return EIhwnd
 		}
 	}
-	return false
+	return 0
 }
 EIIsImage() {
-	if hwndEI := App["EI"].Win["d"].hwnd {
-		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
+	EIhwnd := App["EI"].Win["d"].IsReady()
+	if EIhwnd {
+		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EIImageOn"]) {
-			return true
+			return EIhwnd
 		}
 	}
-	return false
+	return 0
 }
 
 
@@ -295,7 +288,7 @@ EIIsImage() {
 ;
 EIGetStudyMode() {
 
-	if hwndEI := App["EI"].Win["d"].hwnd {
+	if hwndEI := App["EI"].Win["d"].IsReady() {
 		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEI)
 		if FindText(&x, &y, x0, y0 + 32, x0 + 320, y0 + 80, 0, 0, PAText["EITextOn"]) {
 			if ok := FindText(&x, &y, x0, y0 + 80, x0 + w0, y0 + 160, 0, 0, PAText["EI_Mode"]) {
@@ -322,6 +315,78 @@ EIGetStudyMode() {
 
 
 /**********************************************************
+ * Callback functions called on Network window events
+ */
+
+
+EILOGINShow_login(hwnd, hook, dwmsEventTime) {
+	App["EILOGIN"].Win["login"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("EI show login")
+}
+
+EIShow_d() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show desktop")
+	if Setting["EI_restoreatopen"].enabled {
+		; Restore EI desktop window position
+		App["EI"].Win["d"].RestorePosition()
+	}
+}
+
+EIShow_i1(hwnd, hook, dwmsEventTime) {
+	App["EI"].Win["i1"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("EI show images1")
+}
+
+EIShow_i2(hwnd, hook, dwmsEventTime) {
+	App["EI"].Win["i2"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("EI show images2")
+}
+
+EIShow_4dm(hwnd, hook, dwmsEventTime) {
+	App["EI"].Win["4dm"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("EI show 4dm")
+}
+
+EIShow_chat(hwnd, hook, dwmsEventTime) {
+	App["EI"].Win["chat"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("EI show chat")
+}
+
+
+EICLINShow_mpr() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show mpr")
+	EICLINCmdResize("mpr")
+}
+
+EICLINShow_reformat() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show reformat")
+	EICLINCmdResize("reformat")
+}
+
+EICLINShow_cpr() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show cpr")
+	EICLINCmdResize("cpr")
+}
+
+EICLINShow_vessel() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show vessel")
+	EICLINCmdResize("vessel")
+}
+
+
+
+
+/**********************************************************
  * Hook functions called on EI events
  */
 
@@ -329,41 +394,41 @@ EIGetStudyMode() {
 ; Hook function called when EI desktop window appears
 ; This gets called either when desktop window is first opened or is restored
 ;
-EIOpen_EIdesktop() {
+; EIOpen_EIdesktop() {
 
-	PASound("EI desktop opened")
+; 	PlaySound("EI desktop opened")
 
-	if Setting["EI_restoreatopen"].value {
-		; Restore EI window positions
-		App["EI"].RestorePositions()
-	}
+; 	if Setting["EI_restoreatopen"].enabled {
+; 		; Restore EI window positions
+; 		App["EI"].RestorePositions()
+; 	}
 	
-	; this doesn't work for unclear reasons
-	; Show collaborator window if requested
-	; if PAOpt_ShowCollaborator {
-	; 	; Allow time for window to appear
-	; 	tick0 := A_TickCount
-	; 	loop {
-	; 		if (hwndcollaborator := PAWindows["EI"]["collaborator"].hwnd) {
-	; 			WinRestore(hwndcollaborator)
-	; 			WinActivate(hwndcollaborator)
-	; 			; Restore EI collaborator window position
-	; 			PAWindows["EI"]["collaborator"].RestorePosition()
-	; 		}
-	; 		PAWindows.Update()
-	; 		PAToolTip("[" hwndcollaborator "] collaborator " (A_TickCount - tick0) / 1000)
-	; 	} until hwndcollaborator || (A_TickCount - tick0 > EI_COLLABORATOR_TIMEOUT * 1000)
-	; }
+; 	; this doesn't work for unclear reasons
+; 	; Show collaborator window if requested
+; 	; if PAOpt_ShowCollaborator {
+; 	; 	; Allow time for window to appear
+; 	; 	tick0 := A_TickCount
+; 	; 	loop {
+; 	; 		if (hwndcollaborator := PAWindows["EI"]["collaborator"].hwnd) {
+; 	; 			WinRestore(hwndcollaborator)
+; 	; 			WinActivate(hwndcollaborator)
+; 	; 			; Restore EI collaborator window position
+; 	; 			PAWindows["EI"]["collaborator"].RestorePosition()
+; 	; 		}
+; 	; 		PAWindows.Update()
+; 	; 		PAToolTip("[" hwndcollaborator "] collaborator " (A_TickCount - tick0) / 1000)
+; 	; 	} until hwndcollaborator || (A_TickCount - tick0 > EI_COLLABORATOR_TIMEOUT * 1000)
+; 	; }
 
-}
+; }
 
 
 ; Hook function called when EI desktop window goes away
 ; This gets called either when desktop window is closed OR minimized
 ;
-EIClose_EIdesktop() {
-	PASound("EI desktop closed")
-}
+; EIClose_EIdesktop() {
+; 	PlaySound("EI desktop closed")
+; }
 
 
 
@@ -388,12 +453,15 @@ EIClose_EIdesktop() {
 ; and uses cred to log in. The parameter cred is an object with username 
 ; and password properties.
 ;
+; Starting EI normally has side effects of starting PowerScribe and Epic.
+; This function only waits for EI to start up to the desktop before returning.
+; It does not wait for PowerScribe and Epic to start up.
+;
 ; Periodically checks PACancelRequest to see if it the startup attempt
 ; should be cancelled
 ;
 ; Returns 1 if EI startup is successful, 0 if unsuccessful. (e.g.
 ; after timeout or if user cancels).
-; 
 EIStart(cred := CurrentUserCredentials) {
 	global PAWindowBusy
 	global PACancelRequest
@@ -420,6 +488,7 @@ EIStart(cred := CurrentUserCredentials) {
 		} else {
 			GUIStatus("Could not start EI - VPN is not connected")
 			; [todo] ask user if they want to connect the vpn
+
 		}
 		running := false
 		return 0
@@ -436,10 +505,10 @@ EIStart(cred := CurrentUserCredentials) {
 
 	; start up EI
 	GUIStatus("Starting EI...")
-	tick0 := A_TickCount
 	cancelled := false
 	failed := false				; EI
 	PSfailed := false			; PS
+	tick0 := A_TickCount
 
 	; prevent focus following
 	PAWindowBusy := true
@@ -450,7 +519,7 @@ EIStart(cred := CurrentUserCredentials) {
 	; check if we already have a visible true login window
 	;
 	; Note that there are two windows that will match the criteria for the login window.
-	; Both match the criteria for App["EI"].Win["login"] but have different HWNDs.
+	; Both match the criteria for App["EILOGIN"].Win["login"] but have different HWNDs.
 	;
 	; The first is a hidden window that bootstraps the login procedure and monitors the shut
 	; down procedure. This window is detected if DetectHiddenWindows is set to true. 
@@ -459,29 +528,25 @@ EIStart(cred := CurrentUserCredentials) {
 	;
 	; The second is the true login window that becomes visible and shows the username/password fields.
 	; This is the window we want for logging in.
-	App["EI"].Update()
-	if !((hwndlogin := App["EI"].Win["login"].hwnd) && App["EI"].Win["login"].visible) {
+	if !(hwndlogin := App["EILOGIN"].Win["login"].IsReady()) {
 		; no visible true login window
 
 		; EI desktop window isn't showing, so kill any existing EI process then (re)run EI.
-		App["EI"].Update()
-		if App["EI"].pid {
+		if App["EILOGIN"].pid {
 			try {
-				ProcessClose(App["EI"].pid)
+				ProcessClose(App["EILOGIN"].pid)
 			}
 		}
 
 		; now run EI
 		Run('"' . EXE_EI . '" ' . EI_SERVER)
-		Sleep(500)
-		App["EI"].Update()
+		Sleep(1000)
 
 		; wait for true login window to exist
 		tick1 := A_TickCount
-		while !(hwndlogin := App["EI"].Win["login"].hwnd) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
+		while !(hwndlogin := App["EILOGIN"].Win["login"].IsReady()) && (A_TickCount - tick1 < EI_LOGIN_TIMEOUT * 1000) {
 			GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 			Sleep(500)
-			App["EI"].Win["login"].Update()
 			if PACancelRequest {
 				cancelled := true
 				break		; while
@@ -497,38 +562,19 @@ EIStart(cred := CurrentUserCredentials) {
 	if !cancelled && !failed {
 		; got a true EI login window, start the login process
 
-		; wait for EI login window to be visible (should already be)
-		while !App["EI"].Win["login"].visible && A_TickCount - tick0 < EI_LOGIN_TIMEOUT * 1000 {
-			GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			Sleep(500)
-			App["EI"].Win["login"].Update()
-			if PACancelRequest {
-				cancelled := true
-				break		; while
-			}
+		; adequate delay to allow display of the username and password edit fields
+		sleep(1500)
+		
+		; EI login window is visible, can use it
+		WinActivate(hwndlogin)
+
+		if PACancelRequest {
+			cancelled := true
 		}
 		
-		if !App["EI"].Win["login"].visible {
-			
-			; if EI Login window still not visible after time out, return failure
-			failed := true
+		if !cancelled {
 
-		} else {
-
-			; EI login window is visible, can use it
-			WinActivate(hwndlogin)
-
-			; delay to allow display of the username and password edit fields
-			sleep(1000)
-
-			if PACancelRequest {
-				cancelled := true
-			}
-		}
-		
-		if !cancelled && !failed {
-
-			; locate the username and password fields
+			; locate the username and password fields using FindText()
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
 			ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EILoginField"])
 			if ok {
@@ -538,17 +584,18 @@ EIStart(cred := CurrentUserCredentials) {
 				MouseGetPos(&savex, &savey)
 
 				Click(ok[1].x, ok[1].y + 8)
+				Sleep(100)
 				Send("^a" . cred.username)
+				Sleep(100)
 				Click(ok[2].x, ok[2].y + 8)
+				Sleep(100)
 				Send("^a" . cred.password)
+				Sleep(100)
 				Send("!o")					; Presses OK key (Alt-O) to start login
 				
 				MouseMove(savex, savey)
-				BlockInput false
+				BlockInput false			; resume user input
 			}
-
-			Sleep(500)
-			App["EI"].Update()
 
 			if PACancelRequest {
 				cancelled := true
@@ -556,10 +603,9 @@ EIStart(cred := CurrentUserCredentials) {
 
 			; waits for EI desktop window to appear
 			tick1 := A_TickCount
-			while !cancelled && !(hwnddesktop := App["EI"].Win["d"].hwnd) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
+			while !cancelled && !(hwnddesktop := App["EI"].Win["d"].IsReady()) && (A_TickCount - tick1 < EI_DESKTOP_TIMEOUT * 1000) {
 				GUIStatus("Starting EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
-				App["EI"].Win["d"].Update()
 				if PACancelRequest {
 					cancelled := true
 					break
@@ -571,31 +617,13 @@ EIStart(cred := CurrentUserCredentials) {
 				failed := true
 			}
 
-			; EI desktop is running
-			; now wait for EPIC and PS to complete loading
-			; in practice we can just wait for PS since it normally takes much longer then EPIC
-			tick1 := A_TickCount
-			while !cancelled && !(hwndmain := App["PS"].Win["main"].hwnd) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-				GUIStatus("Waiting for PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-				Sleep(500)
-				App["PS"].Win["main"].Update()
-				if PACancelRequest {
-					cancelled := true
-					break		; while
-				}
-			}
-			if !hwndmain {
-				; if PS main window still not visible after time out, return failure
-				PSfailed := true
-			}
-
+			; EI desktop is running at this point
 		}
 	}
 
 	GUIHideCancelButton()
 
 	if cancelled {
-
 		; user cancelled
 		GUIStatus("EI startup cancelled - cleaning up...")
 
@@ -606,25 +634,17 @@ EIStart(cred := CurrentUserCredentials) {
 				ProcessClose(App["EI"].pid)
 			}
 			Sleep(500)
-			App["EI"].Update()
 		}
 
 		GUIStatus("EI startup cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
 	} else if failed {
-
 		; if failure, or if no desktop window by now, return as failure
 		GUIStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
-	} else if PSfailed {
-	
-		GUIStatus("EI started, but could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-	
 	} else {
-
 		; success
 		GUIStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
@@ -645,18 +665,17 @@ EIStart(cred := CurrentUserCredentials) {
 ; immediately returns -1.
 ;
 ; Shutting down EI normally has side effects of closing PowerScribe and Epic.
-; This function monitors and waits for PowerScribe and Epic to fully close
-; as well before returning.
+; This function only waits for EI to shut down before returning.
+; It does not wait for PowerScribe and Epic to shut down.
 ;
-; Wait time is defined by EI_SHUTDOWN_TIMEOUT. If complete shutdown does not
+; Maximum wait time is defined by EI_SHUTDOWN_TIMEOUT. If shutdown does not
 ; occur by that time, returns 0 (failure).
 ;
 ; Periodically checks PACancelRequest to see if it the startup attempt
 ; should be cancelled.
 ;
-; Returns 1 if EI, PS, and Epic are all shut down is successful,
+; Returns 1 if EI shut down is successful,
 ; 0 if unsuccessful (e.g. after timeout or if user cancels).
-;
 EIStop() {
 	global PACancelRequest
 	static running := false			; true if the EIStop is already running
@@ -693,10 +712,9 @@ EIStop() {
 	EISend("!{F4}", "d")
 
 	; wait for EI desktop to go away
-	while !cancelled && (hwndEI := App["EI"].Win["d"].hwnd) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
+	while !cancelled && (hwndEI := App["EI"].Win["d"].IsReady()) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
 		GUIStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
-		App["EI"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break
@@ -707,94 +725,23 @@ EIStop() {
 		resultEI := true
 	}
 
-	if !cancelled {
-
-		pscloseflag := false		; set to true if an Alt-F4 has been sent to close PS
-
-		; wait for both PS & Epic to shut down
-		while !cancelled && (!resultPS || !resultEPIC) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
-	
-			GUIStatus("Shutting down EI... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			sleep(500)
-			App["PS"].Update()
-			App["EPIC"].Update()
-			
-			; winitem := PSParent()
-			if !PSIsRunning() {
-				; PS successfully closed
-				resultPS := true
-			} else if !pscloseflag && PSIsLogin() {
-				; We're at the login window. Close it.
-				PSSend("!{F4}")
-				pscloseflag := true
-			}
-	
-			if !EPICIsRunning() {
-				resultEPIC := true
-			} else if EPICIsLogin() {
-				; need to shut down Epic
-				try {
-					ProcessClose(App["EPIC"].pid)
-				}
-			}
-
-			if PACancelRequest {
-				cancelled := true
-				break
-			}
-		}
-	}
-
 	GUIHideCancelButton()
 
 	if cancelled {
-
 		; user cancelled
 		GUIStatus("EI shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
-	} else if resultEI && resultPS && resultEPIC {
-
+	} else if resultEI {
 		; shut down successful
-		
-		; After EI desktop is closed, a hidden EI login window persists in the background.
-		; It needs to run until PS and Epic are closed (by EI). After PS and Epic have
-		; been closed, we can kill the hidden process so it doesn't interfere with running EI again.
-		if App["EI"].pid {
-			try {
-				ProcessClose(App["EI"].pid)
-				sleep(500)
-				App["EI"].Update()
-			}
-		}
-
 		GUIStatus("EI shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
-	} else if !resultEI {
-		
+	} else {
 		; something went wrong
 		GUIStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
-		
-	} else if !resultPS {
-		
-		; something went wrong
-		GUIStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-		
-	} else if !resultEPIC {
-		
-		; something went wrong
-		GUIStatus("Could not shut down Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
 
-	} else {		
-
-		; something went wrong
-		GUIStatus("Could not shut down EI, PowerScribe, and/or Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-		
 	}
 
 	; restore focus following
@@ -965,6 +912,7 @@ _EIParsePatientInfo(&patientinfo := "", contents := "") {
 }
 
 
+; [wip]
 ; Retrieves data from Study Info section data of EI Desktop text page
 ;
 ; Should be passed a Patient object, with whom this study is associated
@@ -1114,6 +1062,7 @@ if n++ > 2 {
 }
 
 
+; [wip]
 ; Looks for data within the passed contents string to match the following items:
 ;	Accession number
 ;	Study description
@@ -1242,7 +1191,7 @@ EICmdStartReading() {
 	if !EIClickImages("EI_StartReading") {
 		EIClickDesktop("EI_DesktopStartReading")
 	}
-	PASound("EIStartReading")
+	PlaySound("EIStartReading")
 }
 
 
@@ -1305,7 +1254,7 @@ EICmdShowSearch() {
 ; Assumes the Search page is already showing
 ;
 EICmdResetSearch() {
-	if EIhwnd := App["EI"].Win["d"].hwnd {
+	if EIhwnd := App["EI"].Win["d"].IsReady() {
 		WinGetClientPos(&x0, &y0, &w0, &h0, EIhwnd)
 		if FindText(&x:="wait", &y:=0.2, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EISearch_Clear"], , 0, , , , 1) {
 			WinActivate(EIhwnd)
@@ -1321,7 +1270,22 @@ EICmdResetSearch() {
 
 
 ; Sends the Remove from list command (click on the close icon)
-;
 EICmdRemoveFromList() {
 	EIClickImages("EI_RemoveFromList")
+}
+
+
+; Resize EICLIN window to same size as images1 window
+EICLINCmdResize(winkey := "mpr") {
+	mprhwnd := App["EICLIN"].Win[winkey].hwnd
+	if mprhwnd {
+		i1pos := App["EI"].Win["i1"].pos
+		if i1pos.w >= WINPOS_MINWIDTH && i1pos.h >= WINPOS_MINHEIGHT {
+			try {        
+				WinMove( , , i1pos.w, i1pos.h, mprhwnd)
+                ; success
+            } catch {
+            }
+		}
+	}
 }

@@ -35,20 +35,6 @@
 
 
 /**********************************************************
- * Includes
- */
-
-
-#Include <FindText>
-#Include PAFindTextStrings.ahk
-
-#Include Globals.ahk
-#Include PASound.ahk
-
-
-
-
-/**********************************************************
  * Global variables and constants used in this module
  */
 
@@ -69,11 +55,11 @@ EPICSend(cmdstring := "") {
 		if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 			; at this point hwndPS is non-null and points to the current PS window
 			PAWindowBusy := true
-;			BlockInput true				; prevent user input from interfering
+			BlockInput true				; prevent user input from interfering
 			WinActivate(hwndEPIC)
 			Sleep(200)
 			Send(cmdstring)
-;			BlockInput false
+			BlockInput false
 			PAWindowBusy := false
 		}
 	}
@@ -87,18 +73,22 @@ _EPIC_DismissTimezone(initialize := false) {
 	static tick0 := 0
 
 	if initialize {
+TTip("0")
 		tick0 := A_TickCount
 		return					; return after initializing
 	}
 
 	if EPICIsTimezone() {
-		Sleep(500)
 		; dismiss Timezone dialog with Continue (Alt-O)
+TTip("a")
 		EPICSend("{Alt down}o{Alt up}")
-		;SetTimer(_EPIC_DismissTimezone, 0)
+		SetTimer(_EPIC_DismissTimezone, 0)
 	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
 		; timed out, stop checking
+TTip("b")
 		SetTimer(_EPIC_DismissTimezone, 0)
+	} else {
+TTip("c")
 	}
 }
 
@@ -145,12 +135,12 @@ EPICIsRunning() {
 ; Returns true if the Epic login page is showing
 ;
 EPICIsLogin() {
-	App["EPIC"].Win["main"].Update()
+	; App["EPIC"].Win["main"].Update()
 	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
-	;PASound("EPIC Is Login")	; debug
+TTip("EPICIsLogin")
 				return true
 			}
 		} catch {
@@ -162,12 +152,12 @@ EPICIsLogin() {
 ; Returns true if the Epic time zone confirmation page is showing
 ;
 EPICIsTimezone() {
-	App["EPIC"].Win["main"].Update()
-	if (hwndEPIC := App["EPIC"].Win["main"].hwnd) {
+	; App["EPIC"].Win["main"].Update()
+	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
-	;PASound("EPIC Is Timezone")	; debug
+TTip("EPICIsTimezone")
 				return true
 			}
 		} catch {
@@ -180,12 +170,12 @@ EPICIsTimezone() {
 ; Returns true if the Epic main chart page is showing
 ;
 EPICIsChart() {
-	App["EPIC"].Win["main"].Update()
+	; App["EPIC"].Win["main"].Update()
 	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
 		try {
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
 			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
-	;PASound("EPIC Is chart")
+TTip("EPICIsChart")
 				return true
 			}
 		} catch {
@@ -193,6 +183,27 @@ EPICIsChart() {
 	}
 	return false
 }
+
+
+
+
+/**********************************************************
+ * Callback functions called on Network window events
+ */
+
+
+EPICShow_main(hwnd, hook, dwmsEventTime)
+{
+	App["EPIC"].Win["main"].hwnd := hwnd
+	PlaySound("EPIC show main")
+}
+
+EPICShow_chat(hwnd, hook, dwmsEventTime)
+{
+	App["EPIC"].Win["chat"].hwnd := hwnd
+	PlaySound("EPIC show chat")
+}
+
 
 
 
@@ -206,7 +217,7 @@ EPICIsChart() {
 ; When the Epic main window appears
 EPICOpened_EPICmain() {
 
-	PASound("Epic started")
+	PlaySound("Epic started")
 
 	if Setting["EPIC_restoreatopen"].value {
 		; Restore EPIC window positions
@@ -224,7 +235,7 @@ EPICOpened_EPICmain() {
 ; Hook function called when EPIC main window closed or minimized
 ;
 EPICClosed_EPICmain() {
-	PASound("Epic closed")
+	PlaySound("Epic closed")
 }
 
 
@@ -256,7 +267,7 @@ EPICStart(cred := CurrentUserCredentials) {
 	}
 	running := true
 
-	; if EPIC is not running, immediately return success
+	; if EPIC is already running, immediately return success
 	if EPICIsRunning() {
 		GUIStatus("Epic is already running")
 		running := false
@@ -287,8 +298,8 @@ EPICStart(cred := CurrentUserCredentials) {
 	; run Epic
 	; Run('"' . EXE_EPIC . '" env="PRD"')
 	Run('"' . EXE_EPIC . '" ' . EPIC_CLIOPTIONS)
-	Sleep(500)
-	App["EPIC"].Update()
+	Sleep(1000)
+	; App["EPIC"].Update()
 
 	; wait for login window to exist
 	while !cancelled && !(islogin := EPICIsLogin()) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
@@ -319,7 +330,7 @@ EPICStart(cred := CurrentUserCredentials) {
 			CoordMode("Mouse", "Screen")
 			BlockInput true				; prevent user input from interfering
 			MouseGetPos(&savex, &savey)	; save current mouse position
-
+			
 			Click(ok[1].x, ok[1].y)
 			Send("^a" . cred.username)
 
@@ -444,7 +455,7 @@ EPICStop() {
 	while !cancelled && App["EPIC"].Win["main"].hwnd && (A_TickCount-tick0 < EPIC_SHUTDOWN_TIMEOUT * 1000) {
 		GUIStatus("Shutting down Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		sleep(500)
-		App["EPIC"].Update()
+		; App["EPIC"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break		; while

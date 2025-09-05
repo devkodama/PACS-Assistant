@@ -33,12 +33,13 @@ app
 
 
 VPN
+
+=======
   main
   prefs
   login
   otp
   connected
-
 
 EI
   login
@@ -81,4 +82,13 @@ Windows that share the same hwnd are really pseudowindows and are not handled by
 Callbacks should prevent reentry?
 
 
+WinEvent.Show:
+  Saves the hwnd of the newly shown window in the Win object. If the window is not a listed window of interest, adds the hwnd to a generic list of hwnd for the App object
+  Fires the PA callback if any.
+
+WinEvent.Close
+  Removes the saved hwnd from the Win object. Fires the PA callback if any.
+
+
+=======
 

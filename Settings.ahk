@@ -7,9 +7,11 @@
  * This module defines the following globals:
  *
  *  Setting             - Map() with program-wide modifiable settings
+ * 
  *  SettingsPage        - Array() ordered array of keys that determines which settings
  *                          are shown and the order in which they are shown on the 
- *                          GUI Settings page
+ *                          GUI Settings page. 
+ *                          This global is only used within the Settings.ahk module.
  * 
  *
  * This module defines the following classes:
@@ -32,19 +34,6 @@
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-
-
-
-
-/**********************************************************
-** Includes
-*/
-
-
-#Include <Cred>
-
-#Include Utils.ahk
-#Include Globals.ahk
 
 
 
@@ -86,21 +75,24 @@ Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus f
 Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
-Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
-Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
-
 ; VPN settings
-Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When VPN window appears, center it on the screen")
+Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
+Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
 Setting["EI_restoreatopen"] := SetItem("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
-Setting["EIcollaborator_show"] := SetItem("EIcollaborator_show", "bool", false, , "Show Collaborator window at EI startup")
+Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
+Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
+
+Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
+Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
 
 ; PS settings
 Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
 
 Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
-Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 Setting["PSsavespeech_dismiss"] := SetItem("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
 Setting["PSsavespeech_dismiss_reply"] := SetItem("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
@@ -113,12 +105,13 @@ Setting["PS_dictate_autoon"] := SetItem("PS_dictate_autoon", "bool", true, , "Au
 Setting["PS_dictate_idleoff"] := SetItem("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
 Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
 
-Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
-Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
+Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' error message")
+Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' error message.")
 
-Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
+Setting["PSras_dismiss"] := SetItem("PSRAS_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' error message")
+Setting["PSras_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'The call to RAS timed out' error message.")
 
-Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except when within the PowerScribe window")
+Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window if mouse is outside of the PowerScribe window")
 
 ; EPIC settings
 Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
@@ -147,7 +140,7 @@ Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Spacebar to 
 Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar to delete text in PowerScribe")
 
 ; Advanced
-Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
+Setting["Debug"] := SetItem("Debug", "bool", false, , "Enable debugging messages")
 
 ; Misc settings
 Setting["run"] := SetItem("run", "num", 0, , "")
@@ -157,8 +150,8 @@ Setting["run"] := SetItem("run", "num", 0, , "")
 ; PASettingsPage is an ordered array of keys that determines which settings
 ; are shown and the order in which they are shown on the GUI Settings page. 
 ;
-; Settings can be grouped into categories. When a key begins with a colon,
-; as in ":CategoryName", then CategoryName is used as the grouping title
+; Settings can be grouped into categories. When a key begins with a "#",
+; as in "#CategoryName", then CategoryName is used as the grouping title
 ;
 ; When a key is prefixed with ">", as in ">MouseJiggler_timeout", then
 ; the key is indented when displayed. A double indent ">>" can also be used.
@@ -182,25 +175,28 @@ SettingsPage.Push("UseVoice")
 SettingsPage.Push(">Voice")
 
 SettingsPage.Push("#VPN")
+SettingsPage.Push("VPN_url")
 SettingsPage.Push("VPN_center")
 
 SettingsPage.Push("#EI")
 SettingsPage.Push("EI_restoreatopen")
 SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
+SettingsPage.Push("EIactivate")
 
 SettingsPage.Push("#PowerScribe")
 SettingsPage.Push("PS_restoreatopen")
 SettingsPage.Push("PS_dictate_autoon")
 SettingsPage.Push("PS_dictate_idleoff")
 SettingsPage.Push(">PS_dictate_idletimeout")
+SettingsPage.Push("PScenter_dialog")
 SettingsPage.Push("PSconfirmaddendum_dismiss")
 SettingsPage.Push("PSlogout_dismiss")
 SettingsPage.Push("PSsavespeech_dismiss")
 SettingsPage.Push(">PSsavespeech_dismiss_reply")
 SettingsPage.Push("PSmicrophone_dismiss")
+SettingsPage.Push("PSras_dismiss")
 SettingsPage.Push("PSSPspelling_autoclose")
-SettingsPage.Push("PScenter_dialog")
 
 SettingsPage.Push("#Epic")
 SettingsPage.Push("EPIC_restoreatopen")
@@ -223,11 +219,11 @@ SettingsPage.Push("hkCtrlYZ")
 SettingsPage.Push("hkSpaceClick")
 
 SettingsPage.Push("#Advanced")
-SettingsPage.Push("EIactivate")
+SettingsPage.Push("Debug")
 
 SettingsPage.Push("#Beta - Experimental, not working yet")
 SettingsPage.Push("hkSpaceDelete")
-SettingsPage.Push("EIcollaborator_show")
+SettingsPage.Push("EIchat_show")
 
 
 
@@ -240,11 +236,11 @@ SettingsPage.Push("EIcollaborator_show")
 ; Class to hold an individual setting within PACS Assistant
 ;
 ; Possible values for type:
-;   "bool"      - possiblevalues is ignored, as it assumed to be [true, false]
-;   "num"       - possiblevalues is an array of [lowerbound, upperbound], or empty if no limits
-;   "text"      - possiblevalues is an integer defining maximum length of text
-;   "select"    - possiblevalues is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
-;   "special"   - possiblevalues is a string defining what type of special value this is
+;   "bool"      - possible is ignored, as it assumed to be [true, false]
+;   "num"       - possible is an array of [lowerbound, upperbound], or empty if no limits
+;   "text"      - possible is an integer defining maximum length of text
+;   "select"    - possible is a Map of options, e.g. Map("opt1key", "opt1val", "opt2key", "opt2val", "opt3key", "opt3val", ...)
+;   "special"   - possible is a string defining what type of special value this is
 ;
 class SetItem {
     name := ""              ; Name of this setting. Should match the key used in 
@@ -314,7 +310,7 @@ class SetItem {
                                     ; username is non-empty
 
                                     ; add username to title bar
-                                    GUIPost("curuser", "innerHTML", " - " . newval)
+                                    GUISetPropVal("curuser", "innerHTML", " - " . newval)
 
                                     ; update password
                                     if !WorkstationIsHospital() {
@@ -343,7 +339,7 @@ class SetItem {
                                     ; username is empty
 
                                     ; update title bar
-                                    GUIPost("curuser", "innerHTML", "")
+                                    GUISetPropVal("curuser", "innerHTML", "")
 
                                     ; set password to empty
                                     Setting["password"].value := ""
@@ -384,7 +380,7 @@ class SetItem {
         }
     }
 
-    on {
+    enabled {
         get {
             return this._value ? true : false 
         }
@@ -432,7 +428,7 @@ class SetItem {
                         if !WorkstationIsHospital() {
                             ; not hospital, so save password to local storage if wanted
                             if Setting.Has("storepassword") {
-                                if Setting["storepassword"].on {
+                                if Setting["storepassword"].enabled {
                                     if this._value {
                                         CredWrite("PA_cred_" . Setting["username"].value, Setting["username"].value, this._value)
                                     }
@@ -596,7 +592,6 @@ SettingsReadAll() {
 ;
 SettingsWriteAll() {
     global Setting
-;    global CurrentUserCredentials
 
     ; ensure username has a value
     if Setting["username"].value {
@@ -724,7 +719,7 @@ SettingsGeneratePage(show := true) {
         } else {
             ; this is an Option with name (key) optname
 
-            ; indent contains the number indents to insert (0, 1, or 2)
+            ; indent contains the number of indents to insert (0, 1, or 2)
             ; if indent is greater than 0, then the class set-indentX is added to
             ; the description div, where X is either 1 or 2, and css will add padding-left
             indent := 0
@@ -847,7 +842,7 @@ SettingsGeneratePage(show := true) {
 
     if show {
         ; replace current form on GUI Settings page
-        GUIPost("settingsform", "innerHTML", form)
+        GUISetPropVal("settingsform", "innerHTML", form)
     }
     
     return form
@@ -891,7 +886,7 @@ HandleFormInput(WebView, id, newval) {
         ; validation succeeded, change the setting's value
         sett.value := newval
         ; clear any previous error
-        GUIPost(errid, "innerHTML", "")
+        GUISetPropVal(errid, "innerHTML", "")
 
     } else {
 
@@ -900,20 +895,20 @@ HandleFormInput(WebView, id, newval) {
         switch sett.type {
             case "num":
                 if IsObject(sett.possible) {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Value must be between " sett.possible[1] " and " sett.possible[2])
                 } else {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid number")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid number")
                 }
             case "text", "special":
                 if sett.possible > 0 {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Maximum " sett.possible " characters")
                 } else {
-                    GUIPost(errid, "innerHTML", "<br />⚠️ Invalid entry")
+                    GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid entry")
                 }
             case "select":
-                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid choice")
+                GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid choice")
             default:
-                GUIPost(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
+                GUISetPropVal(errid, "innerHTML", "<br />⚠️ Invalid input - error unkonwn")
         }
     }
 

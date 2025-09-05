@@ -24,16 +24,6 @@
 #SingleInstance Force
 
 
-/*
-** Global variables and constants
-*/
-
-
-#Include Globals.ahk
-
-#include PAICDCode.ahk
-
-
 
 
 /**********************************************************
@@ -66,14 +56,14 @@ DaemonInit(start := true) {
  */
 
 
-; Checks the dispatch request queue and calls the queued functions.
+; Checks the dispatch request queues and calls the queued functions.
 ;
 ; The dispatcher is dumb and does not check whether the function is already running.
-; Every function callable by the dispatcher should check for and prevent reentry.
-;
+; Every function callable by the dispatcher should check for and prevent reentry if neceesary.
 _Dispatcher() {
 	global DispatchQueue
-
+	global HookShowQueue
+	global HookCloseQueue
 	; runs regardless of PAActive
 
 	if DispatchQueue.Length > 0 {
@@ -81,6 +71,19 @@ _Dispatcher() {
 		fn := DispatchQueue.RemoveAt(1)
 		SetTimer(fn, -1)
 	}
+	
+	if HookShowQueue.Length > 0 {
+		; call fn() via SetTimer to simulate multithreading
+		fn := HookShowQueue.RemoveAt(1)
+		SetTimer(fn, -1)
+	}
+	
+	if HookCloseQueue.Length > 0 {
+		; call fn() via SetTimer to simulate multithreading
+		fn := HookCloseQueue.RemoveAt(1)
+		SetTimer(fn, -1)
+	}
+	
 }
 
 
@@ -238,7 +241,7 @@ _RefreshGUI() {
 		GUIStatus("PACS Assistant disabled")
 		PAGui.PostWebMessageAsString("document.getElementById('tab-active').removeAttribute('checked');")
 	}
-;GUIPost("log", "innerHTML", PAActive " / " PASettings["active"].value)
+;GUISetPropVal("log", "innerHTML", PAActive " / " PASettings["active"].value)
 		
 	; Update app icon indicators
 	status := 0x00
@@ -374,78 +377,59 @@ _RefreshGUI() {
 ; Update the status of all windows
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
-;
 _WatchWindows() {
-	global PAActive
 	global PAWindowInfo
+	global HookShowQueue
+	global HookCloseQueue
 	
 	; runs regardless of PAActive
 
-	; update all app windows
-	UpdateAll()
-
-	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
-	
-
 	; [todo] if PS spelling window is open for more than 1 second while mouse is not
-	; over a PS window, then close it
+	; over a PS window, then close it?
+
+	; poll windows to trigger hook_show
+	for w in PollShow {
+		if w.hwnd && !w._showstate && w.hook_show { 
+			w._showstate := true
+			HookShowQueue.Push(w.hook_show)
+		}
+	}
+
+	; poll windows to trigger hook_close
+	for w in PollClose {
+		if !w.hwnd && !w._closestate && w.hook_close { 
+			w._closestate := true
+			HookCloseQueue.Push(w.hook_close)
+		}
+	}
 
 
 	; update window info for GUI
-	PAWindowInfo := PrintWindows() . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 
 
-; Update the hwnd of the window under the mouse cursor
+; Performs focus following by activiating the window under the mouse when appropriate.
 ;
-; Also makes the window active if appropriate.
-; Automatic window activation is suspended if Shift key is being held down
+; Focus following is suspended if any of the following are true:
+;	Setting["FocusFollow"].enabled is false
+;	PAActive is false
+; 	PA_WindowBusy is true
+; 	Shift key is being held down
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchMouse, UPDATE_INTERVAL)
-;
-; PAActive must be true for this function to be active
-;
-; PA_WindowBusy must be false for focus following to be allowed
-;
 _WatchMouse() {
 	global PAActive
-	global PA_WindowUnderMouse
 	global PAWindowBusy
 	global App
 	static running := false
-	static restore_EPICchat := 0	; either 0, or array of [x, y, w, h, extended_h]
 
-	; local function to restore windows that have been enlarged
-	_RestoreSaved() {
-		if restore_EPICchat {
-			hwndEPICchat := App["EPIC"].Win["chat"].hwnd
-			try {
-				WinGetPos(&x, &y, &w, &h, hwndEPICchat)
-				if x != restore_EPICchat[1] || y != restore_EPICchat[2] || w != restore_EPICchat[3] || h != restore_EPICchat[5] {
-					; user moved the window after it was enlarged, don't restore
-				} else {
-					if hwndEPICchat {
-						WinMove(restore_EPICchat[1], restore_EPICchat[2], restore_EPICchat[3], restore_EPICchat[4], hwndEPICchat)
-					}
-				}
-				restore_EPICchat := 0
-			} catch {
-				App["EPIC"].Win["chat"].Update()
-			}
-		}
-	}
-
-	; local function to autoclose the PS spelling window
+	; local function to close the PS spelling window if autoclose is enabled
 	_ClosePSspelling() {
-		if Setting["PSSPspelling_autoclose"].value && App["PSSP"].Win["spelling"].visible {
+		if Setting["PSSPspelling_autoclose"].enabled && App["PSSP"].Win["spelling"].visible {
 			App["PSSP"].Win["spelling"].Close()
 		}
-	}
-
-
-	if !PAActive {
-		return
 	}
 
 	; don't allow reentry
@@ -454,18 +438,25 @@ _WatchMouse() {
 	}
 	running := true
 
+	; check if we should do focus following, if not return
+	if !PAActive || PAWindowBusy || !Setting["FocusFollow"].enabled {
+		running := false
+		return
+	}
+
 	; get the handle of the window under the mouse
-	hwnd := Mouse()
+	hwnd := WindowUnderMouse()
 
-	; store it
-	PA_WindowUnderMouse := hwnd
+	; Activate the window under the mouse
 
-	; activate window under the mouse, if appropriate
-	;
-	; only activate window if another window is not busy
-	; and Lshift is not being held down
-	; and if not already active
-	if !PAWindowBusy && Setting["FocusFollow"].on && !GetKeyState("LShift", "P") && !WinActive(hwnd) {
+	; If the desired window is already active, just return
+	if WinExist("A") = hwnd {
+		running := false
+		return
+	}
+
+	; only activate window if Lshift is not being held down
+	if !GetKeyState("LShift", "P") {
 
 		appkey := GetAppkey(hwnd)
 		winkey := GetWinkey(hwnd)
@@ -474,52 +465,22 @@ _WatchMouse() {
 				case "EI":
 					; close PS Spelling window
 					_ClosePSspelling()
-
-					; don't activate if there are more than one PS windows open
-					if App["PS"].CountOpenWindows() < 2 {
-						_RestoreSaved()
+					try {
 						WinActivate(hwnd)
 					}
 				case "PS":
-					_RestoreSaved()
-					WinActivate(hwnd)
+					try {
+						WinActivate(hwnd)
+					}
 				case "PA":
-					_RestoreSaved()
-					WinActivate(hwnd)
+					_ClosePSspelling()
+					try {
+						WinActivate(hwnd)
+					}
 				case "EPIC":
-					switch winkey {
-						case "chat":
-							if !restore_EPICchat {
-								WinGetPos(&x, &y, &w, &h, hwnd)
-								if w >= WINPOS_MINWIDTH && h >= WINPOS_MINHEIGHT {
-									extended_h := (h < 600) ? 600 : h
-									restore_EPICchat := [x, y, w, h, extended_h]
-									WinMove(x, y, w, extended_h, hwnd)
-									; [todo] if mouse was in bottom 70px of the chat window, move the mouse down by the same amount as the window was extended downwards
-									CoordMode "Mouse", "Screen"
-									MouseGetPos(&mousex, &mousey)
-									;							msgbox x ", " y ", " w ", " h "/" extended_h ", " mousex ", " mousey
-									if mousey >= y + h - 70 {
-										MouseMove(mousex, mousey + extended_h - h)
-									}
-								} else {
-									restore_EPICchat := 0
-								}
-							}
-							_ClosePSspelling()
-							; don't activate if there are more than one PS windows open
-							; if _WindowKeys.CountAppWindows("PS") < 2 {
-							if App["PS"].CountOpenWindows() < 2 {
-								WinActivate(hwnd)
-							}
-						default:
-							_ClosePSspelling()
-							; don't activate if there are more than one PS windows open
-							; if _WindowKeys.CountAppWindows("PS") < 2 {
-							if App["PS"].CountOpenWindows() < 2 {
-								_RestoreSaved()
-								WinActivate(hwnd)
-							}
+					_ClosePSspelling()
+					try {
+						WinActivate(hwnd)
 					}
 				default:
 					; do nothing
@@ -539,7 +500,7 @@ _JiggleMouse() {
 		return
 	}
 
-	if Setting["MouseJiggler"].on {
+	if Setting["MouseJiggler"].enabled {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
 	}
@@ -553,7 +514,7 @@ _ClearCapsLock() {
 		return
 	}
 
-	if Setting["ClearCapsLock"].on && A_TimeIdleKeyboard > CAPSLOCK_TIMEOUT {
+	if Setting["ClearCapsLock"].enabled && A_TimeIdleKeyboard > CAPSLOCK_TIMEOUT {
 		SetCapsLockState false
 	}
 }

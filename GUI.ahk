@@ -10,7 +10,7 @@
  * 
  *  HoverEvent(WebView, id)             -
  * 
- *  GUIPost(id, propname, propval)
+ *  GUISetPropVal(id, propname, propval)
  *  GUISetStatusBar(message := "")
  *  GUIStatus(message := "", duration := 0)
  * 
@@ -43,21 +43,6 @@
 
 
 /**********************************************************
- * Includes
- */
-
-#Include <WebView2>
-#Include <WebViewToo>
-
-#Include Globals.ahk
-#Include Utils.ahk
-
-#include Debug.ahk
-
-
-
-
-/**********************************************************
  * Compile options
  */
 
@@ -78,7 +63,7 @@ if (A_IsCompiled) {
 global PAGUI
 
 ; queue of callback functions to be called
-global DispatchQueue
+global DispatchQueue := Array()
 
 
 
@@ -118,6 +103,7 @@ ClickId(WebView, id) {
             if !WorkstationIsHospital() && VPNIsConnected() {
                 DispatchQueue.Push(VPNStop)
             }
+
         ; EI button
         case "app-EI":
             if !EIIsRunning() {
@@ -138,7 +124,7 @@ ClickId(WebView, id) {
         case "app-PS-shutdown":
             DispatchQueue.Push(PSStop)
         case "app-PS-forceclose":
-            TTip("This doesn't work yet")
+            TTip("This doesn't work")
             ; DispatchQueue.Push(GUIForceClosePS)
 
         ; EPIC button
@@ -205,16 +191,16 @@ HoverEvent(WebView, id) {
  */
 
 
-; GUIPost() sets the property propname of an element with the given id in javascript.
+; GUISetPropVal() sets the property propname of an element with the given id in javascript.
 ;
-;   GUIPost(id, propname, propval)  -->  document.getElementById('id').propname = 'propval';
+;   GUISetPropVal(id, propname, propval)  -->  document.getElementById('id').propname = 'propval';
 ;
 ; It does so by calling the WebViewToo().PostWebMessageAsString() method.
 ;
-; e.g. GUIPost("patientname", "innerHTML", "John Smith") will replace the innerHTML property 
+; e.g. GUISetPropVal("patientname", "innerHTML", "John Smith") will replace the innerHTML property value
 ; of the DOM element having id="patientname" with "John Smith"
 ;
-GUIPost(id, propname, propval) {
+GUISetPropVal(id, propname, propval) {
     if _GUIIsRunning {
 	    PAGUI.PostWebMessageAsString("document.getElementById('" id "')." propname " = '" propval "';")
     }
@@ -264,14 +250,14 @@ GUIShowCancelButton() {
     global PACancelRequest
 
     PAGUI.PostWebMessageAsString("document.getElementById('cancelbutton').removeAttribute('disabled', '');")
-    GUIPost("cancelbutton", "style.display", "flex")
+    GUISetPropVal("cancelbutton", "style.display", "flex")
     PACancelRequest := false
 }
 
 
 ; Call this to hide the Cancel button on the status bar
 GUIHideCancelButton() {
-    GUIPost("cancelbutton", "style.display", "none")
+    GUISetPropVal("cancelbutton", "style.display", "none")
 }
 
 
@@ -322,19 +308,8 @@ GUISaveWindowPositions(*) {
 
     SavePositionsAll()
 
-    Peep(App["PS"].Win["login"].savepos)
-    Peep(App["PS"].Win["main"].savepos)
-
-    ; PS login window is a special case. It's saved position should be set to the same as the PS main window,
-    ; unless the main window does not have a saved position.
-    if App["PS"].Win["main"].savepos.w < WINPOS_MINWIDTH || App["PS"].Win["main"].savepos.h < WINPOS_MINHEIGHT {
-        App["PS"].Win["main"].savepos := App["PS"].Win["login"].savepos
-    } else {
-        App["PS"].Win["login"].savepos := App["PS"].Win["main"].savepos
-    }
-
-    Peep(App["PS"].Win["login"].savepos)
-    Peep(App["PS"].Win["main"].savepos)
+;    Peep(App["PS"].Win["login"].savepos)
+;    Peep(App["PS"].Win["main"].savepos)
 
     ; write to settings file
     WritePositionsAll()
@@ -373,8 +348,10 @@ GUIMain(*) {
 
     /**
 	 * In order to use PostWebMessageAsJson() or PostWebMessageAsString(), you'll need to setup your webpage to listen to messages
-	 * First, MyWindow.Settings.IsWebMessageEnabled must be set to true
-	 * On your webpage itself, you'll need to setup an EventListner and Handler for the WebMessages
+	 *
+     * First, MyWindow.Settings.IsWebMessageEnabled must be set to true
+	 * 
+     * On your webpage itself, you'll need to setup an EventListner and Handler for the WebMessages
 	 * 		window.chrome.webview.addEventListener('message', ahkWebMessage);
 	 * 		function ahkWebMessage(Msg) {
 	 * 			console.log(Msg);
@@ -393,7 +370,7 @@ GUIMain(*) {
     PAGUI.AddCallbackToScript("ClickId", ClickId)
     PAGUI.AddCallbackToScript("HandleFormInput", HandleFormInput)
 
-    PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; don't want to continue to use this for hovers
+    PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; [todo] don't want to continue to use this for hovers
 
 
     ; get previously saved PACS Assistant window position
@@ -420,26 +397,31 @@ GUIMain(*) {
         y := 0
         w := PA_DEFAULTWIDTH
         h := PA_DEFAULTHEIGHT
+        PAmain.savepos.x := x
+        PAmain.savepos.y := y
+        PAmain.savepos.w := w
+        PAmain.savepos.h := h
+    
     }
 
     ; now show the PACS Assistant GUI window
     PAGUI.Show("x" x " y" y " w" w " h" h)
-    Sleep(500)                      ; need time for GUI to be set up
+    Sleep(750)                      ; need time for GUI to be set up
 
     ; PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
 
     GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
 
-    PAmain.Update()
+;    PAmain.Update()
 
     ; declare GUI to be up and running
     _GUIIsRunning := true
 
     ; add username to title bar
     if Setting["username"].value {
-        GUIPost("curuser", "innerHTML", " - " . Setting["username"].value)
+        GUISetPropVal("curuser", "innerHTML", " - " . Setting["username"].value)
     } else {
-        GUIPost("curuser", "innerHTML", "")
+        GUISetPropVal("curuser", "innerHTML", "")
     }
 
     ; initialize the settings page
@@ -493,11 +475,18 @@ GUIGetPassword(prompt := "Please enter your password") {
     pwdGUI.Add("Button", "yp default", "Ok").OnEvent("Click", _GUIProcessPassword)
     pwdGUI.OnEvent("Close", _GUIProcessPassword)
 
-    ; center over the PA main window
+    ; calculate position for dialog window
     p := App["PA"].Win["main"].pos
-    x := p.x + (p.w - 380) / 2
-    y := p.y + (p.h - 140) / 2
-    
+    if p.w < WINPOS_MINWIDTH || p.h < WINPOS_MINHEIGHT {
+        ; invalid w or h, use sensible default
+        x := 400
+        y := 400
+    } else {
+        ; center over PA main window
+        x := p.x + (p.w - 380) / 2
+        y := p.y + (p.h - 140) / 2
+    }
+
     ; show the gui
     pwdGUI.Show("x" x " y" y " w380 h140")
 
@@ -564,7 +553,7 @@ GUISize(thisGui, MinMax, Width, Height) {
 
     h := Height - 50
     PAGUI.PostWebMessageAsString("document.getElementById('main').style = `"height: " . h . "px;`"")
-;    GUIPost("main", "style", "`"height: " . h . "px;`"")
+;    GUISetPropVal("main", "style", "`"height: " . h . "px;`"")
 
 }
 
