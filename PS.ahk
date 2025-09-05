@@ -6,7 +6,7 @@
  *
  * This module defines the functions:
  * 
- * 	PSSend(cmdstring := "")					- Send keystroke to PowerScribe
+ * 	PSSend(cmdstring := "")					- Send keystrokes to PowerScribe
  * 	PSPaste(text := "")						- Paste a chunk of text into PowerScribe
  * 
  * 	PSParent()								- Returns the WinItem for either PSmain, PSreport, PSaddendum, or PSlogin, if one exists
@@ -17,24 +17,21 @@
  * 	PSIsMain()
  * 	PSIsReport()
  * 	
- * 	PSOpen_PSlogin()						- Hook functions
- * 	PSOpen_PSmain()
- * 	PSClose_PSmain()
- * 	PSOpen_PSreport()
- * 	PSClose_PSreport()
- * 	PSOpen_PSlogout()
- * 	PSOpen_PSsavespeech()
- * 	PSOpen_PSsavereport()
- * 	PSOpen_PSdeletereport()
- * 	PSOpen_PSunfilled()
- * 	PSOpen_PSconfirmaddendum()
- * 	PSOpen_PSconfirmanotheraddendum()
- * 	PSOpen_PSexisting()
- * 	PSOpen_PScontinue()
- * 	PSOpen_PSownership()
- * 	PSOpen_PSmicrophone()
- * 	PSOpen_PSfind()
- * 	PSOpen_PSspelling()
+ * 	PSShow_main()							- Callback functions
+ * 	PSShow_recognition()
+ * 	PSShow_logout()
+ * 	PSShow_savespeech()
+ * 	PSShow_savereport()
+ * 	PSShow_deletereport()
+ * 	PSShow_unfilled()
+ * 	PSShow_confirmaddendum()
+ * 	PSShow_confirmanotheraddendum()
+ * 	PSShow_existing()
+ * 	PSShow_continue()
+ * 	PSShow_ownership()
+ * 	PSShow_microphone()
+ * 	PSShow_find()
+ * 	PSShow_spelling()
  * 
  * 	PSStart(cred := CurrentUserCredentials)	- Start up PowerScribe
  * 	PSStop()								- Shut down PowerScribe
@@ -95,8 +92,7 @@ global _PSlastparent := ""
  */
 
 
-; Send keystroke to PowerScribe
-;
+; Send keystrokes to PowerScribe.
 PSSend(cmdstring := "") {
     global PAWindowBusy
 
@@ -119,13 +115,12 @@ PSSend(cmdstring := "") {
 ; Ensures either the PS report window, addendum window, or main window will be receiving the paste.
 ;
 ; Uses the clipboard, restoring the previous clipboard contents when finished.
-;
 PSPaste(text := "") {
     global PAWindowBusy
 
 	if (text) {
-		; if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
-		if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
+
+		if !(hwndPS := App["PS"].Win["report"].IsReady()) && !(hwndPS := App["PS"].Win["main"].IsReady()) && !(hwndPS := App["PS"].Win["addendum"].IsReady()) {
 			return
 		}
 
@@ -152,6 +147,7 @@ PSPaste(text := "") {
 ; if they exist (checked in that order).
 ;
 ; Returns 0 if none of them exist.
+; [todo][need to deprecate this]
 PSParent() {
 	if App["PS"].Win["main"].hwnd {
 		return App["PS"].Win["main"]
@@ -184,21 +180,23 @@ PSParent() {
 ; enabled by PASettings["PS_dictate_idleoff"]. It does so by tracking the
 ; time since the last physical keyboard or mouse activity. This functionality
 ; depends upon this function being called sufficiently frequently (as it typically is by PADaemon()).
-;
 PSDictateIsOn(forceupdate := false) {
 	static dictatestatus := false
 	static lastcheck := 0
 
 	; If one of PS report, addendum, or main windows does not exist, return false
-	if !(hwndPS := App["PS"].Win["report"].hwnd) && !(hwndPS := App["PS"].Win["main"].hwnd) && !(hwndPS := App["PS"].Win["addendum"].hwnd) {
+	if !(hwndPS := App["PS"].Win["report"].IsReady()) && !(hwndPS := App["PS"].Win["main"].IsReady()) && !(hwndPS := App["PS"].Win["addendum"].IsReady()) {
 		dictatestatus := false
 
 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
 		try {
+			; search window for dictate on button icon using FindText()
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
 			if FindText(&x, &y, x0, y0 + 16, x0 + w0, y0 + 128, 0.001, 0.001, PAText["PSDictateOn"]) {
 				; dictate button is on
+				dictatestatus := true
 				if Setting["PS_dictate_idleoff"].enabled {
+					; Turn off mic if no keyboard or mouse activity for a prolonged time.
 					; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
 					; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
 					if dictatestatus && A_TimeIdlePhysical > (Setting["PS_dictate_idletimeout"].value * 60000) {
@@ -206,15 +204,12 @@ PSDictateIsOn(forceupdate := false) {
 						PSSend("{F4}")		; Stop Dictation
 						GUIStatus("Microphone turned off")
 						dictatestatus := false
-					} else {
-						; haven't idled long enough, don't turn off mic
-						dictatestatus := true
 					}
 				}
-				lastcheck := A_TickCount
 			} else {
 				dictatestatus := false
 			}
+			lastcheck := A_TickCount
 		} catch {
 			dictatestatus := false
 		}
@@ -225,19 +220,16 @@ PSDictateIsOn(forceupdate := false) {
 
 
 ; Returns TRUE if PS is running, FALSE if not
-;
 PSIsRunning() {
 	return App["PS"].isrunning
 }
 
 
-; Detect whether a specific PS window or pseudowindow is showing.
+; Detect whether a specific PS pseudowindow is showing.
 ;
-; PS main window is main
-; 	PS pseudowindows which are subwindows of main are login, home, report, addendum.
+; These	PS pseudowindows are subwindows of main: login, home, report, addendum
 ;
 ; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
-;
 PSIsLogin() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
@@ -306,161 +298,180 @@ PSIsAddendum() {
 PSShow_main(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["main"].hwnd := hwnd
-
 	if Setting["Debug"].enabled
 		PlaySound("PS show main")
+	if Setting["PS_restoreatopen"].enabled {
+		App["PS"].Win["main"].RestorePosition()
+	}
+}
+
+PSShow_recognition(hwnd, hook, dwmsEventTime)
+{
+	App["PS"].Win["recognition"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show recognition")
 }
 
 PSShow_logout(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["logout"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show logout")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["logout"].CenterWindow(App["PS"].Win["main"])
 	}
-	
-	if Setting["Debug"].enabled
-		PlaySound("PS show logout")
+	if Setting["PSlogout_dismiss"].enabled {
+		ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
+	}
 }
 
 PSShow_savespeech(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["savespeech"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show savespeech")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["savespeech"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show savespeech")
+	if Setting["PSsavespeech_dismiss"].enabled {
+		ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
+	}
 }
 
 PSShow_savereport(hwnd, hook, dwmsEventTime)
 {
-TTip("savereporthwnd=" App["PS"].Win["savereport"].hwnd " hwnd=" hwnd)
-
 	App["PS"].Win["savereport"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show savereport")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["savereport"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show savereport")
 }
 
 PSShow_deletereport(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["deletereport"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show deletereport")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["deletereport"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show deletereport")
 }
 
 PSShow_unfilled(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["unfilled"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show unfilled")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["unfilled"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show unfilled")
 }
 
 PSShow_confirmaddendum(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["confirmaddendum"].hwnd := hwnd
+	if Setting["Debug"].enabled {
+		PlaySound("PS show confirmaddendum")
+	}
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["confirmaddendum"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show confirmaddendum")
+	if Setting["PSconfirmaddendum_dismiss"].enabled {
+		ControlClick(Setting["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
+	}
 }
 
 PSShow_confirmanother(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["confirmanother"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show confirmanother")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["confirmanother"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show confirmanother")
 }
 
 PSShow_existing(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["existing"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show existing")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["existing"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show existing")
 }
 
 PSShow_continue(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["continue"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show continue")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["continue"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show continue")
 }
 
 PSShow_ownership(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["ownership"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show ownership")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["ownership"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show ownership")
 }
 
 PSShow_microphone(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["microphone"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show microphone")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["microphone"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show microphone")
+	if Setting["PSmicrophone_dismiss"].value {
+		ControlClick(Setting["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
+	}
 }
 
 PSShow_ras(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["ras"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show ras")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["ras"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show ras")
-
 	if Setting["PSras_dismiss"].enabled {
-		try {
-			SetControlDelay -1
-			ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
-		} catch {			
-		}
+		ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
 	}
 }
 
 PSShow_find(hwnd, hook, dwmsEventTime)
 {
 	App["PS"].Win["find"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show find")
 	if Setting["PScenter_dialog"].enabled {
 		App["PS"].Win["find"].CenterWindow(App["PS"].Win["main"])
 	}
-	if Setting["Debug"].enabled
-		PlaySound("PS show find")
 }
 
 
 PSSPShow_spelling(hwnd, hook, dwmsEventTime)
 {
 	App["PSSP"].Win["spelling"].hwnd := hwnd
-	if Setting["PScenter_dialog"].enabled {
-		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
+	if Setting["PSSPspelling_autoclose"].enabled && !Context(WindowUnderMouse(), "PS") {
+		; mouse is not over PS window, so close this spelling window and return
+		App["PSSP"].Win["spelling"].Close()
+		return
 	}
 	if Setting["Debug"].enabled
 		PlaySound("PS show spelling")
+	if Setting["PScenter_dialog"].enabled {
+		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
+	}
 }
 
 
@@ -471,179 +482,7 @@ PSSPShow_spelling(hwnd, hook, dwmsEventTime)
  */
 
 
-; Hook function called when PS main window opens
-;
-PSOpen_PSmain() {
-	PlaySound("PowerScribe started")
-
-	if Setting["PS_restoreatopen"].enabled {
-		; Restore PS window position
-		App["PS"].RestorePositions()
-	}
-}
-
-
-; Hook function called when PS main window closes
-;
-PSClose_PSmain() {
-	PlaySound("PowerScribe stopped")
-}
-
-
-; Hook function called when PS logout window opens
-PSOpen_PSlogout() {
-	PlaySound("logout")
-; TTip("PSOpen_PSlogout " App["PS"].Win["logout"].hwnd)
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["logout"].CenterWindow(PSParent())
-	}
-;PAToolTip(PASettings["PSlogout_dismiss"].value " / " PASettings["PSlogout_dismiss_reply"].key " / " PASettings["PSlogout_dismiss_reply"].value)
-	if Setting["PSlogout_dismiss"].enabled {
-		if App["PS"].Win["logout"].hwnd {
-;			ControlSend("{Enter}", PASettings["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
-
-try{
- SetControlDelay -1
- ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
-}
-
-		}
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSsavespeech() {
-	PlaySound("save speech")
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["savespeech"].CenterWindow(PSParent())
-	}
-	if Setting["PSsavespeech_dismiss"].enabled {
-		if App["PS"].Win["savespeech"].hwnd {
-SetControlDelay -1
-ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
-		}
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSsavereport() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["savereport"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSdeletereport() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["deletereport"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSunfilled() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["unfilled"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSconfirmaddendum() {
-MsgBox("PSOpen_PSconfirmaddendum()")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["confirmaddendum"].CenterWindow(PSParent())
-	}
-	if Setting["PSconfirmaddendum_dismiss"].enabled {
-		if App["PS"].Win["confirmaddendum"].hwnd {
-TTip("reply.value=" Setting["PSconfirmaddendum_dismiss_reply"].value)
-SetControlDelay -1
-ControlClick(Setting["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
-		}
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSconfirmanotheraddendum() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["confirmanotheraddendum"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSexisting() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["existing"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PScontinue() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["continue"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSownership() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["ownership"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSmicrophone() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["microphone"].CenterWindow(PSParent())
-	}
-	if Setting["PSmicrophone_dismiss"].value {
-		if App["PS"].Win["microphone"].hwnd {
-			SetControlDelay -1
-			ControlClick(Setting["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
-		}
-	}
-}
-
-
-; Hook function called when PS window opens
-PSOpen_PSfind() {
-	if Setting["PScenter_dialog"].value {
-		App["PS"].Win["find"].CenterWindow(PSParent())
-	}
-}
-
-
-; Hook function called when PS login pseudowindow appears
-;
-PSOpen_PSlogin() {
-}
-
-
-; Hook function called when PS login pseudowindow goes away
-;
-PSClose_PSlogin() {
-
-}
-
-
-; Hook function called when PS home pseudowindow appears
-;
-PSOpen_PShome() {
-}
-
-
-; Hook function called when PS home pseudowindow goes away
-;
-PSClose_PShome() {
-}
+; [todo] need to deprecate these PSOpen_PSreport() and PSClose_PSreport()
 
 
 ; helper function to turn off mic, called by PSOpen_PSreport() and PSClose_PSreport()
@@ -690,26 +529,6 @@ PSClose_PSreport() {
 		; Stop dictation afer a delay to see whether user is dictating
 		; another report (in which case don't turn off dictate mode).
 		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after brief delay
-	}
-}
-
-
-; Hook function called when PS addendum pseudowindow appears
-PSOpen_PSaddendum() {
-	PSOpen_PSreport()
-}
-
-
-; Hook function called when PS addendum pseudowindow goes away
-PSClose_PSaddendum() {
-	PSClose_PSreport()
-}
-
-
-; Hook function called when PS spelling window opens
-PSOpen_PSspelling() {
-	if Setting["PScenter_dialog"].value {
-		App["PSSP"].Win["spelling"].CenterWindow(PSParent())
 	}
 }
 

@@ -56,14 +56,14 @@ DaemonInit(start := true) {
  */
 
 
-; Checks the dispatch request queue and calls the queued functions.
+; Checks the dispatch request queues and calls the queued functions.
 ;
 ; The dispatcher is dumb and does not check whether the function is already running.
-; Every function callable by the dispatcher should check for and prevent reentry.
-;
+; Every function callable by the dispatcher should check for and prevent reentry if neceesary.
 _Dispatcher() {
 	global DispatchQueue
-
+	global HookShowQueue
+	global HookCloseQueue
 	; runs regardless of PAActive
 
 	if DispatchQueue.Length > 0 {
@@ -71,6 +71,19 @@ _Dispatcher() {
 		fn := DispatchQueue.RemoveAt(1)
 		SetTimer(fn, -1)
 	}
+	
+	if HookShowQueue.Length > 0 {
+		; call fn() via SetTimer to simulate multithreading
+		fn := HookShowQueue.RemoveAt(1)
+		SetTimer(fn, -1)
+	}
+	
+	if HookCloseQueue.Length > 0 {
+		; call fn() via SetTimer to simulate multithreading
+		fn := HookCloseQueue.RemoveAt(1)
+		SetTimer(fn, -1)
+	}
+	
 }
 
 
@@ -364,21 +377,31 @@ _RefreshGUI() {
 ; Update the status of all windows
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
-;
 _WatchWindows() {
-	global PAActive
 	global PAWindowInfo
+	global HookShowQueue
+	global HookCloseQueue
 	
 	; runs regardless of PAActive
 
-	; update all app windows
-;	UpdateAll()
-
-	; update status of psuedowindows (pages within some windows like EI desktop or EPIC)
-	
-
 	; [todo] if PS spelling window is open for more than 1 second while mouse is not
-	; over a PS window, then close it
+	; over a PS window, then close it?
+
+	; poll windows to trigger hook_show
+	for w in PollShow {
+		if w.hwnd && !w._showstate && w.hook_show { 
+			w._showstate := true
+			HookShowQueue.Push(w.hook_show)
+		}
+	}
+
+	; poll windows to trigger hook_close
+	for w in PollClose {
+		if !w.hwnd && !w._closestate && w.hook_close { 
+			w._closestate := true
+			HookCloseQueue.Push(w.hook_close)
+		}
+	}
 
 
 	; update window info for GUI
@@ -396,14 +419,13 @@ _WatchWindows() {
 ; 	Shift key is being held down
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchMouse, UPDATE_INTERVAL)
-;
 _WatchMouse() {
 	global PAActive
 	global PAWindowBusy
 	global App
 	static running := false
 
-	; local function to autoclose the PS spelling window
+	; local function to close the PS spelling window if autoclose is enabled
 	_ClosePSspelling() {
 		if Setting["PSSPspelling_autoclose"].enabled && App["PSSP"].Win["spelling"].visible {
 			App["PSSP"].Win["spelling"].Close()
@@ -446,12 +468,6 @@ _WatchMouse() {
 					try {
 						WinActivate(hwnd)
 					}
-/*
-					; don't activate if there are more than one PS windows open
-					if App["PS"].CountOpenWindows() < 2 {
-						WinActivate(hwnd)
-					}
-*/
 				case "PS":
 					try {
 						WinActivate(hwnd)

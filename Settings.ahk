@@ -92,7 +92,7 @@ Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When
 Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
 
 Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
-Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 Setting["PSsavespeech_dismiss"] := SetItem("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
 Setting["PSsavespeech_dismiss_reply"] := SetItem("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
@@ -105,13 +105,13 @@ Setting["PS_dictate_autoon"] := SetItem("PS_dictate_autoon", "bool", true, , "Au
 Setting["PS_dictate_idleoff"] := SetItem("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
 Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
 
-Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' message")
-Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
+Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' error message")
+Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' error message.")
 
-Setting["PSras_dismiss"] := SetItem("PSRAS_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' message")
-Setting["PSras_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' message.")
+Setting["PSras_dismiss"] := SetItem("PSRAS_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' error message")
+Setting["PSras_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'The call to RAS timed out' error message.")
 
-Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window except when within the PowerScribe window")
+Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window if mouse is outside of the PowerScribe window")
 
 ; EPIC settings
 Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
@@ -140,7 +140,7 @@ Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Spacebar to 
 Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar to delete text in PowerScribe")
 
 ; Advanced
-Setting["Debug"] := SetItem("Debug", "bool", true, , "Enable debugging messages")
+Setting["Debug"] := SetItem("Debug", "bool", false, , "Enable debugging messages")
 
 ; Misc settings
 Setting["run"] := SetItem("run", "num", 0, , "")
@@ -719,7 +719,7 @@ SettingsGeneratePage(show := true) {
         } else {
             ; this is an Option with name (key) optname
 
-            ; indent contains the number indents to insert (0, 1, or 2)
+            ; indent contains the number of indents to insert (0, 1, or 2)
             ; if indent is greater than 0, then the class set-indentX is added to
             ; the description div, where X is either 1 or 2, and css will add padding-left
             indent := 0

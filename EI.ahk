@@ -321,88 +321,66 @@ EIGetStudyMode() {
 
 EILOGINShow_login(hwnd, hook, dwmsEventTime) {
 	App["EILOGIN"].Win["login"].hwnd := hwnd
-
-	PlaySound("EI show login")
+	if Setting["Debug"].enabled
+		PlaySound("EI show login")
 }
 
-EILOGINClose_login(hwnd, hook, dwmsEventTime) {
-	App["EILOGIN"].Win["login"].hwnd := hwnd
-
-;	PlaySound("EI close login")
-}
-
-
-EIShow_d(hwnd, hook, dwmsEventTime) {
-	App["EI"].Win["d"].hwnd := hwnd
-TTip("EI show desktop")
-	PlaySound("EI show desktop")
-	
+EIShow_d() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show desktop")
 	if Setting["EI_restoreatopen"].enabled {
 		; Restore EI desktop window position
 		App["EI"].Win["d"].RestorePosition()
 	}
 }
 
-EIClose_d(hwnd, hook, dwmsEventTime) {
-	App["EI"].Win["d"].hwnd := 0
-	TTip("EI close desktop")
-;	PlaySound("EI close desktop")
-}
-
-
 EIShow_i1(hwnd, hook, dwmsEventTime) {
 	App["EI"].Win["i1"].hwnd := hwnd
-	PlaySound("EI show images1")
-	
-	; if Setting["EI_restoreatopen"].enabled {
-	; 	; Restore EI images1 window position
-	; 	App["EI"].Win["i1"].RestorePosition()
-	; }
+	if Setting["Debug"].enabled
+		PlaySound("EI show images1")
 }
-
-EIClose_i1(hwnd, hook, dwmsEventTime) {
-	App["EI"].Win["i1"].hwnd := 0
-;	PlaySound("EI close images1")
-}
-
 
 EIShow_i2(hwnd, hook, dwmsEventTime) {
 	App["EI"].Win["i2"].hwnd := hwnd
-	PlaySound("EI show images2")
-	
-	; if Setting["EI_restoreatopen"].enabled {
-	; 	; Restore EI images2 window position
-	; 	App["EI"].Win["i2"].RestorePosition()
-	; }
+	if Setting["Debug"].enabled
+		PlaySound("EI show images2")
 }
-
-EIClose_i2(hwnd, hook, dwmsEventTime) {
-	App["EI"].Win["i2"].hwnd := 0
-;	PlaySound("EI close images2")
-}
-
 
 EIShow_4dm(hwnd, hook, dwmsEventTime) {
 	App["EI"].Win["4dm"].hwnd := hwnd
-	PlaySound("EI show 4dm")
+	if Setting["Debug"].enabled
+		PlaySound("EI show 4dm")
 }
-
 
 EIShow_chat(hwnd, hook, dwmsEventTime) {
 	App["EI"].Win["chat"].hwnd := hwnd
-	PlaySound("EI show chat")
-
-	; if Setting["EI_restoreatopen"].enabled {
-	; 	; Restore EI images2 window position
-	; 	App["EI"].Win["chat"].RestorePosition()
-	; }
-
+	if Setting["Debug"].enabled
+		PlaySound("EI show chat")
 }
 
 
-EICLINShow_mpr(hwnd, hook, dwmsEventTime) {
-	App["EICLIN"].Win["mpr"].hwnd := hwnd
-	PlaySound("EI show mpr")
+EICLINShow_mpr() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show mpr")
+	EICLINCmdResize("mpr")
+}
+
+EICLINShow_reformat() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show reformat")
+	EICLINCmdResize("reformat")
+}
+
+EICLINShow_cpr() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show cpr")
+	EICLINCmdResize("cpr")
+}
+
+EICLINShow_vessel() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show vessel")
+	EICLINCmdResize("vessel")
 }
 
 
@@ -416,41 +394,41 @@ EICLINShow_mpr(hwnd, hook, dwmsEventTime) {
 ; Hook function called when EI desktop window appears
 ; This gets called either when desktop window is first opened or is restored
 ;
-EIOpen_EIdesktop() {
+; EIOpen_EIdesktop() {
 
-	PlaySound("EI desktop opened")
+; 	PlaySound("EI desktop opened")
 
-	if Setting["EI_restoreatopen"].enabled {
-		; Restore EI window positions
-		App["EI"].RestorePositions()
-	}
+; 	if Setting["EI_restoreatopen"].enabled {
+; 		; Restore EI window positions
+; 		App["EI"].RestorePositions()
+; 	}
 	
-	; this doesn't work for unclear reasons
-	; Show collaborator window if requested
-	; if PAOpt_ShowCollaborator {
-	; 	; Allow time for window to appear
-	; 	tick0 := A_TickCount
-	; 	loop {
-	; 		if (hwndcollaborator := PAWindows["EI"]["collaborator"].hwnd) {
-	; 			WinRestore(hwndcollaborator)
-	; 			WinActivate(hwndcollaborator)
-	; 			; Restore EI collaborator window position
-	; 			PAWindows["EI"]["collaborator"].RestorePosition()
-	; 		}
-	; 		PAWindows.Update()
-	; 		PAToolTip("[" hwndcollaborator "] collaborator " (A_TickCount - tick0) / 1000)
-	; 	} until hwndcollaborator || (A_TickCount - tick0 > EI_COLLABORATOR_TIMEOUT * 1000)
-	; }
+; 	; this doesn't work for unclear reasons
+; 	; Show collaborator window if requested
+; 	; if PAOpt_ShowCollaborator {
+; 	; 	; Allow time for window to appear
+; 	; 	tick0 := A_TickCount
+; 	; 	loop {
+; 	; 		if (hwndcollaborator := PAWindows["EI"]["collaborator"].hwnd) {
+; 	; 			WinRestore(hwndcollaborator)
+; 	; 			WinActivate(hwndcollaborator)
+; 	; 			; Restore EI collaborator window position
+; 	; 			PAWindows["EI"]["collaborator"].RestorePosition()
+; 	; 		}
+; 	; 		PAWindows.Update()
+; 	; 		PAToolTip("[" hwndcollaborator "] collaborator " (A_TickCount - tick0) / 1000)
+; 	; 	} until hwndcollaborator || (A_TickCount - tick0 > EI_COLLABORATOR_TIMEOUT * 1000)
+; 	; }
 
-}
+; }
 
 
 ; Hook function called when EI desktop window goes away
 ; This gets called either when desktop window is closed OR minimized
 ;
-EIClose_EIdesktop() {
-	PlaySound("EI desktop closed")
-}
+; EIClose_EIdesktop() {
+; 	PlaySound("EI desktop closed")
+; }
 
 
 
@@ -476,15 +454,14 @@ EIClose_EIdesktop() {
 ; and password properties.
 ;
 ; Starting EI normally has side effects of starting PowerScribe and Epic.
-; This function monitors and waits for PowerScribe and Epic to start up
-; before returning.
+; This function only waits for EI to start up to the desktop before returning.
+; It does not wait for PowerScribe and Epic to start up.
 ;
 ; Periodically checks PACancelRequest to see if it the startup attempt
 ; should be cancelled
 ;
 ; Returns 1 if EI startup is successful, 0 if unsuccessful. (e.g.
 ; after timeout or if user cancels).
-; 
 EIStart(cred := CurrentUserCredentials) {
 	global PAWindowBusy
 	global PACancelRequest
@@ -511,6 +488,7 @@ EIStart(cred := CurrentUserCredentials) {
 		} else {
 			GUIStatus("Could not start EI - VPN is not connected")
 			; [todo] ask user if they want to connect the vpn
+
 		}
 		running := false
 		return 0
@@ -527,10 +505,10 @@ EIStart(cred := CurrentUserCredentials) {
 
 	; start up EI
 	GUIStatus("Starting EI...")
-	tick0 := A_TickCount
 	cancelled := false
 	failed := false				; EI
 	PSfailed := false			; PS
+	tick0 := A_TickCount
 
 	; prevent focus following
 	PAWindowBusy := true
@@ -584,11 +562,11 @@ EIStart(cred := CurrentUserCredentials) {
 	if !cancelled && !failed {
 		; got a true EI login window, start the login process
 
+		; adequate delay to allow display of the username and password edit fields
+		sleep(1500)
+		
 		; EI login window is visible, can use it
 		WinActivate(hwndlogin)
-
-		; delay to allow display of the username and password edit fields
-		sleep(1500)
 
 		if PACancelRequest {
 			cancelled := true
@@ -596,7 +574,7 @@ EIStart(cred := CurrentUserCredentials) {
 		
 		if !cancelled {
 
-			; locate the username and password fields
+			; locate the username and password fields using FindText()
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
 			ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EILoginField"])
 			if ok {
@@ -616,7 +594,7 @@ EIStart(cred := CurrentUserCredentials) {
 				Send("!o")					; Presses OK key (Alt-O) to start login
 				
 				MouseMove(savex, savey)
-				BlockInput false
+				BlockInput false			; resume user input
 			}
 
 			if PACancelRequest {
@@ -640,32 +618,12 @@ EIStart(cred := CurrentUserCredentials) {
 			}
 
 			; EI desktop is running at this point
-			
-
-
-			; now wait for EPIC and PS to complete loading
-			; in practice we can just wait for PS since it normally takes much longer then EPIC
-			; tick1 := A_TickCount
-			; while !cancelled && !(hwndmain := App["PS"].Win["main"].IsReady()) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-			; 	GUIStatus("Waiting for PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			; 	Sleep(500)
-			; 	if PACancelRequest {
-			; 		cancelled := true
-			; 		break		; while
-			; 	}
-			; }
-			; if !hwndmain {
-			; 	; if PS main window still not visible after time out, return failure
-			; 	PSfailed := true
-			; }
-
 		}
 	}
 
 	GUIHideCancelButton()
 
 	if cancelled {
-
 		; user cancelled
 		GUIStatus("EI startup cancelled - cleaning up...")
 
@@ -682,18 +640,11 @@ EIStart(cred := CurrentUserCredentials) {
 		result := 0
 
 	} else if failed {
-
 		; if failure, or if no desktop window by now, return as failure
 		GUIStatus("Could not start EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
-/*
-	} else if PSfailed {
-	
-		GUIStatus("EI started, but could not start PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-*/	
-	} else {
 
+	} else {
 		; success
 		GUIStatus("EI startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
@@ -714,10 +665,10 @@ EIStart(cred := CurrentUserCredentials) {
 ; immediately returns -1.
 ;
 ; Shutting down EI normally has side effects of closing PowerScribe and Epic.
-; This function monitors and waits for PowerScribe and Epic to shut down
-; as well before returning.
+; This function only waits for EI to shut down before returning.
+; It does not wait for PowerScribe and Epic to shut down.
 ;
-; Wait time is defined by EI_SHUTDOWN_TIMEOUT. If complete shutdown does not
+; Maximum wait time is defined by EI_SHUTDOWN_TIMEOUT. If shutdown does not
 ; occur by that time, returns 0 (failure).
 ;
 ; Periodically checks PACancelRequest to see if it the startup attempt
@@ -725,7 +676,6 @@ EIStart(cred := CurrentUserCredentials) {
 ;
 ; Returns 1 if EI shut down is successful,
 ; 0 if unsuccessful (e.g. after timeout or if user cancels).
-;
 EIStop() {
 	global PACancelRequest
 	static running := false			; true if the EIStop is already running
@@ -775,93 +725,23 @@ EIStop() {
 		resultEI := true
 	}
 
-	if !cancelled {
-
-		pscloseflag := false		; set to true if an Alt-F4 has been sent to close PS
-
-		; wait for both PS & Epic to shut down
-		while !cancelled && (!resultPS || !resultEPIC) && (A_TickCount-tick0 < EI_SHUTDOWN_TIMEOUT * 1000) {
-	
-			GUIStatus("Shutting down PS & Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			sleep(500)
-			
-			if !PSIsRunning() {
-				; PS successfully closed
-				resultPS := true
-			} else if !pscloseflag && PSIsLogin() {
-				; We're at the login window. Close it.
-;				PSSend("!{F4}")
-				ProcessClose(App["PS"].pid)
-				pscloseflag := true
-			}
-	
-			if !EPICIsRunning() {
-				resultEPIC := true
-			} else if EPICIsLogin() {
-				; need to shut down Epic
-				try {
-					ProcessClose(App["EPIC"].pid)
-				}
-			}
-
-			if PACancelRequest {
-				cancelled := true
-				break
-			}
-		}
-	}
-
 	GUIHideCancelButton()
 
 	if cancelled {
-
 		; user cancelled
 		GUIStatus("EI shut down cancelled (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
-	} else if resultEI && resultPS && resultEPIC {
+	} else if resultEI {
 		; shut down successful
-
-		; After EI desktop is closed, a hidden EI login window persists in the background.
-		; It needs to run until PS and Epic are closed (by EI). 
-		; After PS and Epic have been closed, we can kill the hidden process so it doesn't interfere with running EI again.
-		; Or we can just leave it; next time we run EI we check for this process anyways and kill it
-		;
-		; if App["EI"].pid {
-		; 	try {
-		; 		ProcessClose(App["EI"].pid)
-		; 		sleep(500)
-		; 		App["EI"].Update()
-		; 	}
-		; }
-
 		GUIStatus("EI shut down completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 
-	} else if !resultEI {
-		
+	} else {
 		; something went wrong
 		GUIStatus("Could not shut down EI (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 0
 
-	} else if !resultPS {
-		
-		; something went wrong
-		GUIStatus("Could not shut down PowerScribe (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-		
-	} else if !resultEPIC {
-		
-		; something went wrong
-		GUIStatus("Could not shut down Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-
-	} else {		
-
-		; something went wrong
-		GUIStatus("Could not shut down EI, PowerScribe, and/or Epic (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-		result := 0
-		
 	}
 
 	; restore focus following
@@ -1390,7 +1270,22 @@ EICmdResetSearch() {
 
 
 ; Sends the Remove from list command (click on the close icon)
-;
 EICmdRemoveFromList() {
 	EIClickImages("EI_RemoveFromList")
+}
+
+
+; Resize EICLIN window to same size as images1 window
+EICLINCmdResize(winkey := "mpr") {
+	mprhwnd := App["EICLIN"].Win[winkey].hwnd
+	if mprhwnd {
+		i1pos := App["EI"].Win["i1"].pos
+		if i1pos.w >= WINPOS_MINWIDTH && i1pos.h >= WINPOS_MINHEIGHT {
+			try {        
+				WinMove( , , i1pos.w, i1pos.h, mprhwnd)
+                ; success
+            } catch {
+            }
+		}
+	}
 }

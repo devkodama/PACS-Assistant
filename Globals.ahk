@@ -208,8 +208,14 @@ global _GUIIsRunning := false
 ; the main PACS Assistant GUI
 global PAGUI
 
-; Global dispatch queue
-global DispatchQueue
+; Global dispatch queues (array of functions)
+global DispatchQueue := Array()
+global HookShowQueue := Array()
+global HookCloseQueue := Array()
+
+; Windows which require polling (array of WinItem)
+global PollShow := Array()
+global PollClose := Array()
 
 
 ; PASettings holds settings used across PACS Assistant.
@@ -270,28 +276,11 @@ global PACurState := Map(
 
 
 
+
 ; App is a Map which stores information about all the windows that belong to a
 ; specific application. See AppManager.ahk for more info.
 global App := Map()
 
-
-; PAApps is a global Array() which tracks all of the applications of interest
-; to PACS Assistant.
-;
-; PAApps is initialized by PAInit(), recording all of the apps defined in App[].
-;
-global PAApps := Array()
-
-
-; Reverse lookup table for determining the app and window given an hwnd
-;
-; Entries are of the form:
-;
-;   _HwndLookup[hwnd] := WinItem
-;
-; Updated every time a window is opened or closed
-;
-global _HwndLookup := Map()
 
 
 

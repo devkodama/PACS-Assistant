@@ -43,6 +43,7 @@ DetectHiddenWindows true		; true - this needs to be true so we can detect hidden
 DetectHiddenText false			; false - don't search hidden text by default
 
 SetDefaultMouseSpeed 0			; 0 = fastest
+SetControlDelay 0				; 0 = shortest possible delay
 
 
 
@@ -386,42 +387,44 @@ PACSStop() {
 ; Called once at startup to do necessary initialization
 ;
 PAInit() {
-	global PAApps
 	global App
+	global PollShow
+	global PollClose
 
 	; Get Windows system double click setting
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")
 
-	; initialize the PAApps[] global with all of the defined App objects
-	; [todo] is this ever used??
-	for k, a in App {
-		PAApps.Push(a)
-	}
-
 	; Initialize systemwide settings
 	SettingsInit()
 
-	; Register Windows hooks to monitor window show events for all the
-	; windows of interest
+
+
+	; Register Windows hooks to monitor window show events for all the windows of interest.
+	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.
 	for appkey, a in App {
 		for wkey, w in a.Win {
 			if !w.parentwindow && w.criteria {
 				; this is a real window and it has search criteria
+
 				if w.hook_show {
-					; register the Show hook for this window
-					WinEvent.Show(w.hook_show, w.criteria, , w.wintext)
+					if w.pollflag {
+						; this requires polling, add this window (WinItem) to the polling queue for show callbacks
+						PollShow.Push(w)
+					} else {
+						; use the Windows event system, register a WinEvent.Show callback
+						WinEvent.Show(w.hook_show, w.criteria, , w.wintext)
+					}
 				}
 				
-				; if w.hook_close {
-				; 	; register the Close hook for this window
-				; 	WinEvent.Close(w.hook_close, w.criteria, 1, w.wintext)
-				; }
+				if w.hook_close {
+					; close hooks all require polling, add this window (WinItem) to the polling queue for close callbacks
+					PollClose.Push(w)
+				}
 			}
 		}
 	}
 
-	; Update all windows
-	UpdateAll()
+
 
 	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()

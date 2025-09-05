@@ -563,15 +563,12 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
-/*
-	if Context(WindowUnderMouse(), "PA") {
-		SoundBeep(440)
-		PAShowHome()
-	}
-*/
-
-	UpdateAll()
+	EICLINCmdResize()
 }
+
+
+;	TTip("exe=" WinGetProcessName(WindowUnderMouse()) " / class=" WinGetClass(WindowUnderMouse()))
+
 
 
 ; this one is for testing
