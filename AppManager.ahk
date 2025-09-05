@@ -87,7 +87,7 @@ global App
 
 ; define apps
 ; App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
-App["PA"] := AppItem("PA", "AutoHotkey.exe", "PACS Assistant", "main")
+App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
 App["VPN"] := AppItem("VPN", "csc_ui.exe", "Cisco Secure Client", "main")
 App["EILOGIN"] := AppItem("EILOGIN", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "login")
 App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "d")
@@ -159,10 +159,10 @@ App["PS"].Win["microphone"] := WinItem("microphone", App["PS"], , "PowerScribe",
 App["PS"].Win["ras"] := WinItem("ras", App["PS"], , "PowerScribe", "The call to RAS timed out", , PSShow_ras)
 App["PS"].Win["find"] := WinItem("find", App["PS"], , "Find and", , , PSShow_find)
 ; PowerScribe pseudowindows
-App["PS"].Win["login"] := WinItem("login", App["PS"], App["PS"].Win["main"], , "Disable speech", , , , PSIsLogin)
-App["PS"].Win["home"] := WinItem("home", App["PS"], App["PS"].Win["main"], , "Signing queue", , , , PSIsHome)
-App["PS"].Win["report"] := WinItem("report", App["PS"], App["PS"].Win["main"], , "Report -", , , , PSIsReport)
-App["PS"].Win["addendum"] := WinItem("addendum", App["PS"], App["PS"].Win["main"], , "Addendum -", , , , PSIsAddendum)
+App["PS"].Win["login"] := WinItem("login", App["PS"], App["PS"].Win["main"], , "Disable speech", true, PSShow_login, PSClose_login, PSIsLogin)
+App["PS"].Win["home"] := WinItem("home", App["PS"], App["PS"].Win["main"], , "Signing queue", true, PSShow_home, PSClose_home, PSIsHome)
+App["PS"].Win["report"] := WinItem("report", App["PS"], App["PS"].Win["main"], , "Report -", true, PSShow_report, PSClose_report, PSIsReport)
+App["PS"].Win["addendum"] := WinItem("addendum", App["PS"], App["PS"].Win["main"], , "Addendum -", true, PSShow_addendum, PSClose_addendum, PSIsAddendum)
 
 ; PowerScribe spelling window
 App["PSSP"].Win["spelling"] := WinItem("spelling", App["PSSP"], , "Spelling", , , PSSPShow_spelling)
@@ -510,10 +510,19 @@ class WinItem {
             
         } else {
             ; this is a pseudowindow
-            this.criteria := ""
-            this.hwnd := 0
-        }
 
+            ; search criteria for a psuedowindow is ""
+            this.criteria := ""
+
+            ; See if the pseudowindow is already showing. If so, set the hwnd.
+            ; this.IsReady() returns the hwnd of the parent window 
+            ; of a pseudowindow that's showing.
+            gethwnd := this.IsReady()
+            if gethwnd {
+                this._showstate := true
+            }
+            this.hwnd := gethwnd
+        }
     }    
     
     pid {
@@ -550,7 +559,8 @@ class WinItem {
             if !this.parentwindow {
                 ; this is a real window, not a pseudowindow
                 if this.pollflag {
-                    ; polled windows always requires searching by criteria
+                    ; This is a polled window. Polled windows always require
+                    ; searching by criteria, as they may share a hwnd.
                     try {
                         gethwnd :=  WinExist(this.criteria, this.wintext)
                     } catch {
@@ -598,48 +608,63 @@ class WinItem {
                 }
 
             } else {
-                ; this is a pseudowindow, get and return its parentwindow's hwnd
-                this.hwnd := this.parentwindow.hwnd
-            }
+                ; This is a pseudowindow, see if the pseudowindow is showing.
+                ; If so, return its parentwindow's hwnd.
+                ; Pseudowindows always require checking their validation 
+                ; function (via IsReady()).
+                gethwnd := this.IsReady()
+                if this._hwnd {
+                    if (this._hwnd != gethwnd)
+                        || !WinItem._HwndReverseLookup.Has(gethwnd)
+                        || (WinItem._HwndReverseLookup[gethwnd].key != this.key)
+                    {
+                        ; The found window does not match the existing window, so
+                        ; delete its assignment and then reassign it.
 
+                        this.hwnd := 0          ; deletes reverse lookup entry, resets flags
+                        this.hwnd := gethwnd    ; creates new reverse lookup entry, resets flags
+                    } else {
+                        ; The found window matches this window's hwnd
+                        ; and the previously stored window has the same key
+                        ; so this window aleady exists, don't need to do more.
+                    }
+                } else {
+                    if gethwnd {
+                        this.hwnd := gethwnd
+                    }
+                }
+            }
             return this._hwnd
         }
+
         set {
-            if !this.parentwindow {
-                ; this is a real window, not a pseudowindow
-                if this._hwnd = Value {
-                    ; This window has the same hwnd as the new hwnd value 
-                    ; so don't need to do more.
-                    ;
-                    ; Polled windows are NOT handled here.
-                    return
+            ; handle real windows and pseudowindows the same
+            if this._hwnd = Value {
+                ; This window has the same hwnd as the new hwnd value 
+                ; so don't need to do more.
+                return
+            }
+            ; this._hwnd and Value are different
+            if this._hwnd {
+                ; this._hwnd is non-zero, try to delete its reverse lookup entry
+                try {
+                    WinItem._HwndReverseLookup.Delete(this._hwnd)
+                } catch {
                 }
-                ; this._hwnd and Value are different
-                if this._hwnd {
-                    ; this._hwnd is non-zero, try to delete its reverse lookup entry
-                    try {
-                        WinItem._HwndReverseLookup.Delete(this._hwnd)
-                    } catch {
-                    }
-                    if !Value {
-                        ; reset _closestate since hwnd is going from 0 to non-zero
-                        this._closestate := false
-                    }
+                if !Value {
+                    ; reset _closestate since hwnd is going from non-zero to 0
+                    this._closestate := false
                 }
-                this._hwnd := Value
-                if Value {
-                    ; new hwnd is non-zero
-                    ; record it in the reverse lookup table
-                    WinItem._HwndReverseLookup[Value] := this
-                } else {
-                    ; new hwnd is 0
-                    ; reset _showstate since hwnd went from non-zero to 0
-                    this._showstate := false
-                }
+            }
+            this._hwnd := Value
+            if Value {
+                ; new hwnd is non-zero
+                ; record it in the reverse lookup table
+                WinItem._HwndReverseLookup[Value] := this
             } else {
-                ; this is a pseudowindow
-                ; just store the hwnd
-                this._hwnd := Value
+                ; new hwnd is 0
+                ; reset _showstate since hwnd went from non-zero to 0
+                this._showstate := false
             }
         }    
     }    
@@ -776,7 +801,9 @@ class WinItem {
                 if gethwnd {
                     output .= (this.visible ? "" : "h") . (this.minimized ? "m" : "")
                 }
-                output .= ")<br />"
+                output .= ")"
+                output .= " _showstate=" this._showstate
+                output .= "<br />"
             } else {
                 output := ""
             }
@@ -793,7 +820,9 @@ class WinItem {
                 output := "&nbsp;&nbsp;&nbsp;&nbsp; > "
                 output .= this.key " (" this.pid "|" gethwnd
                 output .= valid ? "/yes" : "/no"                
-                output .= ")<br />"
+                output .= ")"
+                output .= " _showstate=" this._showstate
+                output .= "<br />"
             } else {
                 output := ""
             }
