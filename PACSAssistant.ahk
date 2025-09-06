@@ -438,8 +438,7 @@ PAInit() {
 		}
 	}
 
-
-
+	
 	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()
 

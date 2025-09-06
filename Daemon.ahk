@@ -36,15 +36,15 @@
 ;
 DaemonInit(start := true) {
 
-	; these daemons run regardless of PAActive
+	; these daemons function regardless of PAActive
 	SetTimer(_Dispatcher, (start ? DISPATCH_INTERVAL : 0))
 	SetTimer(_RefreshGUI, (start ? GUIREFRESH_INTERVAL : 0))
 	SetTimer(_WatchWindows, (start ? WATCHWINDOWS_UPDATE_INTERVAL : 0))
 
-	; these daemons only act if PAActive is true
+	; these daemons only function if PAActive is true
 	SetTimer(_WatchMouse, (start ? WATCHMOUSE_UPDATE_INTERVAL : 0))
 	SetTimer(_JiggleMouse, (start ? JIGGLEMOUSE_UPDATE_INTERVAL : 0))
-	SetTimer(_ClearCapsLock, (start ? CAPSLOCK_TIMEOUT / 2 : 0))
+	SetTimer(_ClearCapsLock, (start ? CAPSLOCK_TIMEOUT : 0))
 }
 
 
