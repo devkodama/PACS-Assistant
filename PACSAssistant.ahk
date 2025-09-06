@@ -174,10 +174,13 @@ PAShowWindows() {
 PAShow_main(hwnd, hook, dwmsEventTime) {
 	App["PA"].Win["main"].hwnd := hwnd
 
-	crit := hook.MatchCriteria[1]
-	text := hook.MatchCriteria[2]
-TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
-	PlaySound("PACS Assistant show main")
+	; crit := hook.MatchCriteria[1]
+	; text := hook.MatchCriteria[2]
+
+;TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
+	if Setting["Debug"].enabled
+		PlaySound("PACS Assistant show main")
+
 }
 
 
@@ -398,24 +401,35 @@ PAInit() {
 	SettingsInit()
 
 
-
 	; Register Windows hooks to monitor window show events for all the windows of interest.
 	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.
 	for appkey, a in App {
 		for wkey, w in a.Win {
-			if !w.parentwindow && w.criteria {
-				; this is a real window and it has search criteria
-
-				if w.hook_show {
-					if w.pollflag {
-						; this requires polling, add this window (WinItem) to the polling queue for show callbacks
-						PollShow.Push(w)
-					} else {
-						; use the Windows event system, register a WinEvent.Show callback
-						WinEvent.Show(w.hook_show, w.criteria, , w.wintext)
+			if !w.parentwindow {
+				; this is a real window
+				if w.criteria {
+					; it has search criteria
+					if w.hook_show {
+						; it has a show hook, so register it
+						if w.pollflag {
+							; this requires polling, add this window (WinItem) to the polling queue for show callbacks
+							PollShow.Push(w)
+						} else {
+							; use the Windows event system, register a WinEvent.Show callback
+							WinEvent.Show(w.hook_show, w.criteria, , w.wintext)
+						}
+					}
+					if w.hook_close {
+						; close hooks all require polling, add this window (WinItem) to the polling queue for close callbacks
+						PollClose.Push(w)
 					}
 				}
-				
+			} else {
+				; this is a pseudowindow, always requires polling (so ignore pollflag value)
+				if w.hook_show {
+					; add this window (WinItem) to the polling queue for show callbacks
+					PollShow.Push(w)
+				}
 				if w.hook_close {
 					; close hooks all require polling, add this window (WinItem) to the polling queue for close callbacks
 					PollClose.Push(w)
@@ -424,8 +438,7 @@ PAInit() {
 		}
 	}
 
-
-
+	
 	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()
 

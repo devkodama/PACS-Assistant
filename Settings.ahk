@@ -132,9 +132,9 @@ Setting["hkBacktick"] := SetItem("hkBacktick", "bool", true, , "Backtick (``) �
 Setting["+hkBacktick"] := SetItem("+hkBacktick", "bool", true, , "Shift-Backtick (``) ⇒ Toggle between EI Desktop List and Text pages")
 Setting["^hkBacktick"] := SetItem("^hkBacktick", "bool", true, , "Ctrl-Backtick (``) ⇒ Show EI Desktop Search page")
 
-Setting["+hkEsc"] := SetItem("+hkEsc", "bool", true, , "Shift-Escape ⇒ Close current study")
+Setting["+hkEsc"] := SetItem("+hkEsc", "bool", false, , "Shift-Escape ⇒ Close current study")
 
-Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
+Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", false, , "Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
 
 Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Spacebar to double click")
 Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar to delete text in PowerScribe")

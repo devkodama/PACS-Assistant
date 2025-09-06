@@ -295,8 +295,7 @@ PSIsAddendum() {
  */
 
 
-PSShow_main(hwnd, hook, dwmsEventTime)
-{
+PSShow_main(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["main"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show main")
@@ -305,15 +304,13 @@ PSShow_main(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_recognition(hwnd, hook, dwmsEventTime)
-{
+PSShow_recognition(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["recognition"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show recognition")
 }
 
-PSShow_logout(hwnd, hook, dwmsEventTime)
-{
+PSShow_logout(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["logout"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show logout")
@@ -325,8 +322,7 @@ PSShow_logout(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_savespeech(hwnd, hook, dwmsEventTime)
-{
+PSShow_savespeech(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["savespeech"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show savespeech")
@@ -338,8 +334,7 @@ PSShow_savespeech(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_savereport(hwnd, hook, dwmsEventTime)
-{
+PSShow_savereport(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["savereport"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show savereport")
@@ -348,8 +343,7 @@ PSShow_savereport(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_deletereport(hwnd, hook, dwmsEventTime)
-{
+PSShow_deletereport(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["deletereport"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show deletereport")
@@ -358,8 +352,7 @@ PSShow_deletereport(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_unfilled(hwnd, hook, dwmsEventTime)
-{
+PSShow_unfilled(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["unfilled"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show unfilled")
@@ -368,8 +361,7 @@ PSShow_unfilled(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_confirmaddendum(hwnd, hook, dwmsEventTime)
-{
+PSShow_confirmaddendum(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["confirmaddendum"].hwnd := hwnd
 	if Setting["Debug"].enabled {
 		PlaySound("PS show confirmaddendum")
@@ -382,8 +374,7 @@ PSShow_confirmaddendum(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_confirmanother(hwnd, hook, dwmsEventTime)
-{
+PSShow_confirmanother(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["confirmanother"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show confirmanother")
@@ -392,8 +383,7 @@ PSShow_confirmanother(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_existing(hwnd, hook, dwmsEventTime)
-{
+PSShow_existing(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["existing"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show existing")
@@ -402,8 +392,7 @@ PSShow_existing(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_continue(hwnd, hook, dwmsEventTime)
-{
+PSShow_continue(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["continue"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show continue")
@@ -412,8 +401,7 @@ PSShow_continue(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_ownership(hwnd, hook, dwmsEventTime)
-{
+PSShow_ownership(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["ownership"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show ownership")
@@ -422,8 +410,7 @@ PSShow_ownership(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_microphone(hwnd, hook, dwmsEventTime)
-{
+PSShow_microphone(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["microphone"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show microphone")
@@ -435,8 +422,7 @@ PSShow_microphone(hwnd, hook, dwmsEventTime)
 	}
 }
 
-PSShow_ras(hwnd, hook, dwmsEventTime)
-{
+PSShow_ras(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["ras"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show ras")
@@ -445,11 +431,11 @@ PSShow_ras(hwnd, hook, dwmsEventTime)
 	}
 	if Setting["PSras_dismiss"].enabled {
 		ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
+		MsgBox("Clicked on " Setting["PSras_dismiss_reply"].value " for ras dialog (" App["PS"].Win["ras"].hwnd ")" )
 	}
 }
 
-PSShow_find(hwnd, hook, dwmsEventTime)
-{
+PSShow_find(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["find"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show find")
@@ -459,14 +445,8 @@ PSShow_find(hwnd, hook, dwmsEventTime)
 }
 
 
-PSSPShow_spelling(hwnd, hook, dwmsEventTime)
-{
+PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
 	App["PSSP"].Win["spelling"].hwnd := hwnd
-	if Setting["PSSPspelling_autoclose"].enabled && !Context(WindowUnderMouse(), "PS") {
-		; mouse is not over PS window, so close this spelling window and return
-		App["PSSP"].Win["spelling"].Close()
-		return
-	}
 	if Setting["Debug"].enabled
 		PlaySound("PS show spelling")
 	if Setting["PScenter_dialog"].enabled {
@@ -475,6 +455,149 @@ PSSPShow_spelling(hwnd, hook, dwmsEventTime)
 }
 
 
+
+; helper functions to turn on or off the mic, called by PSShow_report() and PSClose_report()
+; initial should be set to true the first time this is called
+_PSTurnOnMic(initial := false) {
+	static cmdsenttime := 0			; timestamp of last command send
+
+	if initial {
+		; cancel any pending call to turn off the mic
+		SetTimer(_PSTurnOffMic, 0)
+		if !PSDictateIsOn(true) {
+			; try to turn on the mic
+			PSCmdToggleMic()
+			cmdsenttime := A_TickCount
+			; check every 500 milliseconds
+			SetTimer(_PSTurnOnMic, 500)
+		} else {
+			; mic is already on, don't send toggle mic command, and stop checking
+			SetTimer(_PSTurnOnMic, 0)
+		}
+	} else {
+		; Check if the mic is on
+		if !PSDictateIsOn(true) {
+			; mic is still not on
+			; if it's been over PS_DICTATERETRY_DELAY milliseconds, resend toggle mic command
+			if (A_TickCount - cmdsenttime) > PS_DICTATERETRY_DELAY {
+				PSCmdToggleMic()
+				cmdsenttime := A_TickCount
+			}
+		} else {
+			; mic is now on, turn off further checking
+			PlaySound("PSToggleMic")
+			SetTimer(_PSTurnOnMic, 0)
+		}
+	}
+}
+
+_PSTurnOffMic(initial := false, delay := 0) {
+	static cmdsenttime := 0			; timestamp of last command send
+
+	if initial {
+		if PSDictateIsOn(true) {
+			if delay {
+				; wait for delay milliseconds before turning off the mic
+				cmdsenttime := A_TickCount - PS_DICTATERETRY_DELAY	; this guarantees we will send the toggle mic command at next fn call
+				SetTimer(_PSTurnOffMic, delay)
+			} else {
+				; try to turn off the mic
+				PSCmdToggleMic()
+				cmdsenttime := A_TickCount
+				; check every 500 milliseconds
+				SetTimer(_PSTurnOffMic, 500)
+			}
+		} else {
+			; mic is already off, don't send toggle mic command, and stop checking
+			SetTimer(_PSTurnOffMic, 0)
+		}
+	} else {
+		; Check if the mic is off
+		if PSDictateIsOn(true) {
+			; mic is still not off
+			; if it's been over PS_DICTATERETRY_DELAY milliseconds, resend toggle mic command
+			if (A_TickCount - cmdsenttime) > PS_DICTATERETRY_DELAY {
+				PSCmdToggleMic()
+				cmdsenttime := A_TickCount
+			}
+		} else {
+			; mic is now off, turn off further checking
+			PlaySound("PSToggleMic")
+			SetTimer(_PSTurnOffMic, 0)
+		}
+	}
+}
+
+
+;
+PSShow_login() {
+	if Setting["Debug"].enabled
+		PlaySound("PS show login")
+
+}
+
+PSClose_login() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close login")
+
+}
+
+PSShow_home() {
+	if Setting["Debug"].enabled
+		PlaySound("PS show home")
+
+	; Automatically turn off microphone when closing a report
+	if Setting["PS_dictate_autoon"].enabled {
+		; turn off the mic if it is on
+		_PSTurnOffMic(true, PS_DICTATEAUTOOFF_DELAY)
+	}
+}
+
+PSClose_home() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close home")
+
+}
+
+;
+PSShow_report() {
+	if Setting["Debug"].enabled
+		PlaySound("PS show report")
+
+	; Automatically turn on microphone when opening a report
+	if Setting["PS_dictate_autoon"].enabled {
+		; turn on the mic if it is not on
+		_PSTurnOnMic(true)
+	}
+}
+
+PSClose_report() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close report")
+
+}
+
+PSShow_addendum() {
+	if Setting["Debug"].enabled
+		PlaySound("PS show addendum")
+
+	; Automatically turn on microphone when opening a report
+	if Setting["PS_dictate_autoon"].enabled {
+		; turn on the mic if it is not on
+		_PSTurnOnMic(true)
+	}
+}
+
+PSClose_addendum() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close addendum")
+
+	; Automatically turn off microphone when closing a report
+	if Setting["PS_dictate_autoon"].enabled {
+		; turn off the mic if it is on
+		_PSTurnOffMic(true)
+	}
+}
 
 
 /**********************************************************
@@ -486,51 +609,51 @@ PSSPShow_spelling(hwnd, hook, dwmsEventTime)
 
 
 ; helper function to turn off mic, called by PSOpen_PSreport() and PSClose_PSreport()
-_PSStopDictate() {
-	if App["PS"].Win["report"].hwnd || App["PS"].Win["main"].hwnd || App["PS"].Win["addendum"].hwnd {
-		if PSDictateIsOn(true) {
-			PSSend("{F4}")						; Stop Dictation
-		}
-	}
-}
+; _PSStopDictate() {
+; 	if App["PS"].Win["report"].hwnd || App["PS"].Win["main"].hwnd || App["PS"].Win["addendum"].hwnd {
+; 		if PSDictateIsOn(true) {
+; 			PSSend("{F4}")						; Stop Dictation
+; 		}
+; 	}
+; }
 
 
 ; Hook function called when PS report pseudowindow appears
-PSOpen_PSreport() {
-	GUIStatus("Report opened")
+; PSOpen_PSreport() {
+; 	GUIStatus("Report opened")
 
-	; Automatically turn on microphone when opening a report (and off when closing a report)
-	if Setting["PS_dictate_autoon"].value {
-		; cancel the autooff timer
-		SetTimer(_PSStopDictate, 0)		; cancel any pending microphone off action	
+; 	; Automatically turn on microphone when opening a report (and off when closing a report)
+; 	if Setting["PS_dictate_autoon"].value {
+; 		; cancel the autooff timer
+; 		SetTimer(_PSStopDictate, 0)		; cancel any pending microphone off action	
 
-		; check to ensure the mic is on, turn it on if it isn't
-		; keep trying for up to 5 seconds
-		tick0 := A_TickCount
-		while !PSDictateIsOn(true) && (A_TickCount - tick0 < 5000) {			
-			; mic is not on so turn it on
-			PSSend("{F4}")						; Start Dictation
-			Sleep(500)
-		}
-		if PSDictateIsOn() {
-			PlaySound("PSToggleMic")
-		}
-	}
-}
+; 		; check to ensure the mic is on, turn it on if it isn't
+; 		; keep trying for up to 5 seconds
+; 		tick0 := A_TickCount
+; 		while !PSDictateIsOn(true) && (A_TickCount - tick0 < 5000) {			
+; 			; mic is not on so turn it on
+; 			PSSend("{F4}")						; Start Dictation
+; 			Sleep(500)
+; 		}
+; 		if PSDictateIsOn() {
+; 			PlaySound("PSToggleMic")
+; 		}
+; 	}
+; }
 
 
 ; Hook function called when PS report pseudowindow goes away
-PSClose_PSreport() {
-	global PACurrentStudy
+; PSClose_PSreport() {
+; 	global PACurrentStudy
 	
-	GUIStatus("Report closed")
+; 	GUIStatus("Report closed")
 
-	if Setting["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
-		; Stop dictation afer a delay to see whether user is dictating
-		; another report (in which case don't turn off dictate mode).
-		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after brief delay
-	}
-}
+; 	if Setting["PS_dictate_autoon"].value { ;&& PSDictateIsOn(true) {
+; 		; Stop dictation afer a delay to see whether user is dictating
+; 		; another report (in which case don't turn off dictate mode).
+; 		SetTimer(_PSStopDictate, -(PS_DICTATEAUTOOFF_DELAY * 1000))		; turn off mic after brief delay
+; 	}
+; }
 
 
 
@@ -891,7 +1014,6 @@ PSCmdPrevEOL() {
 ; Start/Stop Dictation (Toggle Microphone) => F4 in PS
 PSCmdToggleMic() {
 	PSSend("{F4}")							; Start/Stop Dictation
-	PlaySound("PSToggleMic")
 }
 
 

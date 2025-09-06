@@ -36,15 +36,15 @@
 ;
 DaemonInit(start := true) {
 
-	; these daemons run regardless of PAActive
+	; these daemons function regardless of PAActive
 	SetTimer(_Dispatcher, (start ? DISPATCH_INTERVAL : 0))
 	SetTimer(_RefreshGUI, (start ? GUIREFRESH_INTERVAL : 0))
 	SetTimer(_WatchWindows, (start ? WATCHWINDOWS_UPDATE_INTERVAL : 0))
 
-	; these daemons only act if PAActive is true
+	; these daemons only function if PAActive is true
 	SetTimer(_WatchMouse, (start ? WATCHMOUSE_UPDATE_INTERVAL : 0))
 	SetTimer(_JiggleMouse, (start ? JIGGLEMOUSE_UPDATE_INTERVAL : 0))
-	SetTimer(_ClearCapsLock, (start ? CAPSLOCK_TIMEOUT / 2 : 0))
+	SetTimer(_ClearCapsLock, (start ? CAPSLOCK_TIMEOUT : 0))
 }
 
 
@@ -58,30 +58,29 @@ DaemonInit(start := true) {
 
 ; Checks the dispatch request queues and calls the queued functions.
 ;
-; The dispatcher is dumb and does not check whether the function is already running.
-; Every function callable by the dispatcher should check for and prevent reentry if neceesary.
+; The dispatcher does not check whether the function is already running, it 
+; simply runs the next function in the queue.
+; 
+; Callback (hook) functions are dispatched first, one on each call to _Dispatcher().
+;
+; Other functions are dispatched second, one on each call to _Dispatcher().
+; These functions should check for and prevent reentry if neceesary.
 _Dispatcher() {
 	global DispatchQueue
-	global HookShowQueue
-	global HookCloseQueue
+	global HookQueue
+
 	; runs regardless of PAActive
 
+	if HookQueue.Length > 0 {
+		fn := HookQueue.RemoveAt(1)
+		; call fn() via SetTimer to simulate multithreading
+		SetTimer(fn, -1)			; run immediately once
+	}
+	
 	if DispatchQueue.Length > 0 {
-		; call fn() via SetTimer to simulate multithreading
 		fn := DispatchQueue.RemoveAt(1)
-		SetTimer(fn, -1)
-	}
-	
-	if HookShowQueue.Length > 0 {
 		; call fn() via SetTimer to simulate multithreading
-		fn := HookShowQueue.RemoveAt(1)
-		SetTimer(fn, -1)
-	}
-	
-	if HookCloseQueue.Length > 0 {
-		; call fn() via SetTimer to simulate multithreading
-		fn := HookCloseQueue.RemoveAt(1)
-		SetTimer(fn, -1)
+		SetTimer(fn, -1)			; run immediately once
 	}
 	
 }
@@ -142,16 +141,24 @@ _RefreshGUI() {
 		; studyinfo .= " // " . PACurrentStudy.priority
 		studyinfo .= "<br /> " . StrTitle(PACurrentStudy.orderingmd)
 
-		studyinfo .= "<br /><br />laterality: " . PACurrentStudy.laterality
+		if PACurrentStudy.laterality {
+			studyinfo .= "<br /><br />laterality: " . PACurrentStudy.laterality
+		}
 
 
 		for o in PACurrentStudy.other {
-			studyinfo .= "<br /> other: " . o
+			if o {
+				studyinfo .= "<br /> other: " . o
+			}
 		}
 		; studyinfo .= "<br /><br /><span style ='color: #808080; font-size: 0.8em;'>reason </span>" . PACurrentStudy.reason
 		; studyinfo .= "<br /><span style ='color: #808080; font-size: 0.8em;'>tech</span>" . PACurrentStudy.techcomments
-		studyinfo .= "<br /><span>reason: </span>" . PACurrentStudy.reason
-		studyinfo .= "<br /><span >tech: </span>" . PACurrentStudy.techcomments
+		if PACurrentStudy.reason {
+			studyinfo .= "<br /><span>reason: </span>" . PACurrentStudy.reason
+		}
+		if PACurrentStudy.techcomments {
+			studyinfo .= "<br /><span >tech: </span>" . PACurrentStudy.techcomments
+		}
 
 		icdcodes := ""
 		spos := 1
@@ -379,33 +386,33 @@ _RefreshGUI() {
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
 _WatchWindows() {
 	global PAWindowInfo
-	global HookShowQueue
-	global HookCloseQueue
+	global HookQueue
 	
 	; runs regardless of PAActive
 
 	; [todo] if PS spelling window is open for more than 1 second while mouse is not
 	; over a PS window, then close it?
 
-	; poll windows to trigger hook_show
-	for w in PollShow {
-		if w.hwnd && !w._showstate && w.hook_show { 
-			w._showstate := true
-			HookShowQueue.Push(w.hook_show)
-		}
-	}
+	; trigger close hooks before show hooks
 
 	; poll windows to trigger hook_close
 	for w in PollClose {
-		if !w.hwnd && !w._closestate && w.hook_close { 
+		if !w.IsReady() && !w._closestate && w.hook_close { 
 			w._closestate := true
-			HookCloseQueue.Push(w.hook_close)
+			HookQueue.Push(w.hook_close)
 		}
 	}
 
+	; poll windows to trigger hook_show
+	for w in PollShow {
+		if w.IsReady() && !w._showstate && w.hook_show {
+			w._showstate := true
+			HookQueue.Push(w.hook_show)
+		}
+	}
 
 	; update window info for GUI
-	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows( , , false) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 
@@ -427,7 +434,7 @@ _WatchMouse() {
 
 	; local function to close the PS spelling window if autoclose is enabled
 	_ClosePSspelling() {
-		if Setting["PSSPspelling_autoclose"].enabled && App["PSSP"].Win["spelling"].visible {
+		if App["PSSP"].Win["spelling"].visible && Setting["PSSPspelling_autoclose"].enabled {
 			App["PSSP"].Win["spelling"].Close()
 		}
 	}
@@ -459,11 +466,10 @@ _WatchMouse() {
 	if !GetKeyState("LShift", "P") {
 
 		appkey := GetAppkey(hwnd)
-		winkey := GetWinkey(hwnd)
-		if appkey && winkey {
+		; winkey := GetWinkey(hwnd)
+		; if appkey && winkey {
 			switch appkey {
 				case "EI":
-					; close PS Spelling window
 					_ClosePSspelling()
 					try {
 						WinActivate(hwnd)
@@ -485,7 +491,7 @@ _WatchMouse() {
 				default:
 					; do nothing
 			}
-		}
+		; }
 	}
 
 	running := false

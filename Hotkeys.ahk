@@ -74,6 +74,7 @@ $CapsLock:: {
 		&& Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC")
 	{
 		PSCmdToggleMic()
+		PlaySound("PSToggleMic")
 	} else {
 		SetCapsLockState(!GetKeyState("CapsLock", "T"))
 	}

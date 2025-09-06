@@ -85,9 +85,9 @@ global _MonitorCoords := Array()
 ;
 global App
 
-; define apps
-; App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
-App["PA"] := AppItem("PA", "AutoHotkey.exe", "PACS Assistant", "main")
+
+; Define apps
+App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
 App["VPN"] := AppItem("VPN", "csc_ui.exe", "Cisco Secure Client", "main")
 App["EILOGIN"] := AppItem("EILOGIN", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "login")
 App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "d")
@@ -100,7 +100,7 @@ App["DSTUDY"] := AppItem("DSTUDY", "MRW.exe", "DynaCAD Study", "main")
 App["DLUNG"] := AppItem("DLUNG", "MeVisLabApp.exe", "DynaCAD Lung", "main")
 
 
-; Add known windows of interest belonging to each app.
+; Windows of interest belonging to each app.
 
 ; PACS Assistant
 App["PA"].Win["main"] := WinItem("main", App["PA"], , "PACS Assistant", , , PAShow_main)
@@ -116,7 +116,7 @@ App["VPN"].Win["connected"] := WinItem("connected", App["VPN"], , "Cisco Secure 
 App["EILOGIN"].Win["login"] := WinItem("login", App["EI"], , "Agfa HealthCare Enterprise Imaging", , , EILOGINShow_login)
 
 ; Agfa EI diagnostic desktop
-App["EI"].Win["d"] := WinItem("d", App["EI"], , "Diagnostic Desktop - 8", , true, EIShow_d)
+App["EI"].Win["d"] := WinItem("d", App["EI"], , "Diagnostic Desktop - 8", , true, )
 App["EI"].Win["i1"] := WinItem("i1", App["EI"], , "Diagnostic Desktop - Images (1", , , EIShow_i1)
 App["EI"].Win["i2"] := WinItem("i2", App["EI"], , "Diagnostic Desktop - Images (2", , , EIShow_i2)
 App["EI"].Win["4dm"] := WinItem("4dm", App["EI"], , "4DM", "Corridor4DM.exe", , EIShow_4dm)
@@ -128,19 +128,20 @@ App["EI"].Win["search"] := WinItem("search", App["EI"], App["EI"].Win["d"], , , 
 App["EI"].Win["image"] := WinItem("image", App["EI"], App["EI"].Win["d"], , , , , , EIIsImage)
 
 ; Agfa ClinApps (e.g. MPR)
-;window titles
-; IMPAX Volume Viewing 3D + MPR Viewing
-; IMPAX Volume Viewing Reformatting
-; IMPAX Volume Viewing Basic CPR
-; IMPAX Volume Viewing Vessel Viewing
-;
-; IMPAX Volume Viewing Basic MPR viewing
-; IMPAX Volume Viewing Reformatting
-; IMPAX Volume Viewing Basic CPR
-App["EICLIN"].Win["mpr"] := WinItem("mpr", App["EICLIN"], , "MPR", , true, EICLINShow_mpr)
-App["EICLIN"].Win["reformat"] := WinItem("reformat", App["EICLIN"], , "Reformatting", , true, EICLINShow_reformat)
-App["EICLIN"].Win["cpr"] := WinItem("cpr", App["EICLIN"], , "Basic CPR", , true, EICLINShow_cpr)
-App["EICLIN"].Win["vessel"] := WinItem("vessel", App["EICLIN"], , "Vessel Viewing", , true, EICLINShow_vessel)
+; Window titles may be one of:
+;   IMPAX Volume Viewing 3D + MPR Viewing
+;   IMPAX Volume Viewing Reformatting
+;   IMPAX Volume Viewing Basic CPR
+;   IMPAX Volume Viewing Vessel Viewing
+;   IMPAX Volume Viewing Basic MPR viewing
+;   IMPAX Volume Viewing Reformatting
+;   IMPAX Volume Viewing Basic CPR
+App["EICLIN"].Win["main"] := WinItem("main", App["EICLIN"], , "IMPAX Volume Viewing", , , EICLINShow_main)
+; Agfa EI pseudowindows
+App["EICLIN"].Win["mpr"] := WinItem("mpr", App["EICLIN"], App["EICLIN"].Win["main"], "MPR", , true, EICLINShow_mpr, , EICLINIsMpr)
+App["EICLIN"].Win["reformat"] := WinItem("reformat", App["EICLIN"], App["EICLIN"].Win["main"], "Reformatting", , true, EICLINShow_reformat, , EICLINIsReformat)
+App["EICLIN"].Win["cpr"] := WinItem("cpr", App["EICLIN"], App["EICLIN"].Win["main"], "Basic CPR", , true, EICLINShow_cpr, , EICLINIsCpr)
+App["EICLIN"].Win["vessel"] := WinItem("vessel", App["EICLIN"], App["EICLIN"].Win["main"], "Vessel Viewing", , true, EICLINShow_vessel, , EICLINIsVessel)
 
 ; PowerScribe
 App["PS"].Win["main"] := WinItem("main", App["PS"], , "PowerScribe", "ProgressBar", , PSShow_main)
@@ -159,10 +160,10 @@ App["PS"].Win["microphone"] := WinItem("microphone", App["PS"], , "PowerScribe",
 App["PS"].Win["ras"] := WinItem("ras", App["PS"], , "PowerScribe", "The call to RAS timed out", , PSShow_ras)
 App["PS"].Win["find"] := WinItem("find", App["PS"], , "Find and", , , PSShow_find)
 ; PowerScribe pseudowindows
-App["PS"].Win["login"] := WinItem("login", App["PS"], App["PS"].Win["main"], , "Disable speech", , , , PSIsLogin)
-App["PS"].Win["home"] := WinItem("home", App["PS"], App["PS"].Win["main"], , "Signing queue", , , , PSIsHome)
-App["PS"].Win["report"] := WinItem("report", App["PS"], App["PS"].Win["main"], , "Report -", , , , PSIsReport)
-App["PS"].Win["addendum"] := WinItem("addendum", App["PS"], App["PS"].Win["main"], , "Addendum -", , , , PSIsAddendum)
+App["PS"].Win["login"] := WinItem("login", App["PS"], App["PS"].Win["main"], , "Disable speech", true, PSShow_login, PSClose_login, PSIsLogin)
+App["PS"].Win["home"] := WinItem("home", App["PS"], App["PS"].Win["main"], , "Signing queue", true, PSShow_home, PSClose_home, PSIsHome)
+App["PS"].Win["report"] := WinItem("report", App["PS"], App["PS"].Win["main"], , "Report -", true, PSShow_report, PSClose_report, PSIsReport)
+App["PS"].Win["addendum"] := WinItem("addendum", App["PS"], App["PS"].Win["main"], , "Addendum -", true, PSShow_addendum, PSClose_addendum, PSIsAddendum)
 
 ; PowerScribe spelling window
 App["PSSP"].Win["spelling"] := WinItem("spelling", App["PSSP"], , "Spelling", , , PSSPShow_spelling)
@@ -229,10 +230,13 @@ class WinPos {
 ;               - the top window's search criteria (e.g. criteria & wintext from its WinItem)
 ;               -   determines whether this app is running
 ;
+;
 ;   Win[]       - Map, all the WinItems[] associated with this app
 ;
-;   pid         - (read only) process ID of this app, or 0 if not running
-;   isrunning   - (read only) true if app is running (i.e. has a pid), false if not
+; read-only properties:
+;
+;   pid         - process ID of this app, or 0 if not running
+;   isrunning   - true if app is running (i.e. has a pid), false if not
 ;
 ; AppItem methods:
 ;
@@ -268,19 +272,6 @@ class AppItem {
         this.mainwin := mainwin
 
         this.Win := Map()
-
-        ; * Currently the following events are supported: `Show`, `Create`, `Close`, `Exist`, `NotExist`, `Active`, `NotActive`, `Move`, 
-        ; * `MoveStart`, `MoveEnd`, `Minimize`, `Restore`, `Maximize`. See comments for the functions for more information.
-       
-        ; Set up event handlers
-        ; this.hookShow := WinEvent.Show(_cbAppShow, this.criteria)
-        ; this.hookCreate := WinEvent.Create(_cbAppCreate, this.criteria)
-        ; this.hookClose := WinEvent.Close(_cbAppClose, this.criteria)
-        ; this.hookMove := WinEvent.Move(_cbAppMove, this.criteria)
-        ; this.hookMinimize := WinEvent.Minimize(_cbAppMinimize, this.criteria)
-        ; this.hookRestore := WinEvent.Restore(_cbAppRestore, this.criteria)
-        ; this.hookMaximize := WinEvent.Maximize(_cbAppMaximize, this.criteria)
-
     }
 
     pid {
@@ -312,7 +303,10 @@ class AppItem {
             } else {
                 ;return info for all windows of this app
                 for , w in this.Win {
-                    output .= w.Print(showall)
+                    ; skip pseudowindows, which are printed by their parent window
+                    if !w.parentwindow {
+                        output .= w.Print(showall)
+                    }
                 }
             }
         } else {
@@ -379,56 +373,69 @@ class AppItem {
 ;	searchtitle	- string, short title of window for matching, used in criteria
 ;	wintext		- string, window text to match, used for matching
 ;
-;   pollflag    - boolean, whether (false) winevent.show will trigger hook_show, or
-;               -   (true) polling is necessary to trigger hook_show
-;               - polling is always neceesary to trigger hook_close
-;	hook_show	- function to be called when this window is opened
-;               - does not apply to pseudowindows
-;   hook_close	- function to be called when this window is closed
-;               - does not apply to pseudowindows
-;   validate    - for pseudowindows, function to be called to determine whether this 
-;               -   pseudowindow is present and ready
+;   pollflag    - boolean, If false then a Windows event triggers hook_show (via WinEvent.Show).
+;               -   If true then polling (by _WatchWindows()) is used to trigger hook_show.
+;               - Polling is always used to trigger hook_close.
+;	hook_show	- function, to be called when this window is opened.
+;   hook_close	- function, to be called when this window is closed.
+;   validate    - function, For pseudowindows, function to be called to determine 
+;               -   whether this pseudowindow is showing on screen.
 ;
 ;	criteria	- string, combined search string generated from exename of parent app,
 ;               -   searchtitle of this window, and ahk_class of this window.
 ;               -   It is used along with wintext to find windows.
-;               - for pseudowindows, criteria is empty string
+;               - For pseudowindows, criteria is an empty string.
 ;
 ;   hwnd        - handle to window, or 0 if the window doesn't exist
 ;               - For pseudowindows, returns hwnd of its parentwindow.
+;               - When set, it maintains a reverse lookup table used to retrieve
+;               -   a WinItem from a hwnd (by calling WinItem.LookupHwnd() -- see below). 
 ;
-;   pos         - current WinPos of the window
+;   savepos     - WinPos, remembered position of the window
 ;
-;   savepos     - saved WinPos of the window
+;   PWin[]      - array, An array of child pseudowindows.
 ;
 ; read-only properties:
 ;
+;   pos         - WinPos, current position of the window
 ;   pid         - Process id of the window. Returns 0 if not found. 
 ;               -   For pseudowindows, returns pid of its parentwindow.
-;	visible		- true if window is visible (has WF_VISIBLE style), false if a hidden window
-;	minimized	- true if window is minimized, false if not
+;	visible		- boolean, true if window state is visible (i.e. has WF_VISIBLE style)
+;	minimized	- boolean, true if window state is minimized
 ;   appkey      - Returns the key of the parent app (parentapp), e.g. "EI".
+;   haschild    - boolean, true if this window has children (i.e. PWin[] is not empty)
+;
+; internal variables:
+;
+;   _HwndReverseLookup[]    - Map(), Reverse lookup table, maps hwnd to WinItem.
+;                           - For windows that have pseuodwindows, the hwnd always maps to
+;                           -   the WinItem of the parent, not the pseudowindow.
 ;
 ; internal properties:
 ;
-;   this._showstate     - false if not running, true after hook_show has been run
-;                       - only set to true by a polled hook_show function, reset to false when hwnd is set to 0
-;   this._closestate    - false if running, true after hook_close has been run
-;                       - only set to true by a hook_close function, reset to false when hwnd is set to non-zero
+;   _hwnd       - integer, Stores the actual hwnd. For pseudowindows, stores the parent's hwnd.
+;   _pos        - WinPos, stores the actual value
+;   _savepos    - WinPos, stores the actual value
+;
+;   this._showstate     - boolean, False if window is not showing, becomes true when a polled hook_show is (queued to) run.
+;                       - Reset to false when hwnd is set to 0.
+;   this._closestate    - boolean, False if window is showing, becomes true when hook_close is (queued to) run.
+;                       - Reset to false when hwnd is set to a non-zero value.
 ;
 ; WinItem class (static) methods:
 ; 
-;   static LookupHwnd(hwnd)    - Returns the WinItem corresponding to the passed hwnd. Uses the reverse lookup table _HwndReverseLookup[].
+;   static LookupHwnd(hwnd)     - Returns the WinItem corresponding to the passed hwnd. 
+;                               -   Uses the reverse lookup table _HwndReverseLookup[].
+;                               - For windows with pseudowindows, will determine which
+;                               -   pseudowindow is showing and return its WinItem. 
+;                               -   If cannot determine which pseudowindow, then 
+;                               -   returns the parent window's WinItem.
 ;
 ; WinItem instance methods:
 ;
-;;;   Exists()    - Searches for the window using criteria and wintext (using ahk WinExist()) and returns the hwnd, or 0 if doesn't exist
-;               - [todo] If pseudowindow, determines whether pseudowindow exists, returns hwnd of parent window, or 0 if it doesn't exist
-;
-;   IsReady()   - Returns hwnd if a window exists (non-zero hwnd), is visible, and is not minimized. Otherwise returns 0.
-;               - [todo] If pseudowindow
-;
-;;;   Update()    - Updates the hwnd and pid for this window
+;   IsReady()   - Returns hwnd if a window exists, is visible, and is not minimized.
+;               - For pseudowindows, determines whether the pseudowindow is showing.
+;               - Returns 0 if not showing.
 ;
 ;   Print()     - Returns diagnostic info about this window as a string
 ;
@@ -443,13 +450,9 @@ class AppItem {
 ;	ReadPosition()	- Reads window's savepos from user specific settings.ini file.
 ;
 ;
-;
 ; To instantiate a new WinItem, use:
 ;
 ;   WinItem(key, parentapp, [parentwindow, searchtitle, wintext, hook_show, hook_close, validate])
-;
-; 
-;
 ;
 class WinItem {
     static _HwndReverseLookup := Map()             ; class variable, stores a map of hwnd to WinItems
@@ -475,6 +478,8 @@ class WinItem {
         this._showstate := false
         this._closestate := false
 
+        this.PWin := Array()
+
         ; set criteria and hwnd
         if !parentwindow {
             ; this is a real window, not a pseudowindow
@@ -497,7 +502,7 @@ class WinItem {
                 try {
                     gethwnd := WinExist(this.criteria, this.wintext)
                     if gethwnd {
-                        this._showstate := true
+                        this._showstate := true     ; don't want to run hook_show when PA first starts up
                     }
                 } catch {
                     gethwnd := 0
@@ -506,14 +511,26 @@ class WinItem {
             } else {
                 ; no criteria
                 this.hwnd := 0
-            }    
+            }
             
         } else {
             ; this is a pseudowindow
-            this.criteria := ""
-            this.hwnd := 0
-        }
 
+            ; search criteria for a psuedowindow is ""
+            this.criteria := ""
+
+            ; Add this pseudowindow to the parentwindow's PWin[] array.
+            this.parentwindow.PWin.Push(this)
+
+            ; See if the pseudowindow is already showing. If so, set the hwnd.
+            ; this.IsReady() returns the hwnd of the parent window 
+            ; of a pseudowindow that's showing.
+            gethwnd := this.IsReady()
+            if gethwnd {
+                this._showstate := true     ; don't want to run hook_show when PA first starts up
+            }
+            this.hwnd := gethwnd
+        }
     }    
     
     pid {
@@ -523,7 +540,7 @@ class WinItem {
                 if this.criteria {
                     try {
                         ; look for this window's process and return its pid
-                        getpid := WinGetPID(this.criteria)
+                        getpid := WinGetPID(this.criteria, this.wintext)
                     } catch {
                         ; did not find a running process
                         getpid := 0
@@ -533,12 +550,12 @@ class WinItem {
                     getpid := 0
                 }
             } else {
-                ; this is a pseudowindow, return itsp parent's pid
+                ; this is a pseudowindow, return it's parent's pid
                 getpid := this.parentwindow.pid
             }
 
             if !getpid {
-                ; also set hwnd to 0
+                ; reset hwnd to 0 if this process it not running (or not found)
                 this.hwnd := 0
             }
             return getpid
@@ -549,39 +566,41 @@ class WinItem {
         get {
             if !this.parentwindow {
                 ; this is a real window, not a pseudowindow
-                if this.pollflag {
-                    ; polled windows always requires searching by criteria
-                    try {
-                        gethwnd :=  WinExist(this.criteria, this.wintext)
-                    } catch {
-                        gethwnd :=  0
-                    }
-                    if this._hwnd {
-                        if (this._hwnd != gethwnd)
-                            || !WinItem._HwndReverseLookup.Has(gethwnd)
-                            || (WinItem._HwndReverseLookup[gethwnd].key != this.key) {
-                                ; The found window does not match the existing window, so
-                                ; delete its assignment and then reassign it.
 
-                                this.hwnd := 0          ; deletes reverse lookup entry, resets flags
-                                this.hwnd := gethwnd    ; creates new reverse lookup entry, resets flags
-                        } else {
-                            ; The found window matches this window's hwnd
-                            ; and the previously stored window has the same key
-                            ; so this window aleady exists, don't need to do more.
-                        }
-                    } else {
-                        if gethwnd {
-                            this.hwnd := gethwnd
-                        }
-                    }
+                ; if this.pollflag {
+                ;     ; This is a polled window. Polled windows always require
+                ;     ; searching by criteria, as they may share a hwnd.
+                ;     try {
+                ;         gethwnd :=  WinExist(this.criteria, this.wintext)
+                ;     } catch {
+                ;         gethwnd :=  0
+                ;     }
+                ;     if this._hwnd {
+                ;         if (this._hwnd != gethwnd)
+                ;             || !WinItem._HwndReverseLookup.Has(gethwnd)
+                ;             || (WinItem._HwndReverseLookup[gethwnd].key != this.key) {
+                ;                 ; The found window does not match the existing window, so
+                ;                 ; delete its assignment and then reassign it.
+
+                ;                 this.hwnd := 0          ; deletes reverse lookup entry, resets flags
+                ;                 this.hwnd := gethwnd    ; creates new reverse lookup entry, resets flags
+                ;         } else {
+                ;             ; The found window matches this window's hwnd
+                ;             ; and the previously stored window has the same key
+                ;             ; so this window aleady exists, don't need to do more.
+                ;         }
+                ;     } else {
+                ;         if gethwnd {
+                ;             this.hwnd := gethwnd
+                ;         }
+                ;     }
                     
-                } else {
-                    ; this is not a polled window
+                ; } else {
+                ;     ; this is not a polled window
                     if gethwnd := WinExist(this._hwnd) {
                         ; This window already exists, so don't need to do more.
                     } else {
-                        ; This window doesn't exist, search for it by criteria
+                        ; This window doesn't seem to exist, search for it by criteria
                         if this.criteria {
                             ; DetectHiddenText should be false (globally set), we do not want to search hidden text when looking for windows
                             try {
@@ -594,54 +613,53 @@ class WinItem {
                             gethwnd :=  0
                         }
                         this.hwnd := gethwnd
-                    } 
-                }
+                    }
+                ; }
 
             } else {
-                ; this is a pseudowindow, get and return its parentwindow's hwnd
-                this.hwnd := this.parentwindow.hwnd
+                ; This is a pseudowindow, see if the pseudowindow is showing.
+                ; If so, return its parentwindow's hwnd.
+                ; Pseudowindows always require checking their validation 
+                ; function (via IsReady()).
+                gethwnd := this.IsReady()
+                this.hwnd := gethwnd
             }
 
             return this._hwnd
         }
+
         set {
-            if !this.parentwindow {
-                ; this is a real window, not a pseudowindow
-                if this._hwnd = Value {
-                    ; This window has the same hwnd as the new hwnd value 
-                    ; so don't need to do more.
-                    ;
-                    ; Polled windows are NOT handled here.
-                    return
+            ; handle real windows and pseudowindows the same
+            if this._hwnd = Value {
+                ; This window has the same hwnd as the new hwnd value so we're done.
+                return
+            }
+            
+            ; this._hwnd and Value are different
+            if !this.parentwindow && this._hwnd {
+                ; this is a real window and this._hwnd is non-zero
+                ; try to delete its reverse lookup entry
+                try {
+                    WinItem._HwndReverseLookup.Delete(this._hwnd)
+                } catch {
                 }
-                ; this._hwnd and Value are different
-                if this._hwnd {
-                    ; this._hwnd is non-zero, try to delete its reverse lookup entry
-                    try {
-                        WinItem._HwndReverseLookup.Delete(this._hwnd)
-                    } catch {
-                    }
-                    if !Value {
-                        ; reset _closestate since hwnd is going from 0 to non-zero
-                        this._closestate := false
-                    }
-                }
-                this._hwnd := Value
-                if Value {
-                    ; new hwnd is non-zero
+            }
+            if Value {
+                ; new hwnd is non-zero
+                if !this.parentwindow {
+                    ; this is a real window
                     ; record it in the reverse lookup table
                     WinItem._HwndReverseLookup[Value] := this
-                } else {
-                    ; new hwnd is 0
-                    ; reset _showstate since hwnd went from non-zero to 0
-                    this._showstate := false
                 }
+                ; reset _closestate
+                this._closestate := false
             } else {
-                ; this is a pseudowindow
-                ; just store the hwnd
-                this._hwnd := Value
+                ; new hwnd is 0
+                ; reset _showstate
+                this._showstate := false
             }
-        }    
+            this._hwnd := Value
+        }
     }    
     
     pos {
@@ -732,15 +750,39 @@ class WinItem {
         }
     }
 
+    haschild {
+        get {
+            return (this.PWin.Length > 0) ? true : false
+        }
+    }
+
+
     ; Returns the WinItem corresponding to the passed hwnd. 
     ; Uses the reverse lookup table _HwndReverseLookup[].
-    ; If no match, return 0.
+    ;
+    ; For windows with pseudowindows, will determine which
+    ; pseudowindow is showing and return its WinItem. 
+    ; If cannot determine which pseudowindow, then 
+    ; returns the parent window's WinItem.
+    ;
+    ; If no match, returns 0.
     static LookupHwnd(hwnd) {
         if hwnd && WinItem._HwndReverseLookup.Has(hwnd) {
-            return WinItem._HwndReverseLookup[hwnd]
+            win := WinItem._HwndReverseLookup[hwnd]
+            if win.haschild {
+                for pwin in win.PWin {
+                    if pwin.IsReady() {
+                        ; found a matching child pseudowindow
+                        ; return it
+                        win := pwin
+                        break       ; for
+                    }
+                }
+            }
         } else {
-            return 0
+            win := 0
         }
+        return win
     }
 
     ; Returns the hwnd of this window if it exists (non-zero hwnd) and is visible and not minimized.
@@ -761,8 +803,9 @@ class WinItem {
         return 0
     }
 
-    ; Returns diagnostic info about this window as a string
-    ; returns empty string for non-existing windows unless showall is set to true
+    ; Returns diagnostic info about this window as a string.
+    ; Returns empty string for non-existing windows unless showall is set to true.
+    ; Pseudowindows are nested under their parent window.
     Print(showall := false) {
 
         gethwnd := this.hwnd
@@ -772,11 +815,21 @@ class WinItem {
 
             if showall || gethwnd {
                 output := "&nbsp;&nbsp;&nbsp;&nbsp;"
+                output .= (showall && gethwnd) ? "*" : ""
                 output .= this.key " (" this.pid "|" gethwnd
                 if gethwnd {
                     output .= (this.visible ? "" : "h") . (this.minimized ? "m" : "")
                 }
-                output .= ")<br />"
+                output .= ")"
+                ; output .= " _showstate=" this._showstate
+                output .= "<br />"
+
+                ; if this window has child windows, print them
+                if this.haschild {
+                    for w in this.PWin {
+                        output .= w.Print(showall)
+                    }
+                }
             } else {
                 output := ""
             }
@@ -790,10 +843,13 @@ class WinItem {
             }
 
             if showall || (gethwnd && valid) {
-                output := "&nbsp;&nbsp;&nbsp;&nbsp; > "
+                output := "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                output .= (showall && valid) ? "*" : ""
                 output .= this.key " (" this.pid "|" gethwnd
                 output .= valid ? "/yes" : "/no"                
-                output .= ")<br />"
+                output .= ")"
+                ; output .= " _showstate=" this._showstate
+                output .= "<br />"
             } else {
                 output := ""
             }
@@ -1060,6 +1116,11 @@ GetAppkey(hwnd) {
 
 ; Returns the window key of the specified window handle.
 ; Returns "" on failure.
+;
+; For windows that don't have a pseudowindow, returns the win key of the real window.
+;
+; For windows that have one or more pseudowindows, determines which pseudowindow
+; is showing and returns the win key of the pseudowindow.
 GetWinkey(hwnd) {
     try {
         if win := WinItem.LookupHwnd(hwnd) {
@@ -1096,7 +1157,8 @@ WindowUnderMouse() {
 
 ; Check for a matching context
 ;
-; hwnd is the (real) window
+; hwnd is the (real) window (not a pseudowindow)
+; 
 ; contexts is an array of case sensitive context strings
 ;
 ; Context strings are of the format "APPKEY winkey1 winkey2 ..." where winkeyN are optional
@@ -1139,50 +1201,47 @@ Context(hwnd, contexts*) {
         for context in contexts {
 
             carr := StrSplit(context, " ")
-            cappkey := carr[1]		;get the context app key from the context string
+            cappkey := carr[1]		;the app key of the context is the first element of carr[]
             
             if cappkey == appkey {
+                ; app key of the window being checked matches the app key of this context
+                ; now match the win key if there is a context win key to match
+
                 j := 2
                 if j > carr.Length {
-                    ; no windows to match with, so we've succeeded
-        
+                    ; no windows to match with, so we've succeeded, return true
                     if Setting["Debug"].enabled
-                        TTip("Context(" appkey "/" winkey ") == " cappkey, 700)
-        
+                        TTip("Context(" appkey "/" winkey ")=>" cappkey, 700)
                     return true
                 }    
 
-                ; need to check for a match among the windows in the context
+                ; need to check for a match among each of the windows in the context
                 while j <= carr.Length {
                     cwin := App[appkey].Win[carr[j]]    ; get the winitem of the context item
                     j++
 
                     if !cwin.parentwindow {
-                        ; this is a true window
+                        ; this context is a true window, match against its win key
                         cwinkey := cwin.key   
                         if cwinkey == winkey {
-                            ; found a window match
-
+                            ; found a window match, return true
                             if Setting["Debug"].enabled
                                 TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey, 700)
-
                             return true
                         }
                     } else {
-                        ; this is a pseudowindow, get the parent window's winkey for comparing
+                        ; this context is a pseudowindow, match against the parent window's win key
                         cwinkey := cwin.parentwindow.key
                         if cwinkey == winkey {
                             ; found a parent window match
-                            ; need to call the validate function for pseudowindow validation
+                            ; still need to call the validate function to check if the pseudowindow is actually showing
                             fn := cwin.validate
                             if fn {
                                 if fn.Call() {
                                     ; pseudowindow condition successfully validated
                                     ; return success
-
                                     if Setting["Debug"].enabled
                                         TTip("Context(" appkey "/" winkey ") == " cappkey "/" cwinkey "/" cwin.key, 700)
-
                                     return true
                                 }
                             }
