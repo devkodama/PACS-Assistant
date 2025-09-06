@@ -141,16 +141,24 @@ _RefreshGUI() {
 		; studyinfo .= " // " . PACurrentStudy.priority
 		studyinfo .= "<br /> " . StrTitle(PACurrentStudy.orderingmd)
 
-		studyinfo .= "<br /><br />laterality: " . PACurrentStudy.laterality
+		if PACurrentStudy.laterality {
+			studyinfo .= "<br /><br />laterality: " . PACurrentStudy.laterality
+		}
 
 
 		for o in PACurrentStudy.other {
-			studyinfo .= "<br /> other: " . o
+			if o {
+				studyinfo .= "<br /> other: " . o
+			}
 		}
 		; studyinfo .= "<br /><br /><span style ='color: #808080; font-size: 0.8em;'>reason </span>" . PACurrentStudy.reason
 		; studyinfo .= "<br /><span style ='color: #808080; font-size: 0.8em;'>tech</span>" . PACurrentStudy.techcomments
-		studyinfo .= "<br /><span>reason: </span>" . PACurrentStudy.reason
-		studyinfo .= "<br /><span >tech: </span>" . PACurrentStudy.techcomments
+		if PACurrentStudy.reason {
+			studyinfo .= "<br /><span>reason: </span>" . PACurrentStudy.reason
+		}
+		if PACurrentStudy.techcomments {
+			studyinfo .= "<br /><span >tech: </span>" . PACurrentStudy.techcomments
+		}
 
 		icdcodes := ""
 		spos := 1
@@ -404,7 +412,7 @@ _WatchWindows() {
 	}
 
 	; update window info for GUI
-	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	PAWindowInfo := PrintWindows( , , false) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 
 }
 
@@ -426,7 +434,7 @@ _WatchMouse() {
 
 	; local function to close the PS spelling window if autoclose is enabled
 	_ClosePSspelling() {
-		if Setting["PSSPspelling_autoclose"].enabled && App["PSSP"].Win["spelling"].visible {
+		if App["PSSP"].Win["spelling"].visible && Setting["PSSPspelling_autoclose"].enabled {
 			App["PSSP"].Win["spelling"].Close()
 		}
 	}
@@ -458,11 +466,10 @@ _WatchMouse() {
 	if !GetKeyState("LShift", "P") {
 
 		appkey := GetAppkey(hwnd)
-		winkey := GetWinkey(hwnd)
-		if appkey && winkey {
+		; winkey := GetWinkey(hwnd)
+		; if appkey && winkey {
 			switch appkey {
 				case "EI":
-					; close PS Spelling window
 					_ClosePSspelling()
 					try {
 						WinActivate(hwnd)
@@ -484,7 +491,7 @@ _WatchMouse() {
 				default:
 					; do nothing
 			}
-		}
+		; }
 	}
 
 	running := false

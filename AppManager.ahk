@@ -821,7 +821,7 @@ class WinItem {
                     output .= (this.visible ? "" : "h") . (this.minimized ? "m" : "")
                 }
                 output .= ")"
-                output .= " _showstate=" this._showstate
+                ; output .= " _showstate=" this._showstate
                 output .= "<br />"
 
                 ; if this window has child windows, print them
@@ -848,7 +848,7 @@ class WinItem {
                 output .= this.key " (" this.pid "|" gethwnd
                 output .= valid ? "/yes" : "/no"                
                 output .= ")"
-                output .= " _showstate=" this._showstate
+                ; output .= " _showstate=" this._showstate
                 output .= "<br />"
             } else {
                 output := ""

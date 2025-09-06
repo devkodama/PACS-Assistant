@@ -447,11 +447,6 @@ PSShow_find(hwnd, hook, dwmsEventTime) {
 
 PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
 	App["PSSP"].Win["spelling"].hwnd := hwnd
-	if Setting["PSSPspelling_autoclose"].enabled && !Context(WindowUnderMouse(), "PS") {
-		; mouse is not over PS window, so close this spelling window and return
-		App["PSSP"].Win["spelling"].Close()
-		return
-	}
 	if Setting["Debug"].enabled
 		PlaySound("PS show spelling")
 	if Setting["PScenter_dialog"].enabled {
