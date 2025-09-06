@@ -58,30 +58,29 @@ DaemonInit(start := true) {
 
 ; Checks the dispatch request queues and calls the queued functions.
 ;
-; The dispatcher is dumb and does not check whether the function is already running.
-; Every function callable by the dispatcher should check for and prevent reentry if neceesary.
+; The dispatcher does not check whether the function is already running, it 
+; simply runs the next function in the queue.
+; 
+; Callback (hook) functions are dispatched first, one on each call to _Dispatcher().
+;
+; Other functions are dispatched second, one on each call to _Dispatcher().
+; These functions should check for and prevent reentry if neceesary.
 _Dispatcher() {
 	global DispatchQueue
-	global HookShowQueue
-	global HookCloseQueue
+	global HookQueue
+
 	; runs regardless of PAActive
 
+	if HookQueue.Length > 0 {
+		fn := HookQueue.RemoveAt(1)
+		; call fn() via SetTimer to simulate multithreading
+		SetTimer(fn, -1)			; run immediately once
+	}
+	
 	if DispatchQueue.Length > 0 {
-		; call fn() via SetTimer to simulate multithreading
 		fn := DispatchQueue.RemoveAt(1)
-		SetTimer(fn, -1)
-	}
-	
-	if HookShowQueue.Length > 0 {
 		; call fn() via SetTimer to simulate multithreading
-		fn := HookShowQueue.RemoveAt(1)
-		SetTimer(fn, -1)
-	}
-	
-	if HookCloseQueue.Length > 0 {
-		; call fn() via SetTimer to simulate multithreading
-		fn := HookCloseQueue.RemoveAt(1)
-		SetTimer(fn, -1)
+		SetTimer(fn, -1)			; run immediately once
 	}
 	
 }
@@ -379,30 +378,30 @@ _RefreshGUI() {
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
 _WatchWindows() {
 	global PAWindowInfo
-	global HookShowQueue
-	global HookCloseQueue
+	global HookQueue
 	
 	; runs regardless of PAActive
 
 	; [todo] if PS spelling window is open for more than 1 second while mouse is not
 	; over a PS window, then close it?
 
-	; poll windows to trigger hook_show
-	for w in PollShow {
-		if w.IsReady() && !w._showstate && w.hook_show {
-			w._showstate := true
-			HookShowQueue.Push(w.hook_show)
-		}
-	}
+	; trigger close hooks before show hooks
 
 	; poll windows to trigger hook_close
 	for w in PollClose {
 		if !w.IsReady() && !w._closestate && w.hook_close { 
 			w._closestate := true
-			HookCloseQueue.Push(w.hook_close)
+			HookQueue.Push(w.hook_close)
 		}
 	}
 
+	; poll windows to trigger hook_show
+	for w in PollShow {
+		if w.IsReady() && !w._showstate && w.hook_show {
+			w._showstate := true
+			HookQueue.Push(w.hook_show)
+		}
+	}
 
 	; update window info for GUI
 	PAWindowInfo := PrintWindows( , , true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")

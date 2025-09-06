@@ -431,6 +431,7 @@ PSShow_ras(hwnd, hook, dwmsEventTime) {
 	}
 	if Setting["PSras_dismiss"].enabled {
 		ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
+		MsgBox("Clicked on " Setting["PSras_dismiss_reply"].value " for ras dialog (" App["PS"].Win["ras"].hwnd ")" )
 	}
 }
 
@@ -466,6 +467,8 @@ _PSTurnOnMic(initial := false) {
 	static cmdsenttime := 0			; timestamp of last command send
 
 	if initial {
+		; cancel any pending call to turn off the mic
+		SetTimer(_PSTurnOffMic, 0)
 		if !PSDictateIsOn(true) {
 			; try to turn on the mic
 			PSCmdToggleMic()
@@ -480,8 +483,8 @@ _PSTurnOnMic(initial := false) {
 		; Check if the mic is on
 		if !PSDictateIsOn(true) {
 			; mic is still not on
-			; if it's been over 3 seconds, resend toggle mic command
-			if (A_TickCount - cmdsenttime) > 3000 {
+			; if it's been over PS_DICTATERETRY_DELAY milliseconds, resend toggle mic command
+			if (A_TickCount - cmdsenttime) > PS_DICTATERETRY_DELAY {
 				PSCmdToggleMic()
 				cmdsenttime := A_TickCount
 			}
@@ -493,16 +496,22 @@ _PSTurnOnMic(initial := false) {
 	}
 }
 
-_PSTurnOffMic(initial := false) {
+_PSTurnOffMic(initial := false, delay := 0) {
 	static cmdsenttime := 0			; timestamp of last command send
 
 	if initial {
 		if PSDictateIsOn(true) {
-			; try to turn off the mic
-			PSCmdToggleMic()
-			cmdsenttime := A_TickCount
-			; check every 500 milliseconds
-			SetTimer(_PSTurnOffMic, 500)
+			if delay {
+				; wait for delay milliseconds before turning off the mic
+				cmdsenttime := A_TickCount - PS_DICTATERETRY_DELAY	; this guarantees we will send the toggle mic command at next fn call
+				SetTimer(_PSTurnOffMic, delay)
+			} else {
+				; try to turn off the mic
+				PSCmdToggleMic()
+				cmdsenttime := A_TickCount
+				; check every 500 milliseconds
+				SetTimer(_PSTurnOffMic, 500)
+			}
 		} else {
 			; mic is already off, don't send toggle mic command, and stop checking
 			SetTimer(_PSTurnOffMic, 0)
@@ -511,8 +520,8 @@ _PSTurnOffMic(initial := false) {
 		; Check if the mic is off
 		if PSDictateIsOn(true) {
 			; mic is still not off
-			; if it's been over 3 seconds, resend toggle mic command
-			if (A_TickCount - cmdsenttime) > 3000 {
+			; if it's been over PS_DICTATERETRY_DELAY milliseconds, resend toggle mic command
+			if (A_TickCount - cmdsenttime) > PS_DICTATERETRY_DELAY {
 				PSCmdToggleMic()
 				cmdsenttime := A_TickCount
 			}
@@ -542,6 +551,11 @@ PSShow_home() {
 	if Setting["Debug"].enabled
 		PlaySound("PS show home")
 
+	; Automatically turn off microphone when closing a report
+	if Setting["PS_dictate_autoon"].enabled {
+		; turn off the mic if it is on
+		_PSTurnOffMic(true, PS_DICTATEAUTOOFF_DELAY)
+	}
 }
 
 PSClose_home() {
@@ -566,11 +580,6 @@ PSClose_report() {
 	if Setting["Debug"].enabled
 		PlaySound("PS close report")
 
-	; Automatically turn off microphone when closing a report
-	if Setting["PS_dictate_autoon"].enabled {
-		; turn off the mic if it is on
-		_PSTurnOffMic(true)
-	}
 }
 
 PSShow_addendum() {

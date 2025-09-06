@@ -35,15 +35,15 @@ DISPATCH_INTERVAL := 100
 
 ; interval (ms) for updating GUI display
 GUIREFRESH_INTERVAL := 200
-
-; interval (ms) for updating window under mouse ( _UpdateMouseWindow() )
-WATCHMOUSE_UPDATE_INTERVAL := 200
+; timeout (ms) for clearing status bar text
+GUISTATUSBAR_TIMEOUT := 60000	    ; 60000 = 60 sec
 
 ; interval (ms) for updating window statuses
-WATCHWINDOWS_UPDATE_INTERVAL := 1000
-
+WATCHWINDOWS_UPDATE_INTERVAL := 400
+; interval (ms) for updating window under mouse
+WATCHMOUSE_UPDATE_INTERVAL := 200
 ; interval (ms) for updating dictate button status
-WATCHDICTATE_UPDATE_INTERVAL := 100
+WATCHDICTATE_UPDATE_INTERVAL := 200
 
 ; interval (ms) for updating network connection or workstation status
 WATCHNETWORK_UPDATE_INTERVAL := 5000       ; 5000 = 5 seconds
@@ -53,9 +53,6 @@ JIGGLEMOUSE_UPDATE_INTERVAL := 60000		; 60000 = 1 minute
 
 ; interval (ms) for clearing CapsLock after no keyboard input
 CAPSLOCK_TIMEOUT := 10000		; 10000 = 10 sec
-
-; timeout (ms) for clearing status bar text
-GUISTATUSBAR_TIMEOUT := 60000	    ; 60000 = 60 sec
 
 
 ; maximum timeout (seconds) for making VPN connection from start to finish
@@ -89,8 +86,10 @@ PS_LOGIN_TIMEOUT := 60
 PS_MAIN_TIMEOUT := 180
 ; timeout (seconds) for shutting down PS
 PS_SHUTDOWN_TIMEOUT := 180
-; time delay (seconds) for turing off microphone after a report is closed
-PS_DICTATEAUTOOFF_DELAY := 3
+; time delay (ms) for retrying microphone toggle command if mic is not turned on
+PS_DICTATERETRY_DELAY := 4000
+; time delay (ms) for turing off microphone after a report is closed
+PS_DICTATEAUTOOFF_DELAY := 2000
 
 
 ; timeout (seconds) for starting up EPIC to get to login window
@@ -210,8 +209,7 @@ global PAGUI
 
 ; Global dispatch queues (array of functions)
 global DispatchQueue := Array()
-global HookShowQueue := Array()
-global HookCloseQueue := Array()
+global HookQueue := Array()
 
 ; Windows which require polling (array of WinItem)
 global PollShow := Array()

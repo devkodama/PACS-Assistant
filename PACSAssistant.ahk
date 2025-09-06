@@ -401,7 +401,6 @@ PAInit() {
 	SettingsInit()
 
 
-
 	; Register Windows hooks to monitor window show events for all the windows of interest.
 	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.
 	for appkey, a in App {
@@ -409,8 +408,9 @@ PAInit() {
 			if !w.parentwindow {
 				; this is a real window
 				if w.criteria {
+					; it has search criteria
 					if w.hook_show {
-						; has search criteria and a show hook
+						; it has a show hook, so register it
 						if w.pollflag {
 							; this requires polling, add this window (WinItem) to the polling queue for show callbacks
 							PollShow.Push(w)

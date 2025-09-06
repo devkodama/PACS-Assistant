@@ -218,21 +218,19 @@ EIClickImages(buttonname) {
 ; Returns the status of EI desktop
 ;
 ; Returns TRUE if EI desktop is running, FALSE if not
-;
 EIIsRunning() {
 	return App["EI"].isrunning ? true : false
 }
 
 
-; Detect whether a specific EI window or pseudowindow is showing.
+; Detect whether a specific EI pseudowindow is showing.
 ;
-; Checks whether the corresponding button is on or off in EI
+; Does so by checking whether the corresponding button is on or off in EI
 ;
 ; EI main window is d
 ; 	EI pseudowindows which are subwindows of d are search, list, text, image
 ;
 ; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
-;
 EIIsSearch() {
 	EIhwnd := App["EI"].Win["d"].IsReady()
 	if EIhwnd {
@@ -285,7 +283,6 @@ EIIsImage() {
 ;	"Comparison" means a comparison study, being compared to either an unread or previously read study
 ;
 ; The Text area should be showing or else this function will return the empty string.
-;
 EIGetStudyMode() {
 
 	if hwndEI := App["EI"].Win["d"].IsReady() {
@@ -312,6 +309,68 @@ EIGetStudyMode() {
 }
 
 
+; Detect whether a specific EICLIN pseudowindow is showing.
+;
+; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
+EICLINIsMpr() {
+	gethwnd := App["EICLIN"].Win["main"].IsReady() 
+	if gethwnd {
+		; look for the searchtitle string within the EICLIN main window's title
+		try {
+			if InStr(WinGetTitle(gethwnd), App["EICLIN"].Win["mpr"].searchtitle) {
+				; found the string, return the hwnd of the parent window
+				return gethwnd
+			}
+		} catch { 
+		}
+	}
+	return 0
+}
+
+EICLINIsReformat() {
+	gethwnd := App["EICLIN"].Win["main"].IsReady() 
+	if gethwnd {
+		; look for the searchtitle string within the EICLIN main window's title
+		try {
+			if InStr(WinGetTitle(gethwnd), App["EICLIN"].Win["reformat"].searchtitle) {
+				; found the string, return the hwnd of the parent window
+				return gethwnd
+			}
+		} catch { 
+		}
+	}
+	return 0
+}
+
+EICLINIsCpr() {
+	gethwnd := App["EICLIN"].Win["main"].IsReady() 
+	if gethwnd {
+		; look for the searchtitle string within the EICLIN main window's title
+		try {
+			if InStr(WinGetTitle(gethwnd), App["EICLIN"].Win["cpr"].searchtitle) {
+				; found the string, return the hwnd of the parent window
+				return gethwnd
+			}
+		} catch { 
+		}
+	}
+	return 0
+}
+
+EICLINIsVessel() {
+	gethwnd := App["EICLIN"].Win["main"].IsReady() 
+	if gethwnd {
+		; look for the searchtitle string within the EICLIN main window's title
+		try {
+			if InStr(WinGetTitle(gethwnd), App["EICLIN"].Win["vessel"].searchtitle) {
+				; found the string, return the hwnd of the parent window
+				return gethwnd
+			}
+		} catch { 
+		}
+	}
+	return 0
+}
 
 
 /**********************************************************
@@ -358,6 +417,13 @@ EIShow_chat(hwnd, hook, dwmsEventTime) {
 		PlaySound("EI show chat")
 }
 
+
+;
+EICLINShow_main() {
+	if Setting["Debug"].enabled
+		PlaySound("EI show main")
+	EICLINCmdResize("main")
+}
 
 EICLINShow_mpr() {
 	if Setting["Debug"].enabled
@@ -1276,7 +1342,7 @@ EICmdRemoveFromList() {
 
 
 ; Resize EICLIN window to same size as images1 window
-EICLINCmdResize(winkey := "mpr") {
+EICLINCmdResize(winkey := "main") {
 	mprhwnd := App["EICLIN"].Win[winkey].hwnd
 	if mprhwnd {
 		i1pos := App["EI"].Win["i1"].pos

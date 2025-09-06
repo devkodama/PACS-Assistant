@@ -92,3 +92,12 @@ WinEvent.Close
 
 =======
 
+
+Real windows
+
+  
+Pseudowindows
+
+
+
+
