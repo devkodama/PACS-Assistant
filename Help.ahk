@@ -66,6 +66,17 @@ HelpShowReadme() {
 	md_txt := StrReplace(md_txt, "`r`n", "\n")
 ; MsgBox(md_txt)
 
+; Tack on debugging information
+if Setting["Debug"].enabled {
+	md_txt .= "\n\n====\n\n"
+	md_txt .= "EXE_VPNUI " (FileExist(EXE_VPNUI) ? "FOUND" :"NOT FOUND") "\n\n"
+	md_txt .= "EXE_VPNCLI " (FileExist(EXE_VPNCLI) ? "FOUND" :"NOT FOUND") "\n\n"
+	md_txt .= "EXE_EI " (FileExist(EXE_EI) ? "FOUND" :"NOT FOUND") "\n\n"
+	md_txt .= "EXE_PS " (FileExist(EXE_PS) ? "FOUND" :"NOT FOUND") "\n\n"
+	md_txt .= "EXE_EPIC " (FileExist(EXE_EPIC) ? "FOUND" :"NOT FOUND") "\n\n"
+	md_txt .= "\n\n"
+}
+
 	PAGUI.PostWebMessageAsString("document.getElementById('helpinfo').innerHTML = marked.parse('" md_txt "');")
 
 }

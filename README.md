@@ -8,9 +8,9 @@ PACS Assistant has many features which are described below. PACS Assistant is hi
 
 ## How to use
 
-On home workstations, copy the PACS Assistant folder to the Documents folder. Open the PACS Assistant folder and double click "Run PACS Assistant" to start it. You can create a desktop shortcut to make it easier to run next time.
+On home workstations, copy the PACS Assistant folder to the Documents folder. Open the PACS Assistant folder and double click "Autohotkey64.exe" to start it.
 
-On hospital workstations, copy the PACS Assistant folder to the Documents folder. Open the PACS Assistant folder and double click "Run PACS Assistant" to start it. You cannot create a persistent desktop shortcut on hospital workstations.
+On hospital workstations, copy the PACS Assistant folder to the Documents folder. Open the PACS Assistant folder and double click "Autohotkey64.exe" to start it.
 
 The first time you run PACS Assistant, you'll need to enter your username and password. On home workstations, it will remember your username and password so you don't have to enter it in the future. Your password is protected by your Windows login password. On hospital workstations, PACS Assistant will remember your username but not your password for security reasons.
 
