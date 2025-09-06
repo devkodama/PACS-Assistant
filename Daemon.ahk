@@ -411,8 +411,12 @@ _WatchWindows() {
 		}
 	}
 
-	; update window info for GUI
-	PAWindowInfo := PrintWindows( , , false) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	if Setting["Debug"].enabled {
+		; update window info for GUI
+		PAWindowInfo := PrintWindows( , , false) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+	} else {
+		PAWindowInfo := ""
+	}
 
 }
 
