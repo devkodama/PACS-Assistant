@@ -110,7 +110,7 @@ The **Spacebar** can do one of several things:
 
 **Ctrl-Z** and **Ctrl-Y** send *Undo* and *Redo* commands, respectively, to PowerScribe.
 
-> ⚠️ Disable this if you have Ctrl-Z or Ctrl-Y mapped as EI shortcuts.
+> ⚠️ Disable this if you have Ctrl-Z or Ctrl-Y mapped as EI shortcuts (or remap your EI shortcuts).
 
 ## Miscellaneous functions
 
