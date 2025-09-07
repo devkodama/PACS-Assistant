@@ -478,8 +478,18 @@ _LButton_beep() {
 ; Each time this function is called, any hotkeys previously defined by this function are 
 ; disabled (no way to actually delete them) prior to defining the new list of hotkeys.
 ;
+; If a file called EIKeyList.txt exists, then it is read and used in lieu of the default or passed keylist.
+; EIKeyList.txt should be a comma separated list of hotkeys.
+;
 PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
 	static definedhklist := Array()		; remembers all hotkeys which have been defined previously through this function
+	if FileExist("EIKeylist.txt") {
+		keyliststring := FileRead("EIKeylist.txt")
+		keyliststring := RegExReplace(keyliststring, "[ \n\t]")		; remove whitespace
+		keylist := StrSplit(keyliststring, ",")
+	}
+	
+;MsgBox("keylistfile=" keyliststring "`nk[1]=" keylist[1] "`nk[2]=" keylist[2] "`nk[3]=" keylist[3])
 
 	if keylist {
 		for hk in definedhklist {

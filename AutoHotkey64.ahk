@@ -21,6 +21,7 @@ SetWorkingDir A_ScriptDir
 
 
 
+
 /**********************************************************
  * 
  */
@@ -38,6 +39,28 @@ if not (A_IsAdmin)
     }
     ExitApp
 }
+
+
+
+
+/**********************************************************
+ * Globals
+ * 
+ * These must be run before any of the script is run. They establish environment variables, etc.
+ * 
+ */
+
+; Define global variable A_UserDir, e.g. C:\Users\<UserName>
+if n := InStr(A_Desktop, "\Desktop", , -1) {
+	A_UserDir := SubStr(A_Desktop, 1, n - 1)
+} else {
+	A_UserDir := ""
+}
+; Define global variable A_ProgramFiles_x86, e.g. C:\Program Files (x86)
+; The ProgramFiles(x86) environment variable contains the path of the 32-bit Program Files directory.
+A_ProgramFiles_x86 := EnvGet("ProgramFiles(x86)")
+
+
 
 
 /**********************************************************

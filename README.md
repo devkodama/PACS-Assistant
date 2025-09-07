@@ -42,7 +42,9 @@ PACS Assistant can activate the EI viewport under the mouse pointer when certain
 
 > For example, if the `W` key is mapped to EI Rotate image, pressing the `W` key will first activate the viewport under the mouse pointer and *then* rotate the image, since that is what you likely intended.
 
-In order to enable this functionality, you first need to tell PACS Assistant ([wip] via Settings) which shortcut keys are mapped to which tools in EI.
+In order to enable this functionality, you first need to tell PACS Assistant which shortcut keys are mapped to which tools in EI. This can be done by creating a file named EIKeyList.txt in the PACS Assistant directory that has a comma-separated list of shortcut keys, for example:
+
+> 1, 2, 3, 4, 5, +1, +2, +3, +4, +5, d, +d, f, +f, x, w, +w, e, +e
 
 ## New keyboard shortcuts
 

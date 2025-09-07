@@ -131,14 +131,14 @@ EM_SETREADONLY := 0x00CF
 
 
 ; Executable paths
-EXE_VPNUI := "C:\Program Files (x86)\Cisco\Cisco Secure Client\UI\csc_ui.exe"
-EXE_VPNCLI := "C:\Program Files (x86)\Cisco\Cisco Secure Client\vpncli.exe"
+EXE_VPNUI := A_ProgramFiles_x86 . "\Cisco\Cisco Secure Client\UI\csc_ui.exe"
+EXE_VPNCLI := A_ProgramFiles_x86 . "\Cisco\Cisco Secure Client\vpncli.exe"
 
-EXE_EI := "C:\Program Files (x86)\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
+EXE_EI := A_ProgramFiles_x86 . "\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
 
-EXE_PS := "C:\Users\PACS\Desktop\Nuance.PowerScribe360.application"
+EXE_PS := A_UserDir . "\Desktop\Nuance.PowerScribe360.application"
 
-EXE_EPIC := "C:\Program Files (x86)\Epic\Hyperdrive\VersionIndependent\Hyperspace.exe"
+EXE_EPIC := A_ProgramFiles_x86 . "\Epic\Hyperdrive\VersionIndependent\Hyperspace.exe"
 EPIC_CLIOPTIONS := "Id=605 Env=PRD TZ=America/Chicago enableGPU=false"
 
 ; Base filneame used to derive settings.ini and setting.username.ini filenames

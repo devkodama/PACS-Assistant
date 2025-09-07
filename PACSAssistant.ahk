@@ -111,6 +111,10 @@ SetControlDelay 0				; 0 = shortest possible delay
 */
 
 
+; debug
+; MsgBox("`nA_WorkingDir=" A_WorkingDir "`nA_ScriptDir=" A_ScriptDir "`n" "`nA_UserName=" A_UserName "`nA_UserDir=" A_UserDir "`nA_ProgramFiles=" A_ProgramFiles "`nA_ProgramFiles=" A_ProgramFiles_x86 "`nA_Desktop=" A_Desktop "`nA_MyDocuments=" A_MyDocuments)
+
+
 ; Main entry point for starting PACS Assistant, by calling PAMain()
 ;
 PAMain()
@@ -487,10 +491,9 @@ PAMain() {
 		if n < 1 {
 			GUIAlert("🡨 Tabs on the left side navigate between Home, Settings, Window Manager, and Help pages.", "blue")
 			GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
-			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions (or F2)", "blue")
+			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions", "blue")
 			Setting["run"].value := n + 1
 		}
 
-	
 
 }
