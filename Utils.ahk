@@ -17,6 +17,7 @@
  *  StdoutToVar(sCmd, sDir:="", sEnc:="CP0")            - Function to run a command line command and return its output as an
  *                                                          object of the form {Output: sOutput, ExitCode: nExitCode}
  *
+ *  SetTray(version := "")                              - Redefines the tray menu and tray tooltip
  * 
  */
 
@@ -153,4 +154,54 @@ StdoutToVar(sCmd, sDir:="", sEnc:="CP0") {
     DllCall( "CloseHandle", "Ptr", NumGet(PI, 0, "Ptr") )
     DllCall( "CloseHandle", "Ptr", NumGet(PI, A_PtrSize, "Ptr") )
     Return { Output: sOutput, ExitCode: nExitCode } 
+}
+
+
+; Replaces the system tray icon menu.
+;
+; Copied from https://github.com/Nigh/ahk-autoupdate-template/blob/main/tray.ahk
+SetTray(version := "") {
+	
+    ; returns a function that runs the specified webpage
+    gotoWebpage_maker(url) {
+        webpage(*) {
+            Run(url)
+        }
+        return webpage
+    }
+
+    ; exit the application
+	quit_pa(*) {
+TTip("Quit PACS Assistant")
+;		trueExit("", "")
+	}
+
+    ; If not passed as a parameter, get the current version for display from the version.txt file.
+    if !version {
+        try {
+            version := FileRead("version.txt")
+            version := SubStr(version, 1, 20)       ; limit to 20 chars
+        } catch {
+            version := "missing version.txt" 
+        }
+    }
+    
+    ; create the tray menu
+	tray := A_TrayMenu
+
+;    tray.delete
+
+;	tray.add("v" . version, (*) => {})
+
+    tray.add()
+	tray.add("Github ahk-autoupdate-template", gotoWebpage_maker("https://github.com/Nigh/ahk-autoupdate-template"))
+;	tray.add("Other", other_callback(ItemName, ItemPos, MenuRef))
+
+    tray.add()
+	tray.add("Quit PACS Assistant", quit_pa)
+	tray.ClickCount := 1
+
+    ; set tray icon's tooltip
+    A_IconTip := "PACS Assistant`n" version
+
 }

@@ -257,33 +257,42 @@ VPNStart(cred := CurrentUserCredentials) {
 		return 1
 	}
 
+	; if no username, ask user before proceeding
+	if !cred.username && !GUIGetUsername() {
+		; couldn't get a username from the user, return failure (0)
+		GUIStatus("Could not start VPN - username needed")
+		running := false
+		return 0
+	}
+	
+	; if no password, ask user before proceeding
+	if !cred.Password && !GUIGetPassword() {
+		; couldn't get a password from the user, return failure (0)
+		GUIStatus("Could not start VPN - password needed")
+		running := false
+		return 0
+	}
+	cred.password := CurrentUserCredentials.password
+
 	; close OTP window if currently open, to get back to main vpn window
 	hwndotp := App["VPN"].Win["otp"].IsReady()
 	if hwndotp {
 		ControlClick("Cancel", hwndotp, , , , "NA")
 		WinWaitClose(hwndotp)
-	}
+	}	
 
 	; close login window if currently open, to get back to main vpn window
 	hwndlogin := App["VPN"].Win["login"].IsReady()
 	if hwndlogin {
 		ControlClick("Cancel", hwndlogin, , , , "NA")
 		WinWaitClose(hwndlogin)
-	}
+	}	
 
 	; don't allow focus following while trying to make a VPN connection
 	PAWindowBusy := true
 
 	; allow user to cancel long running operation
 	GUIShowCancelButton()
-
-	; if no password, ask user before proceeding
-	if !cred.Password && !GUIGetPassword() {
-		; couldn't get a password from the user, return failure (0)
-        GUIStatus("Could not start VPN - password needed")
-		running := false
-		return 0
-	}
 
 	; loop until connected, timed out, cancelled, or failed too many times
 	connected := false

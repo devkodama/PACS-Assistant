@@ -161,7 +161,7 @@ INFO_DOB_FORMAT := "M/d/yyyy"
 
 ; PA GUI
 GUIWINDOWTITLE := "PACS Assistant"
-GUIHOMEPAGE := "pages/PACSAssistant.html"
+GUIHOMEPAGE := "pages\PACSAssistant.html"
 
 ; Used in Info.ahk. Format for returning DOB from Patient object.
 INFO_DOB_FORMAT := "M/d/yyyy"

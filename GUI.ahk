@@ -43,18 +43,6 @@
 
 
 /**********************************************************
- * Compile options
- */
-
-
-if (A_IsCompiled) {
-    WebViewToo.CreateFileFromResource((A_PtrSize * 8) "bit\WebView2Loader.dll")
-}
-
-
-
-
-/**********************************************************
  * Global variables and constants used in this module
  */
 
@@ -441,6 +429,73 @@ GUIMain(*) {
  */
 
 
+; Shows a modal dialog to ask for the user's username.
+;
+; Can optionally specify a text prompt.
+;
+; If non-empty, the password is stored in Setting["username"]
+;
+; Returns true on success (non-empty username), false on cancel or failure.
+GUIGetUsername(prompt := "Please enter your username") {
+    global Setting
+    local username
+    local done
+
+    _GUIProcessCancel(*) {
+        usrGUI.Hide()
+        username := ""
+        done := true
+    }
+    _GUIProcessUsername(*) {
+        username := usrGUI.Submit().username
+        done := true
+    }
+
+    ; create the password GUI (ahk style gui)
+    usrGUI := Gui("+AlwaysOnTop -SysMenu +Owner +0x80880000", "Username")
+    SetDarkWindowFrame(usrGUI)
+
+    usrGUI.SetFont("s10")
+    usrGUI.Add("Text", "x20 y40", prompt)
+    usrGUI.Add("Edit", "yp vusername Limit" . PA_USERNAME_MAXLENGTH)
+    usrGUI.Add("Button", "x120 y80", "Cancel").OnEvent("Click", _GUIProcessCancel)
+    usrGUI.Add("Button", "yp default", "Ok").OnEvent("Click", _GUIProcessUsername)
+    usrGUI.OnEvent("Close", _GUIProcessUsername)
+
+    ; calculate position for dialog window
+    p := App["PA"].Win["main"].pos
+    if p.w < WINPOS_MINWIDTH || p.h < WINPOS_MINHEIGHT {
+        ; invalid w or h, use sensible default
+        x := 400
+        y := 400
+    } else {
+        ; center over PA main window
+        x := p.x + (p.w - 380) / 2
+        y := p.y + (p.h - 140) / 2
+    }
+
+    ; show the gui
+    usrGUI.Show("x" x " y" y " w380 h140")
+
+    ; wait for the user to enter a username or cancel
+    done := false
+    while !done {
+        Sleep(500)
+    }
+
+    if username {
+        ; we got a non-empty username, store it
+        Setting["username"].value := username
+        ; update the GUI Settings page
+        SettingsGeneratePage()
+        return true
+    } else {
+        ; didn't get a username, don't save anything
+        return false
+    }
+}
+
+
 ; Shows a modal dialog to ask for the user's password.
 ;
 ; Can optionally specify a text prompt.
@@ -448,7 +503,6 @@ GUIMain(*) {
 ; If non-empty, the password is stored in Setting["password"]
 ;
 ; Returns true on success (non-empty password), false on cancel or failure.
-;
 GUIGetPassword(prompt := "Please enter your password") {
     global Setting
     local pwd

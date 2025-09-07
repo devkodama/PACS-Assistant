@@ -92,6 +92,9 @@ SetControlDelay 0				; 0 = shortest possible delay
 #Include Help.ahk
 
 
+; for compiled scripts
+#Include Resources.ahk
+
 
 ; for debugging
 #Include <Peep.v2>				; for debugging
@@ -102,10 +105,9 @@ SetControlDelay 0				; 0 = shortest possible delay
 
 /**********************************************************
  * Auto execute section
- * 
  * This is where PACS Assistant execution starts.
  * 
- */
+*/
 
 
 ; Main entry point for starting PACS Assistant, by calling PAMain()
@@ -457,6 +459,9 @@ PAMain() {
 
 	; set PACS Assistant application icon
 	TraySetIcon("PA.ico")
+	
+	; set PACS Assistant tray menu and tray tooltip
+	SetTray()
 
 	; PACS Assistant basic set up
 	PAInit()
