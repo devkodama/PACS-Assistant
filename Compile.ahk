@@ -76,7 +76,7 @@ filesList := [
     "PA.ico",
     "icd10codes.txt",
     "README.md",
-    "version.txt",
+    "version",
 ]
 
 

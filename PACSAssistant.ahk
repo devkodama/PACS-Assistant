@@ -70,6 +70,7 @@ SetControlDelay 0				; 0 = shortest possible delay
 #Include FindTextStrings.ahk
 
 #Include Settings.ahk
+#Include Updater.ahk
 
 #Include AppManager.ahk
 
@@ -398,6 +399,9 @@ PAInit() {
 
 	; Get Windows system double click setting
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")
+
+	; Updater housekeeping
+	UpdaterInit()
 
 	; Initialize systemwide settings
 	SettingsInit()
