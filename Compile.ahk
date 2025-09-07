@@ -9,9 +9,11 @@
  * 
  * This script was generated with help of Google's AI Overview given the
  * search ";@Ahk2Exe-AddResource add many files"
- * [https://www.google.com/search?q=%3B%40Ahk2Exe-AddResource+add+many+files&sca_esv=4de9b1bcb3508fbc&rlz=1C1GCEA_enUS1128US1128&sxsrf=AE3TifODYEzA2JMr6rTHluES6hSzBWpsRw%3A1757192864279&ei=oKK8aLHuEIntptQP_szMyQk&ved=0ahUKEwixvujDhcWPAxWJtokEHX4mM5kQ4dUDCBA&uact=5&oq=%3B%40Ahk2Exe-AddResource+add+many+files&gs_lp=Egxnd3Mtd2l6LXNlcnAiJDtAQWhrMkV4ZS1BZGRSZXNvdXJjZSBhZGQgbWFueSBmaWxlczIFECEYoAEyBRAhGKABMgUQIRirAkjZHVDkAljrG3ABeACQAQGYAZ8BoAGkCqoBBDE0LjK4AQPIAQD4AQL4AQGYAhCgAqUJwgIOEAAYgAQYsAMYhgMYigXCAgsQABiwAxiiBBiJBcICCxAAGIAEGLADGKIEwgIIEAAYsAMY7wXCAgcQIxgnGK4CwgIIEAAYgAQYogTCAgUQABjvBcICBxAhGKABGAqYAwCIBgGQBgeSBwQxNS4xoAf4RLIHBDE0LjG4B6IJwgcEMy4xM8gHEw&sclient=gws-wiz-serp]
+ * 
  * 
  * This module defines the functions:
+ * 
+ * GenerateResources()          - Generate the resources file for PACS Assistant's compiled version
  * 
  * 
  */
@@ -24,27 +26,26 @@
 
 
 /**********************************************************
- * Auto execute section
+ * Configuration
  * 
 */
 
 
-; This script generates the compile-time directives for the folders and files in resourcesList[].
-;
-; The directives are placed in the file outputScriptFile between
-; the resourceBlockStart and resourceBlockEnd markers.
-;
 
+; the output file
 outputScriptFile := "Resources.ahk"
+
+
+; The auto-generated directives are placed in the output file between
+; the resourceBlockStart and resourceBlockEnd markers
 resourceBlockStart := "; ### RESOURCE BLOCK START ###"
 resourceBlockEnd := "; ### RESOURCE BLOCK END ###"
 
 
-
-
-; WebViewToo resources list
+; WebViewToo resources - array of resources needed for WebViewToo
 ;
 ; Array items in WVTresourcesList can be strings or arrays:
+;
 ;   If an item is a string, it is interpreted as a file or folder specification which may
 ;   contain wildcards ("*"). Directories are processed recursively.
 ;
@@ -53,17 +54,19 @@ resourceBlockEnd := "; ### RESOURCE BLOCK END ###"
 ;   is no second element, the resourcename is taken to be the same as the filename.
 ;
 ; These need to be added with ;@Ahk2Exe-AddResource directives, and also created 
-;   at runtime in the runtime temp directory by calling WebViewToo.CreateFileFromResource().
+; at runtime in the runtime temp directory by calling WebViewToo.CreateFileFromResource().
 ;
 ; At runtime, these files will be created inside a temp directory at
-;   C:\Users\<winuser>\AppData\Local\Temp\<dirname>.
+; C:\Users\<winuser>\AppData\Local\Temp\<dirname>.
 WVTresourcesList := [
     ["Lib\64bit\WebView2Loader.dll", "64bit\WebView2Loader.dll"],
     ["Lib\32bit\WebView2Loader.dll", "32bit\WebView2Loader.dll"],
     "pages\*",
 ]
 
-; List of files that need to be copied to the working directory at runtime.
+
+; File resources - array of filenames or directories of files that need to be
+; prsent in the working directory at runtime.
 ;
 ; Items in this array are strings, interpreted as a file specification.
 ; Directories are processed recursively.
@@ -79,150 +82,163 @@ filesList := [
 
 
 
-; Read the existing content of the output script.
-try {
-    scriptContent := FileRead(outputScriptFile)
-} catch {
-    scriptContent := ""
-}
+; Function that generates the resources file for PACS Assistant's compiled version.
+GenerateResources() {
 
+    ; Read the existing content of the output script.
+    try {
+        scriptContent := FileRead(outputScriptFile)
+    } catch {
+        scriptContent := ""
+    }
 
-; Find the start and end of the resource block, if they already exist.
-blockStartPos := InStr(scriptContent, resourceBlockStart)
-blockEndPos := InStr(scriptContent, resourceBlockEnd)
+    ; Find the start and end markers of the resource block
+    blockStartPos := InStr(scriptContent, resourceBlockStart)
+    blockEndPos := InStr(scriptContent, resourceBlockEnd)
 
-if !blockStartPos && !blockEndPos {
-    ; If both are not present, add the pair of markers to the end of the file.
-    scriptContent .= resourceBlockStart "`n"
-    scriptContent .= resourceBlockEnd "`n"
-} else if !blockStartPos {
-    ; End marker but no start marker. Insert a start marker on the line before the end marker.
-    scriptContent := StrReplace(scriptContent, resourceBlockEnd, resourceBlockStart . "`n" . resourceBlockEnd)
-} else if !blockEndPos {
-    ; Start marker but no end marker. Insert an end marker on the line after the start marker.
-    scriptContent := StrReplace(scriptContent, resourceBlockStart, resourceBlockStart . "`n" . resourceBlockEnd)
-}
+    ; If necessary, insert start and end markers
+    if !blockStartPos && !blockEndPos {
+        ; If both are not present, add the pair of markers to the end of the file.
+        scriptContent .= resourceBlockStart "`n"
+        scriptContent .= resourceBlockEnd "`n"
+    } else if !blockStartPos {
+        ; End marker but no start marker. Insert a start marker on the line before the end marker.
+        scriptContent := StrReplace(scriptContent, resourceBlockEnd, resourceBlockStart . "`n" . resourceBlockEnd)
+    } else if !blockEndPos {
+        ; Start marker but no end marker. Insert an end marker on the line after the start marker.
+        scriptContent := StrReplace(scriptContent, resourceBlockStart, resourceBlockStart . "`n" . resourceBlockEnd)
+    }
 
-blockStartPos := InStr(scriptContent, resourceBlockStart)
-blockEndPos := InStr(scriptContent, resourceBlockEnd)
-if !blockStartPos || !blockEndPos {
-    ; error condition
-    MsgBox("Could not find or add resource start and end markers. " outputScriptFile " was not created or modified.")
-    ExitApp()
-}
+    ; double check that we have both start and end markers in the file
+    blockStartPos := InStr(scriptContent, resourceBlockStart)
+    blockEndPos := InStr(scriptContent, resourceBlockEnd)
+    if !blockStartPos || !blockEndPos {
+        ; error condition
+        MsgBox("Could not find or add resource start and end markers. " outputScriptFile " was not created or modified.")
+        ExitApp()
+    }
 
-; Now we have both a start and and end marker for the resource block
+    ; Start generating the new resource directives
+    newDirectives := '; This block is autogenerated and replaced each time the Compile.ahk script is run.`n`n'
 
+    ; Process WVTresourcesList, build directives for adding resources
+    wvtAddDirectives := ''
+    wvtCreateDirectives := ''
+    for item in WVTresourcesList {
 
-; Generate the new resource directives.
-newDirectives := '; This block is autogenerated and replaced each time the Compile.ahk script is run.`n`n'
-
-
-; Process WVTresourcesList, build directives to add resources
-wvtAddDirectives := ''
-wvtCreateDirectives := ''
-for item in WVTresourcesList {
-
-    if IsObject(item) {
-        ; assume item is an Array[]
-        try {
-            filename := item[1]
-        } catch {
-            filename := ''
-        }
-        try {
-            resourcename := item[2]
-        } catch {
-            resourcename := filename
-        }
-        wvtAddDirectives .= ';@Ahk2Exe-AddResource ' . filename . ', ' . resourcename . '`n'
-        wvtCreateDirectives .= '`tWebViewToo.CreateFileFromResource("' . resourcename . '")`n'
-
-    } else {
-        ; assume resource is a string specifying a filepath
-
-        ; if a simple file (no backslash indicating a directory), don't loop
-        if !InStr(item, "\") {
-            ; a simple file
-            filename := item
-            resourcename := filename
-
+        if IsObject(item) {
+            ; assume item is an Array[]
+            try {
+                filename := item[1]
+            } catch {
+                filename := ''
+            }
+            try {
+                resourcename := item[2]
+            } catch {
+                resourcename := filename
+            }
             wvtAddDirectives .= ';@Ahk2Exe-AddResource ' . filename . ', ' . resourcename . '`n'
             wvtCreateDirectives .= '`tWebViewToo.CreateFileFromResource("' . resourcename . '")`n'
+
         } else {
-            ; a path with a directory, loop through it
-            Loop Files item, "R" {      
-                filename := (A_LoopFileDir ? A_LoopFileDir . '\' : '') . A_LoopFileName
+            ; assume item is a string specifying a filepath
+
+            ; if a simple file (no backslash indicating a directory), don't loop
+            if !InStr(item, "\") {
+                ; a simple file
+                filename := item
                 resourcename := filename
 
                 wvtAddDirectives .= ';@Ahk2Exe-AddResource ' . filename . ', ' . resourcename . '`n'
                 wvtCreateDirectives .= '`tWebViewToo.CreateFileFromResource("' . resourcename . '")`n'
+            } else {
+                ; a path with a directory, loop through it
+                Loop Files item, "R" {      
+                    filename := (A_LoopFileDir ? A_LoopFileDir . '\' : '') . A_LoopFileName
+                    resourcename := filename
+
+                    wvtAddDirectives .= ';@Ahk2Exe-AddResource ' . filename . ', ' . resourcename . '`n'
+                    wvtCreateDirectives .= '`tWebViewToo.CreateFileFromResource("' . resourcename . '")`n'
+                }
             }
         }
     }
-}
 
-newDirectives .= ";@Ahk2Exe-AddResource " . filename . ", " filename . "`n"
+    newDirectives .= ";@Ahk2Exe-AddResource " . filename . ", " filename . "`n"
 
-; Process filesList, build directives to add resources and create directories
-fileInstallDirectives := ''
-directoryList := Map()
-for item in filesList {
-    ; resource is expected to be a string specifying a filepath
+    ; Process filesList, build directives for adding files and creating directories
+    fileInstallDirectives := ''
+    directoryList := Map()
+    for item in filesList {
+        ; item is expected to be a string specifying a filepath
 
-    ; if a simple file (no backslash indicating a directory), don't loop
-    if !InStr(item, "\") {
-        ; a simple file
-        sourcefile := item
-        destfile := sourcefile
-
-        fileInstallDirectives .= 'FileInstall "' . sourcefile . '", "' . destfile . '", 1`n'    ; 1 = overwrite
-    } else {
-        ; a path with a directory, loop through it
-        Loop Files item, "R" {
-            ; add the directory to list of directories
-            directoryList[A_LoopFileDir] := true
-            sourcefile := (A_LoopFileDir ? A_LoopFileDir . "\" : "") . A_LoopFileName
+        ; if a simple file (no backslash indicating a directory), don't loop
+        if !InStr(item, "\") {
+            ; a simple file
+            sourcefile := item
             destfile := sourcefile
 
             fileInstallDirectives .= 'FileInstall "' . sourcefile . '", "' . destfile . '", 1`n'    ; 1 = overwrite
+        } else {
+            ; a path with a directory, loop through it
+            Loop Files item, "R" {
+                ; add the directory to list of directories
+                directoryList[A_LoopFileDir] := true    ; this adds a map entry with A_LoopFileDir as the key
+                sourcefile := (A_LoopFileDir ? A_LoopFileDir . "\" : "") . A_LoopFileName
+                destfile := sourcefile
+
+                fileInstallDirectives .= 'FileInstall "' . sourcefile . '", "' . destfile . '", 1`n'    ; 1 = overwrite
+            }
         }
     }
-}
 
-dirCreateDirectives := ''
-if directoryList.Count > 0 {
-    for dir, in directoryList {
-        newDirDirectives .= 'if !DirExist("' . dir . '") {`n`tDirCreate("' . dir . '")`n}`n'
+    dirCreateDirectives := ''
+    if directoryList.Count > 0 {
+        for dir, in directoryList {
+            newDirDirectives .= 'if !DirExist("' . dir . '") {`n`tDirCreate("' . dir . '")`n}`n'
+        }
     }
+
+    ; assemble all the new directives
+    if wvtAddDirectives {
+        newDirectives .= wvtAddDirectives . '`n'
+    }
+    if (wvtCreateDirectives) {
+        newDirectives .= 'if (A_IsCompiled) {`n'
+        newDirectives .= wvtCreateDirectives
+        newDirectives .= '}`n`n'
+    }
+    if fileInstallDirectives {
+        newDirectives .= fileInstallDirectives . '`n'
+    }
+    if (dirCreateDirectives) {
+        newDirectives .= dirCreateDirectives . '`n'
+    }
+
+    ; combine the new directives with the pre-existing script (that was outside the resource block markers)
+    beforeBlock := SubStr(scriptContent, 1, blockStartPos + StrLen(resourceBlockStart))
+    afterBlock := SubStr(scriptContent, blockEndPos)
+
+    newScriptContent := beforeBlock . newDirectives . afterBlock
+
+    ; Write the updated script content back to the file.
+    if FileExist(outputScriptFile) {
+        FileDelete(outputScriptFile)
+    }
+    FileAppend(newScriptContent, outputScriptFile)
+
+    MsgBox("Success, resource directives have been updated in " outputScriptFile ".")
 }
 
-; assemble all the new directives
-if wvtAddDirectives {
-    newDirectives .= wvtAddDirectives . '`n'
-}
-if fileInstallDirectives {
-    newDirectives .= fileInstallDirectives . '`n'
-}
-if (dirCreateDirectives) {
-    newDirectives .= dirCreateDirectives . '`n'
-}
-if (wvtCreateDirectives) {
-    newDirectives .= 'if (A_IsCompiled) {`n'
-    newDirectives .= wvtCreateDirectives
-    newDirectives .= '}`n'
-}
 
-; combine the new directives with pre-existing script (outside the resource block markers)
-beforeBlock := SubStr(scriptContent, 1, blockStartPos + StrLen(resourceBlockStart))
-afterBlock := SubStr(scriptContent, blockEndPos)
 
-newScriptContent := beforeBlock . newDirectives . afterBlock
 
-; Write the updated script content back to the file.
-if FileExist(outputScriptFile) {
-    FileDelete(outputScriptFile)
-}
-FileAppend(newScriptContent, outputScriptFile)
+/**********************************************************
+ * Auto execute section
+ * 
+*/
 
-MsgBox("Success, resource directives have been updated in " outputScriptFile ".")
+
+; Call the function that does the work.
+GenerateResources()
