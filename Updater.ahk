@@ -125,7 +125,7 @@ UpdaterPerformUpdate(filename, urllatestrelease) {
 
 
 
-; Download "https://github.com/devkodama/PACS-Assistant/raw/refs/tags/v0.6.1-beta/notes.txt", "AHKVersion.txt"
+Download "http://subrads.com/system/files/ref/images/03_990973_01B.jpeg", "test.jpeg"
 
 
 
