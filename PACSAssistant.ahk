@@ -70,6 +70,7 @@ SetControlDelay 0				; 0 = shortest possible delay
 #Include FindTextStrings.ahk
 
 #Include Settings.ahk
+#Include Updater.ahk
 
 #Include AppManager.ahk
 
@@ -93,7 +94,7 @@ SetControlDelay 0				; 0 = shortest possible delay
 
 
 ; for compiled scripts
-#Include Resources.ahk
+#Include Compiled.ahk
 
 
 ; for debugging
@@ -108,6 +109,10 @@ SetControlDelay 0				; 0 = shortest possible delay
  * This is where PACS Assistant execution starts.
  * 
 */
+
+
+; debug
+; MsgBox("`nA_WorkingDir=" A_WorkingDir "`nA_ScriptDir=" A_ScriptDir "`n" "`nA_UserName=" A_UserName "`nA_UserDir=" A_UserDir "`nA_ProgramFiles=" A_ProgramFiles "`nA_ProgramFiles=" A_ProgramFiles_x86 "`nA_Desktop=" A_Desktop "`nA_MyDocuments=" A_MyDocuments)
 
 
 ; Main entry point for starting PACS Assistant, by calling PAMain()
@@ -399,6 +404,9 @@ PAInit() {
 	; Get Windows system double click setting
 	PADoubleClickSetting := DllCall("GetDoubleClickTime")
 
+	; Updater housekeeping
+	UpdaterInit()
+
 	; Initialize systemwide settings
 	SettingsInit()
 
@@ -444,11 +452,11 @@ PAInit() {
 	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()
 
-	; Set up special EI key mappings
-	PA_MapActivateEIKeys()
-
 	; Read ICD code file
 	ICDReadCodeFile()
+
+	; Set up special EI key mappings
+	PA_MapActivateEIKeys()
 
 }
 
@@ -481,12 +489,11 @@ PAMain() {
 		; Display informational alerts the first few time(s) PA is run
 		n := Setting["run"].value
 		if n < 1 {
-			GUIAlert("🡨 Tabs on the left side navigate between Home, Settings, Window Manager, and Help pages.", "blue")
-			GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
-			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions (or F2)", "blue")
+			GUIAlert("Tabs on the left side navigate between Home, Window Manager, Settings, and Help pages. Icons on the right side start and stop applications, left click to start, right click menu to stop.", "blue")
+			; GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
+			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions", "blue")
 			Setting["run"].value := n + 1
 		}
 
-	
 
 }

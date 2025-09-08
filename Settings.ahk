@@ -76,7 +76,6 @@ Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized v
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
 ; VPN settings
-Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
 Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
@@ -85,7 +84,8 @@ Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "O
 Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
-Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to edit the list of hotkeys PA_EIKeyList[] in the file Hotkeys.ahk.")
+Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. [wip] Before enabling, need to specify a list of EI hotkeys.") 
+;Setting["EIkeylist"] := SetItem("EIkeylist", "text", "1,2,3,4,5,+1,+2,+3,+4,+5,d,+d,f,+f,x,w,+w,e,+e", , "EI hotkey list")
 
 ; PS settings
 Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
@@ -141,6 +141,8 @@ Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar 
 
 ; Advanced
 Setting["Debug"] := SetItem("Debug", "bool", false, , "Enable debugging messages")
+Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
+Setting["EI_SERVER"] := SetItem("EI_SERVER", "text", EI_SERVER, , "EI server (default is " . EI_SERVER . ")")
 
 ; Misc settings
 Setting["run"] := SetItem("run", "num", 0, , "")
@@ -175,7 +177,6 @@ SettingsPage.Push("UseVoice")
 SettingsPage.Push(">Voice")
 
 SettingsPage.Push("#VPN")
-SettingsPage.Push("VPN_url")
 SettingsPage.Push("VPN_center")
 
 SettingsPage.Push("#EI")
@@ -183,6 +184,7 @@ SettingsPage.Push("EI_restoreatopen")
 SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
 SettingsPage.Push("EIactivate")
+;SettingsPage.Push("EIkeylist")
 
 SettingsPage.Push("#PowerScribe")
 SettingsPage.Push("PS_restoreatopen")
@@ -220,6 +222,8 @@ SettingsPage.Push("hkSpaceClick")
 
 SettingsPage.Push("#Advanced")
 SettingsPage.Push("Debug")
+SettingsPage.Push("VPN_url")
+SettingsPage.Push("EI_SERVER")
 
 SettingsPage.Push("#Beta - Experimental, not working yet")
 SettingsPage.Push("hkSpaceDelete")
@@ -274,7 +278,7 @@ class SetItem {
             ;     case "select":
             ;         return this._key
             ;     default:
-                    return this._value
+                return this._value
             ; }
         }
         set { 
@@ -366,8 +370,20 @@ class SetItem {
                     }
                 default:
                     ; [todo] #64 need bounds checking...
+
                     this._value := Trim(Value)
                     this._key := ""
+
+                    ; Need to special case EIkeylist setting. It requires a call to 
+                    ; PA_MapActivateEIKeys() on every update to update the hotkeys.
+                    switch this.name {
+                        case "EIkeylist":
+                            ttip("call PA_MapActivateEIKeys()")
+                            PA_MapActivateEIKeys()
+                        default:
+                            ; no special processing
+                    }
+
             }
             ; Save this update setting to the .ini file
             this.SaveSetting()
@@ -453,7 +469,7 @@ class SetItem {
                 if Setting.Has("inifile") && Setting["inifile"].value {
                     IniWrite(this._value, Setting["inifile"].value, "PASettings", this.name) 
                 }
-        } 
+        }
     }
 
     ; Called when a new Setting object is created.

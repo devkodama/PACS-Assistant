@@ -1,13 +1,10 @@
 /**
- * PACSAssistant.ahk
+ * Version.ahk
  * 
- * Main script for PACS Assistant.
  * 
  * 
  * This module defines the functions:
  * 
- *	PAInit()					- Called once at startup to do necessary initialization
- * 	PAMain()					- Main starting point for PACS Assistant
  * 
  * 
  */

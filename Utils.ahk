@@ -176,13 +176,13 @@ TTip("Quit PACS Assistant")
 ;		trueExit("", "")
 	}
 
-    ; If not passed as a parameter, get the current version for display from the version.txt file.
+    ; If not passed as a parameter, get the current version for display from the version file.
     if !version {
         try {
-            version := FileRead("version.txt")
+            version := FileRead("version")
             version := SubStr(version, 1, 20)       ; limit to 20 chars
         } catch {
-            version := "missing version.txt" 
+            version := "missing version" 
         }
     }
     
