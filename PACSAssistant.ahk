@@ -30,7 +30,31 @@
 
 
 /**********************************************************
- * Defaults
+ * Run as Admin
+ */
+
+; Run as Admin in order to interact with other programs that 
+; are running as Admin (https://www.autohotkey.com/docs/v2/lib/Run.htm#RunAs)
+;
+; If this is not done, then we have trouble communicating with windows on 
+; hospital workstations.
+if not (A_IsAdmin)
+{
+    try
+    {
+        if A_IsCompiled
+            Run '*RunAs "' A_ScriptFullPath '" /restart'
+        else
+            Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+    }
+    ExitApp
+}
+
+
+
+
+/**********************************************************
+ * Program-wide defaults
  * 
  * Don't change these without considering global implications!
  *
@@ -44,6 +68,22 @@ DetectHiddenText false			; false - don't search hidden text by default
 
 SetDefaultMouseSpeed 0			; 0 = fastest
 SetControlDelay 0				; 0 = shortest possible delay
+
+; Makes a script unconditionally use its own folder as its working directory.
+; Ensures a consistent starting directory. [Is this necessary?]
+SetWorkingDir A_ScriptDir
+
+
+; Define the global variable A_UserDir, e.g. C:\Users\<UserName>
+if n := InStr(A_Desktop, "\Desktop", , -1) {
+	A_UserDir := SubStr(A_Desktop, 1, n - 1)
+} else {
+	A_UserDir := ""
+}
+
+; Define the global variable A_ProgramFiles_x86, e.g. C:\Program Files (x86)
+; The ProgramFiles(x86) environment variable contains the path of the 32-bit Program Files directory.
+A_ProgramFiles_x86 := EnvGet("ProgramFiles(x86)")
 
 
 
@@ -62,14 +102,13 @@ SetControlDelay 0				; 0 = shortest possible delay
 #Include <FindText>
 #include <_MD_Gen>
 
-
 ; PACS Assistant modules
 #Include Utils.ahk
-
 #Include Globals.ahk
 #Include FindTextStrings.ahk
 
 #Include Settings.ahk
+
 #Include Updater.ahk
 
 #Include AppManager.ahk
@@ -85,17 +124,12 @@ SetControlDelay 0				; 0 = shortest possible delay
 #Include EPIC.ahk
 
 #Include GUI.ahk
-
-
+#Include Help.ahk
 
 #Include Hotkeys.ahk
 
-#Include Help.ahk
-
-
 ; for compiled scripts
 #Include Compiled.ahk
-
 
 ; for debugging
 #Include <Peep.v2>				; for debugging
@@ -115,8 +149,7 @@ SetControlDelay 0				; 0 = shortest possible delay
 ; MsgBox("`nA_WorkingDir=" A_WorkingDir "`nA_ScriptDir=" A_ScriptDir "`n" "`nA_UserName=" A_UserName "`nA_UserDir=" A_UserDir "`nA_ProgramFiles=" A_ProgramFiles "`nA_ProgramFiles=" A_ProgramFiles_x86 "`nA_Desktop=" A_Desktop "`nA_MyDocuments=" A_MyDocuments)
 
 
-; Main entry point for starting PACS Assistant, by calling PAMain()
-;
+; Main entry point for starting PACS Assistant, call PAMain();
 PAMain()
 
 
@@ -197,63 +230,6 @@ PAShow_main(hwnd, hook, dwmsEventTime) {
  * Local functions defined by this module
  * 
  */
-
-
-; This local callback function is called when a window matching specific criteria
-; is shown on screen. It updates the WinItem object for the window.
-_PAWindowShowCallback(hwnd, hook, dwmsEventTime) {
-
-	; Figure out which application window was created by searching
-	; for matching criteria
-	crit := hook.MatchCriteria[1]
-	text := hook.MatchCriteria[2]
-
-TTip("Show " hwnd ": ('" crit "','" text "') => ?")
-
-	for k, a in App {
-		for , w in a.Win {
-			if crit = w.criteria && text = w.wintext {
-				; found the window, update it with the new hwnd
-				; w.Update(hwnd)
-TTip("Show " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
-				break 2		; break out of both for loops
-			}
-		}
-	}
-
-}
-
-
-; This local callback function is called when a specific window is closed
-;
-_PAWindowCloseCallback(hwnd, hook, dwmsEventTime) {
-
-	crit := hook.MatchCriteria[1]
-	text := hook.MatchCriteria[2]
-
-; PAToolTip("Close " hwnd ": ('" crit "','" text "') => ?")
-
-	; Figure out which application window was created by searching
-	; for matching criteria
-	for k, a in App {
-		for , w in a.Win {
-			if crit = w.criteria && text = w.wintext {
-				; found the window, reset the window's properties and call its hook_close
-; PAToolTip("Close " hwnd ": ('" crit "','" text "') => " a.key "/" w.key)
-				w.Close(false)
-				break 2		; break out of both for loops
-			}
-		}
-	}
-	
-	; try {
-	; 	win := GetWinItem(hwnd)
-	; 	if win {
-	; 		win.Clear()		; Clears the hwnd and other properties
-	; 	}
-	; }
-	
-}
 
 
 
@@ -461,12 +437,13 @@ PAInit() {
 }
 
 
-; Main starting point for PACS Assistant
+; Main function for PACS Assistant
 ;
 PAMain() {
 
+; ?don't need
 	; set PACS Assistant application icon
-	TraySetIcon("PA.ico")
+	; TraySetIcon("PA.ico")
 	
 	; set PACS Assistant tray menu and tray tooltip
 	SetTray()
@@ -481,19 +458,19 @@ PAMain() {
     DaemonInit()
 
 	; Check for a username. 
-	; If no current username, post an alert and ask for one.
+	; If no current username, post an alert 
 	if !CurrentUserCredentials.username {
 		GUIAlert("To get started, enter your username and password on the Settings page.", "green")
 		PAShowSettings()
 	} 
-		; Display informational alerts the first few time(s) PA is run
-		n := Setting["run"].value
-		if n < 1 {
-			GUIAlert("Tabs on the left side navigate between Home, Window Manager, Settings, and Help pages. Icons on the right side start and stop applications, left click to start, right click menu to stop.", "blue")
-			; GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
-			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions", "blue")
-			Setting["run"].value := n + 1
-		}
 
+	; Display informational alerts the first time PA is run
+	n := Setting["run"].value
+	if n < 1 {
+		GUIAlert("Tabs on the left side navigate between Home, Window Manager, Settings, and Help pages. Icons on the right side start and stop applications, left click to start, right click menu to stop.", "blue")
+		; GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
+		GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions", "blue")
+		Setting["run"].value := n + 1
+	}
 
 }
