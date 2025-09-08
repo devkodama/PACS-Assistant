@@ -1,5 +1,5 @@
 /**
- * AutoHotkeys64.ahk
+ * AutoHotkey64.ahk
  * 
  * Helper script for PACS Assistant.
  * 
