@@ -24,7 +24,7 @@ On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, bu
 
 ## Window management
 
-PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up.
+PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. [nb current version is slightly buggy, EI desktop doesn't always restore.]
 
 PACS Assistant can automatically dismiss selected popup messages, such as the PowerScribe, EI, or Epic confirmation messages.
 
@@ -42,7 +42,7 @@ PACS Assistant can activate the EI viewport under the mouse pointer when certain
 
 > For example, if the `W` key is mapped to EI Rotate image, pressing the `W` key will first activate the viewport under the mouse pointer and *then* rotate the image, since that is what you likely intended.
 
-In order to enable this functionality, you first need to tell PACS Assistant which shortcut keys are mapped to which tools in EI. This can be done by creating a file named EIKeyList.txt in the PACS Assistant directory that has a comma-separated list of shortcut keys, for example:
+In order to enable this functionality, you first need to tell PACS Assistant which shortcut keys are mapped to which tools in EI. [WIP] Not done yet, don't use -> This can be done by creating a file named EIKeyList.txt in the PACS Assistant directory that has a comma-separated list of shortcut keys, for example:
 
 > 1, 2, 3, 4, 5, +1, +2, +3, +4, +5, d, +d, f, +f, x, w, +w, e, +e
 
@@ -118,7 +118,7 @@ The **Spacebar** can do one of several things:
 
 ### Microphone auto on/off ###
 
-PACS Assistant can automatically turn on the microphone when you open a report for dictation, and turn it off when you close it. It can also automatically turn off the microphone after a period of inactivity (*e.g.* if you leave your workstation).
+PACS Assistant can automatically turn on the microphone when you open a report for dictation, and turn it off when you close it. It can also automatically turn off the microphone after a period of inactivity (*e.g.* when you leave your workstation).
 
 ### Mouse jiggler
 
@@ -134,8 +134,8 @@ PACS Assistant is optimized for a handsfree setup, *i.e.* a handsfree microphone
 
 If frequently used EI keyboard shortcuts are mapped to the left half of the keyboard, then reading can be done with minimal hand movements and without needing to look away from the screen.
 
-PACS Assistant can be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to different keys. I've found that I prefer using the regular keyboard because it is available on any workstation without the need to plug in an accessory keypad.
+PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to different keys. I've found that I prefer using the regular keyboard because it doesn't require extra hardware and is available on every workstation.
 
-PACS Assistant is still under development with more features to come. You may (will) encounter bugs or conflicts with other applications; in most cases, temporariliy disabling PACS Assistant can bypass the problem.
+PACS Assistant is still under heavy development with more features to come. You may (will) encounter bugs or conflicts with other applications; in most cases, temporariliy disabling PACS Assistant with the on/off toggle switch can bypass the problem.
 
 Feedback is welcome, let me know of issues you encounter or new features you'd like to see.

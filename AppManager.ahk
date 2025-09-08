@@ -240,6 +240,8 @@ class WinPos {
 ;
 ; AppItem methods:
 ;
+;   Close()     - Terminates the process, via call to ProcessClose()
+;
 ;   Print()     - Returns diagnostic info about the window(s) for this app as a string
 ;
 ;;;   CountOpenWindows()   - Returns the number of open (and visible?) windows that belong to this app
@@ -287,6 +289,16 @@ class AppItem {
     isrunning {
         get {
             return this.pid ? true : false
+        }
+    }
+
+    ;
+    Close() {
+        if this.pid {
+            try {
+                ProcessClose(this.pid)
+            } catch {
+            }
         }
     }
 

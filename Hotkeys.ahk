@@ -24,7 +24,7 @@
 ;		PA_EIKeyList := ["1", "2", "3", "d", "+d", "f", "+f", "x", "^w", "^!e", "!q"]
 ; where + = Shift, ^ = Ctrl, ! = Alt.
 ;
-PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
+; PA_EIKeyList := ["1", "2", "3", "4", "5", "+1", "+2", "+3", "+4", "+5", "d", "+d", "f", "+f", "x", "w", "+w", "e", "+e"]
 
 
 
@@ -478,24 +478,36 @@ _LButton_beep() {
 ; Each time this function is called, any hotkeys previously defined by this function are 
 ; disabled (no way to actually delete them) prior to defining the new list of hotkeys.
 ;
-; If a file called EIKeyList.txt exists, then it is read and used in lieu of the default or passed keylist.
-; EIKeyList.txt should be a comma separated list of hotkeys.
+;; If a file called EIKeyList.txt exists, then it is read and used in lieu of the default or passed keylist.
+;; EIKeyList.txt should be a comma separated list of hotkeys.
 ;
-PA_MapActivateEIKeys(keylist := PA_EIKeyList) {
+PA_MapActivateEIKeys() {
 	static definedhklist := Array()		; remembers all hotkeys which have been defined previously through this function
+
+	keylist := Array()
+
 	if FileExist("EIKeylist.txt") {
 		keyliststring := FileRead("EIKeylist.txt")
 		keyliststring := RegExReplace(keyliststring, "[ \n\t]")		; remove whitespace
 		keylist := StrSplit(keyliststring, ",")
 	}
-	
+
+; MsgBox("EIkeylist=" Setting["EIkeylist"].value)
+; 	if t {
+; 		keyliststring := Setting["EIkeylist"].value
+; 		keyliststring := RegExReplace(keyliststring, "[ \n\t]")		; remove whitespace
+; 		keylist := StrSplit(keyliststring, ",")
+; 	} else {
+; 		keylist := Array()
+; 	}
+
 ;MsgBox("keylistfile=" keyliststring "`nk[1]=" keylist[1] "`nk[2]=" keylist[2] "`nk[3]=" keylist[3])
 
-	if keylist {
-		for hk in definedhklist {
-			Hotkey(hk, "Off")	; disable previously defined hotkeys
-		}
+	for hk in definedhklist {
+		Hotkey(hk, "Off")	; disable previously defined hotkeys
+	}
 
+	if keylist.Length > 0 {
 		if Setting["EIactivate"].enabled {
 			for key in keylist {
 				; (re)define a hotkey for key
@@ -662,7 +674,7 @@ F8:: {
 }
 
 +F8:: {
-	
+	VPNStop()
 
 }
 

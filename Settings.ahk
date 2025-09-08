@@ -84,7 +84,8 @@ Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "O
 Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
-Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. Before enabling, need to create the file EIKeyList.txt with a list of EI hotkeys that are affected.")
+Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. [wip] Before enabling, need to specify a list of EI hotkeys.") 
+;Setting["EIkeylist"] := SetItem("EIkeylist", "text", "1,2,3,4,5,+1,+2,+3,+4,+5,d,+d,f,+f,x,w,+w,e,+e", , "EI hotkey list")
 
 ; PS settings
 Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
@@ -183,6 +184,7 @@ SettingsPage.Push("EI_restoreatopen")
 SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
 SettingsPage.Push("EIactivate")
+;SettingsPage.Push("EIkeylist")
 
 SettingsPage.Push("#PowerScribe")
 SettingsPage.Push("PS_restoreatopen")
@@ -276,7 +278,7 @@ class SetItem {
             ;     case "select":
             ;         return this._key
             ;     default:
-                    return this._value
+                return this._value
             ; }
         }
         set { 
@@ -368,8 +370,20 @@ class SetItem {
                     }
                 default:
                     ; [todo] #64 need bounds checking...
+
                     this._value := Trim(Value)
                     this._key := ""
+
+                    ; Need to special case EIkeylist setting. It requires a call to 
+                    ; PA_MapActivateEIKeys() on every update to update the hotkeys.
+                    switch this.name {
+                        case "EIkeylist":
+                            ttip("call PA_MapActivateEIKeys()")
+                            PA_MapActivateEIKeys()
+                        default:
+                            ; no special processing
+                    }
+
             }
             ; Save this update setting to the .ini file
             this.SaveSetting()

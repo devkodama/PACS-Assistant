@@ -94,7 +94,7 @@ SetControlDelay 0				; 0 = shortest possible delay
 
 
 ; for compiled scripts
-#Include Resources.ahk
+#Include Compiled.ahk
 
 
 ; for debugging
@@ -452,11 +452,11 @@ PAInit() {
 	; Read all stored window positions from user's settings.ini file
 	ReadPositionsAll()
 
-	; Set up special EI key mappings
-	PA_MapActivateEIKeys()
-
 	; Read ICD code file
 	ICDReadCodeFile()
+
+	; Set up special EI key mappings
+	PA_MapActivateEIKeys()
 
 }
 
@@ -489,8 +489,8 @@ PAMain() {
 		; Display informational alerts the first few time(s) PA is run
 		n := Setting["run"].value
 		if n < 1 {
-			GUIAlert("🡨 Tabs on the left side navigate between Home, Settings, Window Manager, and Help pages.", "blue")
-			GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
+			GUIAlert("Tabs on the left side navigate between Home, Window Manager, Settings, and Help pages. Icons on the right side start and stop applications, left click to start, right click menu to stop.", "blue")
+			; GUIAlert("Icons on the right side start and stop applications. Left click to start. Right click to stop. 🡪", "blue")
 			GUIAlert("⮦ On/Off toggle switch on the lower left enables/disables many PACS Assistant functions", "blue")
 			Setting["run"].value := n + 1
 		}

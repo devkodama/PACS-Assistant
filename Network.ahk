@@ -445,6 +445,14 @@ VPNStart(cred := CurrentUserCredentials) {
 
 	}	; while
 
+	; if not connected, terminate the client process
+	if !connected {
+		if App["VPN"].isrunning {
+			; terminate the client process
+			App["VPN"].Close()
+		}
+	}
+
 	GUIHideCancelButton()
 
 	if connected {
@@ -469,7 +477,7 @@ VPNStart(cred := CurrentUserCredentials) {
 }
 
 
-; Disconnects the Cisco AnyConnect VPN
+; Disconnects the Cisco AnyConnect VPN and exits the VPN client.
 ;
 ; Function does not allow reentry. If called again while already running, 
 ; immediately returns -1.
@@ -492,10 +500,14 @@ VPNStop() {
 	}
 	running := true
 
-	; if VPN is not connected, immediately return success
+	; if VPN is not connected, make sure client process is also terminated and the return success
 	connected := VPNIsConnected(true)
 	if !connected {
 		GUIStatus("VPN is already disconnected")
+		if App["VPN"].isrunning {
+			; terminate the client process
+			App["VPN"].Close()
+		}
 		running := false
 		return 1
 	}
@@ -518,6 +530,14 @@ VPNStop() {
 		connected := VPNIsConnected(true)
 		if PACancelRequest {
 			cancelled := true
+		}
+	}
+
+	; terminate the client process
+	if !connected {
+		if App["VPN"].isrunning {
+			; terminate the client process
+			App["VPN"].Close()
 		}
 	}
 
