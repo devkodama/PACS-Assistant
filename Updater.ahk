@@ -125,7 +125,7 @@ UpdaterPerformUpdate(filename, urllatestrelease) {
 
 
 
-Download "http://subrads.com/system/files/ref/images/03_990973_01B.jpeg", "test.jpeg"
+; Download "http://subrads.com/system/files/ref/images/03_990973_01B.jpeg", "test.jpeg"
 
 
 
