@@ -87,7 +87,7 @@ global App
 
 
 ; Define apps
-App["PA"] := AppItem("PA", "AutoHotkey64.exe", "PACS Assistant", "main")
+App["PA"] := AppItem("PA", A_AhkExe, "PACS Assistant", "main")
 App["VPN"] := AppItem("VPN", "csc_ui.exe", "Cisco Secure Client", "main")
 App["EILOGIN"] := AppItem("EILOGIN", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "login")
 App["EI"] := AppItem("EI", "javaw.exe", "Agfa HealthCare Enterprise Imaging", "d")

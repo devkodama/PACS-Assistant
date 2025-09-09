@@ -107,6 +107,12 @@ if !A_IsCompiled {
 	}
 }
 
+; A_AhkExe
+;	The executable file that is running.
+;	For example, for a non-compiled script: AutoHotkey64.exe
+;	For example, for a compiled script: PACS Assistant.exe
+SplitPath A_AhkPath, &A_AhkExe
+
 
 
 
