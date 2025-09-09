@@ -80,28 +80,8 @@ class SoundItem {
 
 
 
-/*
-; Sounds maps PA events to voice or audio feedback
-Sounds := Map()
-
-Sounds["PSTab"] := SoundItem( , [440, 10])
-Sounds["PSToggleMic"] := SoundItem( , 392)
-
-Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
-Sounds["PSDraftReport"] := SoundItem("Save as draft", , "Report saved as Draft")
-Sounds["PSSPreliminary"] := SoundItem("Preliminary report", , "Report saved as Preliminary")
-
-Sounds["EIStartReading"] := SoundItem( , 480)
-Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])
-Sounds["EIClickLockOff"] := SoundItem(, [600, 100])
-
-Sounds["EPIC"] := SoundItem("EPIC was clicked")
-*/
-
-
 
 /***********************************************/
-
 
 
 ; Plays the requested sound, passed in soundevent

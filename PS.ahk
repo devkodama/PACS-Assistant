@@ -352,6 +352,15 @@ PSShow_deletereport(hwnd, hook, dwmsEventTime) {
 	}
 }
 
+PSShow_saveautotext(hwnd, hook, dwmsEventTime) {
+	App["PS"].Win["saveautotext"].hwnd := hwnd
+	if Setting["Debug"].enabled
+		PlaySound("PS show saveautotext")
+	if Setting["PScenter_dialog"].enabled {
+		App["PS"].Win["saveautotext"].CenterWindow(App["PS"].Win["main"])
+	}
+}
+
 PSShow_unfilled(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["unfilled"].hwnd := hwnd
 	if Setting["Debug"].enabled
@@ -990,40 +999,34 @@ PSCmdNextField() {
 	PlaySound("PSTab")
 }
 
-
 ; Send the Prev field command (Shift-Tab) to PS
 PSCmdPrevField() {
 	PSSend("{Blind}+{Tab}")
 	PlaySound("PSTab")
 }
 
-
-; Move the cursor to the End of Line in PS
+; Move the cursor to the End of Line
 PSCmdEOL() {
 	PSSend("{End}")
 	PlaySound("PSTab")
 }
 
-
-; Move the cursor down one line then to the End of Line in PS
+; Move the cursor down one line then to the End of Line
 PSCmdNextEOL() {
 	PSSend("{Down}{End}")
 	PlaySound("PSTab")
 }
 
-
-; Move the cursor up one line then to the End of Line in PS
+; Move the cursor up one line then to the End of Line
 PSCmdPrevEOL() {
 	PSSend("{Up}{End}")
 	PlaySound("PSTab")
 }
 
-
-; Start/Stop Dictation (Toggle Microphone) => F4 in PS
+; Start/Stop Dictation (Toggle Microphone) => F4
 PSCmdToggleMic() {
 	PSSend("{F4}")							; Start/Stop Dictation
 }
-
 
 ; Sign report => F12 in PS
 PSCmdSignReport() {
@@ -1031,16 +1034,20 @@ PSCmdSignReport() {
 	PlaySound("PSSignReport")
 }
 
-
 ; Save as Draft => F9 in PS
 PSCmdDraftReport() {
-	PSSend("{F9}")							; save as Draft
+	PSSend("{F9}")							; Save as Draft
 	PlaySound("PSDraftReport")
 }
 
-
-; Save as Prelim => File > Prelim in PS
+; Save as Prelim => File > Prelim (Alt-F Alt-M)
 PSCmdPreliminary() {
-	PSSend("{Alt down}fm{Alt up}")			; save as Prelim
+	PSSend("{Alt down}fm{Alt up}")			; Save as Prelim
 	PlaySound("PSSPreliminary")
+}
+
+; Discard report => File > Discard (Alt-F Alt-D)
+PSCmdDiscardReport() {
+	PSSend("{Alt down}fd{Alt up}")			; Discard report
+	PlaySound("PSDiscardReport")
 }

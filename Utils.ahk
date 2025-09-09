@@ -157,10 +157,10 @@ StdoutToVar(sCmd, sDir:="", sEnc:="CP0") {
 }
 
 
-; Replaces the system tray icon menu.
+; Replaces the system tray icon, right-click menu, and tooltip.
 ;
 ; Copied from https://github.com/Nigh/ahk-autoupdate-template/blob/main/tray.ahk
-SetTray(version := "") {
+SetTray() {
 	
     ; returns a function that runs the specified webpage
     gotoWebpage_maker(url) {
@@ -176,16 +176,10 @@ TTip("Quit PACS Assistant")
 ;		trueExit("", "")
 	}
 
-    ; If not passed as a parameter, get the current version for display from the version file.
-    if !version {
-        try {
-            version := FileRead("version")
-            version := SubStr(version, 1, 20)       ; limit to 20 chars
-        } catch {
-            version := "missing version" 
-        }
-    }
-    
+    ; set PACS Assistant tray icon
+	TraySetIcon("PA.ico")
+
+
     ; create the tray menu
 	tray := A_TrayMenu
 
@@ -193,15 +187,15 @@ TTip("Quit PACS Assistant")
 
 ;	tray.add("v" . version, (*) => {})
 
-    tray.add()
-	tray.add("Github ahk-autoupdate-template", gotoWebpage_maker("https://github.com/Nigh/ahk-autoupdate-template"))
-;	tray.add("Other", other_callback(ItemName, ItemPos, MenuRef))
+    ; tray.add()
+	; tray.add("Github ahk-autoupdate-template", gotoWebpage_maker("https://github.com/Nigh/ahk-autoupdate-template"))
+    ; tray.add("Other", other_callback(ItemName, ItemPos, MenuRef))
 
-    tray.add()
-	tray.add("Quit PACS Assistant", quit_pa)
-	tray.ClickCount := 1
+    ; tray.add()
+	; tray.add("Quit PACS Assistant", quit_pa)
+	; tray.ClickCount := 1
 
     ; set tray icon's tooltip
-    A_IconTip := "PACS Assistant`n" version
+    A_IconTip := "PACS Assistant`n" . (A_IsCompiled ? "c " : "") . A_Version
 
 }

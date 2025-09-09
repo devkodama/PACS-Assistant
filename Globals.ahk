@@ -216,9 +216,9 @@ global PollShow := Array()
 global PollClose := Array()
 
 
-; PASettings holds settings used across PACS Assistant.
+; Setting[] Map holds settings used across PACS Assistant.
 ; Each entry is a {"key", SetItem()} pair. See Settings.ahk for Setting
-; class and PASettings[] definitions.
+; class and Setting[] definitions.
 global Setting
 
 
@@ -245,7 +245,7 @@ global PAStatus_PowerButton := ""
 
 
 ; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
-global PADoubleClickSetting := 400
+global PA_DoubleClickSetting := 400
 
 ; This holds the Windows mouse speed setting (1-20) - value is updated by 
 global PA_MouseSpeedSetting := 10
@@ -294,6 +294,7 @@ Sounds["PSToggleMic"] := SoundItem( , 392)
 Sounds["PSSignReport"] := SoundItem("Signed", , "Report signed")
 Sounds["PSDraftReport"] := SoundItem("Draft saved", , "Report saved as Draft")
 Sounds["PSSPreliminary"] := SoundItem("Preliminary saved", , "Report saved as Preliminary")
+Sounds["PSDiscardReport"] := SoundItem("Discard report", , "Discard report")
 
 Sounds["EIStartReading"] := SoundItem( , 480)
 Sounds["EIClickLockOn"] := SoundItem(, [1000, 100])

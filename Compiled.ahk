@@ -12,11 +12,13 @@
 
 
 ; ### RESOURCE BLOCK START ###
-
-;@Ahk2Exe-SetProductVersion 0.7.0-beta
+;@Ahk2Exe-SetVersion 0.7.1-beta
 ;@Ahk2Exe-SetCopyright Copyright 2025
 ;@Ahk2Exe-SetName PACS Assistant
 ;@Ahk2Exe-SetDescription PACS Assistant
+if A_IsCompiled {
+	A_Version := '0.7.1-beta'
+}
 
 ;@Ahk2Exe-AddResource Lib\64bit\WebView2Loader.dll, 64bit\WebView2Loader.dll
 ;@Ahk2Exe-AddResource Lib\32bit\WebView2Loader.dll, 32bit\WebView2Loader.dll
@@ -44,7 +46,7 @@
 ;@Ahk2Exe-AddResource pages\images\windows.png, pages\images\windows.png
 ;@Ahk2Exe-AddResource pages\js\scripts.js, pages\js\scripts.js
 
-if (A_IsCompiled) {
+if A_IsCompiled {
 	WebViewToo.CreateFileFromResource("64bit\WebView2Loader.dll")
 	WebViewToo.CreateFileFromResource("32bit\WebView2Loader.dll")
 	WebViewToo.CreateFileFromResource("pages\PACSAssistant.html")

@@ -138,13 +138,15 @@ GenerateCompileDirectives() {
     ; Get build version from the text file "version".
     if FileExist("version") {
         productVersion := FileRead("version")
+        productVersion := SubStr(productVersion, 1, 32)       ; limit to 32 chars
     } else {
-        productVersion := "no version"
+        productVersion := ""
     }
-    propertyDirectives .= ";@Ahk2Exe-SetProductVersion " . productVersion . "`n"
+    propertyDirectives .= ";@Ahk2Exe-SetVersion " . productVersion . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetCopyright Copyright " . A_Year . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetName " . productName . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetDescription " . productDescription . "`n"
+    propertyDirectives .= "if A_IsCompiled {`n`tA_Version := '" . productVersion . "'`n}`n"
 
     ; Process WVTresourcesList, build directives for adding resources
     wvtAddDirectives := ''
@@ -232,7 +234,7 @@ GenerateCompileDirectives() {
         newDirectives .= wvtAddDirectives . '`n'
     }
     if (wvtCreateDirectives) {
-        newDirectives .= 'if (A_IsCompiled) {`n'
+        newDirectives .= 'if A_IsCompiled {`n'
         newDirectives .= wvtCreateDirectives
         newDirectives .= '}`n`n'
     }

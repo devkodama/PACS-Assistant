@@ -17,6 +17,7 @@
 */
 
 
+; [deprecated]
 ; PA_EIKeyList is an array of EI shortcut keys for which we want automatic viewport activation.
 ; It is an array of strings, each representing one EI shortcut key.
 ;
@@ -34,6 +35,8 @@
  */
 
 
+; [wip] This doesn't quite work
+;
 ; F2 is the top level on/off switch for PACS Assistant.
 ;
 ; It toggles the switch by sending a mouse click to the PA GUI.
@@ -303,7 +306,7 @@ $Space:: {
 			}
 		} else {
 			; avoid double clicking on a window by checking system double click timeout
-			if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
+			if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting) {
 				BlockInput true
 				Click 2
 				BlockInput false
@@ -311,7 +314,7 @@ $Space:: {
 		}
 	} else if Context(WindowUnderMouse(), "EI list") {
 		; avoid double clicking on a window by checking system double click timeout
-		if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PADoubleClickSetting) {
+		if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting) {
 			BlockInput true
 			Click 2
 			BlockInput false
@@ -459,54 +462,53 @@ _LButton_beep() {
  */
 
 
-; Some EI shortcut keys operate on the currently active series which is not
+; Some EI shortcut keys operate on the currently active viewport which is not
 ; always the one under the cursor. For these keys, it is helpful to send a mouse
-; click to activate the series under the mouse prior to sending the shortcut.
+; click to activate the viewport under the mouse prior to sending the shortcut.
 ; The W/L preset keys, next/prev series, and invert keys are examples.
 ;
-; For these keys, listed in _EIKeyList, a hotkey is created to cause
-; a Click XButton2 to be sent to make the series under the mouse cursor active
-; so that the key will act upon the series under the cursor. The hotkey itself is 
-; then sent. XButton2 does not do anything by default in EI (but it does activate 
-; the series under the cursor) so it appears to be a safe choice.
+; For each of these EI shortcut keys, an autohotkey hotkey is created which
+; sends a Click XButton2 first, to make the viewport under the mouse cursor active,
+; before sending the shortcut key itself. XButton2 does not do anything by default in
+; EI (except activate the series under the cursor) so it appears to be a safe choice.
 ;
-; Click XButton2 won't be sent if the L or R mouse button is being held down.
+; Click XButton2 won't be sent if the L or R mouse button is currently being held down.
 ;
-; In effect for EI image windows
+; In effect when the mouse is hovering over the EI image windows
 ;
-; Pass an array of hotkey strings, without the $ modifier.
-; Each time this function is called, any hotkeys previously defined by this function are 
-; disabled (no way to actually delete them) prior to defining the new list of hotkeys.
-;
-;; If a file called EIKeyList.txt exists, then it is read and used in lieu of the default or passed keylist.
-;; EIKeyList.txt should be a comma separated list of hotkeys.
+; The list of EI shortcut keys to intercept in the manner is kept in Setting["EIkeylist"].value.
+; Setting["EIkeylist"].value holds a string containing a comma-separated string of keys,
+; such as "1,2,3,4,5,+1,+2,+3,+4,+5,d,+d,f,+f,w,+w,e,+e". (Spaces and tabs are acceptable
+; whitespace which can be included for readability and will be stripped from the string before
+; use.)
+; 
+; Each time this function is called, all hotkeys previously defined by this function ever are 
+; disabled (no way to actually delete them) prior to (re)defining the new list of hotkeys.
 ;
 PA_MapActivateEIKeys() {
 	static definedhklist := Array()		; remembers all hotkeys which have been defined previously through this function
+                            
+	if Setting["Debug"]
+		TTip("PA_MapActivateEIKeys() called")
 
-	keylist := Array()
-
-	if FileExist("EIKeylist.txt") {
-		keyliststring := FileRead("EIKeylist.txt")
+	; retrieve list of EI shortcut keys from Settings
+	; generate keylist array of hotkeys
+	if Setting["EIkeylist"].value != "" {
+		keyliststring := Setting["EIkeylist"].value
 		keyliststring := RegExReplace(keyliststring, "[ \n\t]")		; remove whitespace
 		keylist := StrSplit(keyliststring, ",")
-	}
+ 	} else {
+ 		keylist := Array()
+ 	}
 
-; MsgBox("EIkeylist=" Setting["EIkeylist"].value)
-; 	if t {
-; 		keyliststring := Setting["EIkeylist"].value
-; 		keyliststring := RegExReplace(keyliststring, "[ \n\t]")		; remove whitespace
-; 		keylist := StrSplit(keyliststring, ",")
-; 	} else {
-; 		keylist := Array()
-; 	}
+	; [todo] validate shortcut keys in the list
 
-;MsgBox("keylistfile=" keyliststring "`nk[1]=" keylist[1] "`nk[2]=" keylist[2] "`nk[3]=" keylist[3])
-
+	; First disable all previously defined hotkeys (since there is no way to delete them once created)
 	for hk in definedhklist {
-		Hotkey(hk, "Off")	; disable previously defined hotkeys
+		Hotkey(hk, "Off")
 	}
 
+	; Now define the hotkeys in keylist
 	if keylist.Length > 0 {
 		if Setting["EIactivate"].enabled {
 			for key in keylist {
@@ -535,12 +537,12 @@ PA_MapActivateEIKeys() {
 ; Callback function for the keys in PA_EIKeyList
 ;
 ; If the mouse is over an EI image window when the hotkey is pressed, this function will send a click
-; of XButton2 to make the series under the mouse cursor active.
+; of XButton2 to make the viewport under the mouse cursor active.
 _PA_EIHotkey(key) {
 	if Setting["EIactivate"].enabled && Context(WindowUnderMouse(), "EI i1 i2") {
 		; only send a Click if it won't result in a double click
 		try {
-			if A_TimeSincePriorHotkey >= PADoubleClickSetting {
+			if A_TimeSincePriorHotkey >= PA_DoubleClickSetting {
 				; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
 				if !GetKeyState("LButton") && !GetKeyState("RButton") {
 					Click("XButton2")

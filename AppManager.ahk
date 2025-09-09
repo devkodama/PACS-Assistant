@@ -150,6 +150,7 @@ App["PS"].Win["logout"] := WinItem("logout", App["PS"], , "PowerScribe", "Are yo
 App["PS"].Win["savespeech"] := WinItem("savespeech", App["PS"], , "PowerScribe", "Your speech files have changed. Do you wish to save the changes?", , PSShow_savespeech)
 App["PS"].Win["savereport"] := WinItem("savereport", App["PS"], , "PowerScribe", "Do you want to save the changes to the", , PSShow_savereport)
 App["PS"].Win["deletereport"] := WinItem("deletereport", App["PS"], , "PowerScribe", "Are you sure you want to delete", , PSShow_deletereport)
+App["PS"].Win["saveautotext"] := WinItem("saveautotext", App["PS"], , "PowerScribe", "Do you want to save the currently open AutoText entry", , PSShow_saveautotext)
 App["PS"].Win["unfilled"] := WinItem("unfilled", App["PS"], , "PowerScribe", "This report has unfilled fields. Are you sure you wish to sign it?", , PSShow_unfilled)
 App["PS"].Win["confirmaddendum"] := WinItem("confirmaddendum", App["PS"], , "PowerScribe", "Do you want to create an addendum", , PSShow_confirmaddendum)
 App["PS"].Win["confirmanother"] := WinItem("confirmanother", App["PS"], , "PowerScribe", "Do you want to create another addendum", , PSShow_confirmanother)

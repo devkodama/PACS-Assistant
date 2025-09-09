@@ -2,25 +2,23 @@
 
 ## Introduction
 
-PACS Assistant helps Agfa Enterprise Imaging (EI), PowerScribe, and Epic function more seamlessly and efficiently.
+PACS Assistant helps Agfa Enterprise Imaging (EI), PowerScribe, and Epic function work together more seamlessly and efficiently.
 
 PACS Assistant has many features which are described below. PACS Assistant is highly customizable--most of its features can be selectively enabled or disabled from the Settings page.
 
 ## How to use
 
-On home workstations, copy the PACS Assistant folder to the Documents folder. Open the PACS Assistant folder and double click "Autohotkey64.exe" to start it.
+In the Documents folder on your computer, create a folder named PACS Assistant and copy the file PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run it.
 
-On hospital workstations, copy the PACS Assistant folder to the Documents folder. Open the PACS Assistant folder and double click "Autohotkey64.exe" to start it.
-
-The first time you run PACS Assistant, you'll need to enter your username and password. On home workstations, it will remember your username and password so you don't have to enter it in the future. Your password is protected by your Windows login password. On hospital workstations, PACS Assistant will remember your username but not your password for security reasons.
+The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant will remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username but not your password.
 
 > ℹ️ Your stored username and password are protected by your Windows login credentials. Anyone who knows your Windows login can access your stored username and password.
 
 ## Single sign on
 
-On home workstations, PACS Assistant can complete the sequence of connecting to the VPN and starting EI, Powerscribe, and Epic with minimal input. To begin, click on the **Power** button, wait a few seconds, and enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
+On home workstations, PACS Assistant can start the VPN and start EI, Powerscribe, and Epic with minimal input. To begin, click on the **Power** button, wait a few seconds, and enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
 
-On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, but you will have to enter your password the first time. Your password is not stored for security reasons.
+On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, but you will have to enter your password the first time you use PACS Assistant. Your password is not stored for security reasons.
 
 ## Window management
 
@@ -30,25 +28,42 @@ PACS Assistant can automatically dismiss selected popup messages, such as the Po
 
 ## Focus following
 
-PACS Assistant treats EI, PowerScribe, and Epic as though they were integrated instead of being separate applications. PACS Assistant watches your mouse and keeps the appropriate application in focus. You don't need to click on each application to switch focus.
+PACS Assistant treats EI, PowerScribe, and Epic as though they were unified instead of being separate applications. PACS Assistant watches your mouse and keeps the appropriate application window in focus. You don't need to click on each application to switch focus.
 
-In most cases, key presses are transmitted to the application which has focus. However, when appropriate, some keys may be transmitted to a different application.
+In most cases, key presses are transmitted to the window which has focus. However, when appropriate, some keys may be transmitted to a different window or application.
 
 > For example, if the Tab key is assigned to the PowerScribe command "Next Field", pressing Tab will send a "Next Field" command to PowerScribe regardless of whether the mouse is hovering over the PowerScribe window or over an EI image window.
 
 ## Viewport activation for EI
 
-PACS Assistant can activate the EI viewport under the mouse pointer when certain EI keyboard shortcuts are pressed. You don't need to click to change the active viewport before you press the shortcut key.
+PACS Assistant can activate the EI viewport under the mouse pointer when certain EI keyboard shortcuts are pressed. This eliminates the need to click or turn the mouse wheel to activate the viewport before you press a shortcut key.
 
-> For example, if the `W` key is mapped to EI Rotate image, pressing the `W` key will first activate the viewport under the mouse pointer and *then* rotate the image, since that is what you likely intended.
+> For example, if the `X` key is mapped to the EI Invert image tool, pressing the `X` key will first activate the viewport under the mouse pointer and *then* invert the image, since that is what you likely intended.
 
-In order to enable this functionality, you first need to tell PACS Assistant which shortcut keys are mapped to which tools in EI. [WIP] Not done yet, don't use -> This can be done by creating a file named EIKeyList.txt in the PACS Assistant directory that has a comma-separated list of shortcut keys, for example:
+In order to enable this functionality, you first need to tell PACS Assistant which shortcut keys you have mapped to which tools in EI. You can do this by entering a comma-separated list of shortcut keys on the Settings page. I would recommend including shortcut keys for the following tools:
 
-> 1, 2, 3, 4, 5, +1, +2, +3, +4, +5, d, +d, f, +f, x, w, +w, e, +e
+* All W/L presets
+* Invert
+* Flip horizontal
+* Flip vertical
+* Rotate 90 left
+* Rotate 90 right
+* Switch viewport to next series
+* Switch viewport to previous series
+* Next set of images
+* Previous set of images
+
+Use the prefix `+` for Shift, `^` for Ctrl, and `!` for Alt. For example, Shift-A would be entered as *+a*, Ctrl-X would be entered as *^x*, and Shift-Ctrl-T would be entered as *+^t*.
+
+> For example, my list of shortcut keys, corresponding to the above list of tools, looks like:
+>
+>> 1,2,3,4,5,+1,+2,+3,+4,+5,x,w,+w,e,+e,d,f,+d,+f
+>
+> where the number keys and the Shift number keys are W/L presets, and the other keys are the other tools.
 
 ## New keyboard shortcuts
 
-PACS Assistant provides several new keyboard shortcuts for working with PowerScribe and EI. Most of these keys work when the mouse is hovering over the Powerscribe, EI, and sometimes Epic windows.
+PACS Assistant provides several new keyboard shortcuts (hotkeys) for working with PowerScribe and EI. Most of these keys will work when the mouse is hovering over the Powerscribe, EI, Epic, or PACS Assistant windows.
 
 ### CapsLock key
 
@@ -78,7 +93,7 @@ PACS Assistant provides several new keyboard shortcuts for working with PowerScr
 
 **Ctrl-Tab** moves the cursor to the end of the current line in a PowerScribe report. Pressing it a second time moves the cursor down one line then to the end of the line.
 
-> 💡 This can be useful to position the cursor *after* the default text when tabbing into a field so that dictation does not replace the default text.
+> 💡 This can be used to position the cursor *after* the default text after tabbing into a fill-in field, so that dictation does not replace the default text.
 
 **Shift-Ctrl-Tab** moves the cursor up one line, then to the end of the line.
 
@@ -116,7 +131,7 @@ The **Spacebar** can do one of several things:
 
 ## Miscellaneous functions
 
-### Microphone auto on/off ###
+### Microphone auto on/off
 
 PACS Assistant can automatically turn on the microphone when you open a report for dictation, and turn it off when you close it. It can also automatically turn off the microphone after a period of inactivity (*e.g.* when you leave your workstation).
 
@@ -124,17 +139,17 @@ PACS Assistant can automatically turn on the microphone when you open a report f
 
 PACS Assistant can jiggle the mouse periodically in order to suppress the Windows screensaver and prevent the screen from turning off.
 
-### CapsLock autooff
+### CapsLock auto off
 
-PACS Assistant returns the CapsLock state to off after a short period of time (around 10 seconds).
+PACS Assistant can return the CapsLock state to off after a short period of time (around 10 seconds).
 
 ## Comments
 
 PACS Assistant is optimized for a handsfree setup, *i.e.* a handsfree microphone, right hand on the mouse, and left hand on the keyboard.
 
-If frequently used EI keyboard shortcuts are mapped to the left half of the keyboard, then reading can be done with minimal hand movements and without needing to look away from the screen.
+If frequently used EI keyboard shortcuts are mapped to the left half of the keyboard, then reading can be done with minimal hand movement and without needing to look away from the screen.
 
-PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to different keys. I've found that I prefer using the regular keyboard because it doesn't require extra hardware and is available on every workstation.
+PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to keypad keys. I've found that I prefer using the regular keyboard because it doesn't require extra hardware and is available on every workstation.
 
 PACS Assistant is still under heavy development with more features to come. You may (will) encounter bugs or conflicts with other applications; in most cases, temporariliy disabling PACS Assistant with the on/off toggle switch can bypass the problem.
 

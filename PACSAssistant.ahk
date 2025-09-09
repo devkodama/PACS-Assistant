@@ -74,16 +74,38 @@ SetControlDelay 0				; 0 = shortest possible delay
 SetWorkingDir A_ScriptDir
 
 
-; Define the global variable A_UserDir, e.g. C:\Users\<UserName>
+
+
+/**********************************************************
+ * Extended AHK Script Properties
+ * 
+ * These are not defined by AHK but should be
+ *
+ */
+
+
+; A_UserDir
+; 	The user's home directory. For example: C:\Users\<UserName>
 if n := InStr(A_Desktop, "\Desktop", , -1) {
 	A_UserDir := SubStr(A_Desktop, 1, n - 1)
 } else {
 	A_UserDir := ""
 }
 
-; Define the global variable A_ProgramFiles_x86, e.g. C:\Program Files (x86)
-; The ProgramFiles(x86) environment variable contains the path of the 32-bit Program Files directory.
+; A_ProgramFiles_x86
+; 	The Program Files directory for 32-bit processes. For example: C:\Program Files (x86)
 A_ProgramFiles_x86 := EnvGet("ProgramFiles(x86)")
+
+; A_Version
+; 	The program version, as a string. For example: 1.0.2-beta
+if !A_IsCompiled {
+    try {
+		A_Version := FileRead("version")
+	    A_Version := SubStr(A_Version, 1, 32)       ; limit to 32 chars
+	} catch {
+		A_Version := "" 
+	}
+}
 
 
 
@@ -103,8 +125,8 @@ A_ProgramFiles_x86 := EnvGet("ProgramFiles(x86)")
 #include <_MD_Gen>
 
 ; PACS Assistant modules
-#Include Utils.ahk
 #Include Globals.ahk
+#Include Utils.ahk
 #Include FindTextStrings.ahk
 
 #Include Settings.ahk
@@ -377,15 +399,11 @@ PAInit() {
 	global PollShow
 	global PollClose
 
-	; Get Windows system double click setting
-	PADoubleClickSetting := DllCall("GetDoubleClickTime")
-
 	; Updater housekeeping
 	UpdaterInit()
 
 	; Initialize systemwide settings
 	SettingsInit()
-
 
 	; Register Windows hooks to monitor window show events for all the windows of interest.
 	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.
@@ -432,7 +450,10 @@ PAInit() {
 	ICDReadCodeFile()
 
 	; Set up special EI key mappings
-	PA_MapActivateEIKeys()
+	;PA_MapActivateEIKeys() - this gets called when settings are loaded, so don't need to call?
+
+	; Get Windows system double click setting
+	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
 
 }
 
@@ -440,12 +461,8 @@ PAInit() {
 ; Main function for PACS Assistant
 ;
 PAMain() {
-
-; ?don't need
-	; set PACS Assistant application icon
-	; TraySetIcon("PA.ico")
 	
-	; set PACS Assistant tray menu and tray tooltip
+	; set PACS Assistant tray icon, right-click menu, and tooltip
 	SetTray()
 
 	; PACS Assistant basic set up

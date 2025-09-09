@@ -84,8 +84,8 @@ Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "O
 Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
-Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic EI image viewport activation before specific hotkeys. [wip] Before enabling, need to specify a list of EI hotkeys.") 
-;Setting["EIkeylist"] := SetItem("EIkeylist", "text", "1,2,3,4,5,+1,+2,+3,+4,+5,d,+d,f,+f,x,w,+w,e,+e", , "EI hotkey list")
+Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic image viewport activation before specific shortcut keys. Before enabling, enter a list of EI shortcuts on the next line.") 
+Setting["EIkeylist"] := SetItem("EIkeylist", "text", "", , "List of EI shortcuts (see Help), e.g. 1,2,3,4,5,x,w,+w,e,+e,d,f,+d,+f")
 
 ; PS settings
 Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
@@ -184,7 +184,7 @@ SettingsPage.Push("EI_restoreatopen")
 SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
 SettingsPage.Push("EIactivate")
-;SettingsPage.Push("EIkeylist")
+SettingsPage.Push(">EIkeylist")
 
 SettingsPage.Push("#PowerScribe")
 SettingsPage.Push("PS_restoreatopen")
@@ -256,6 +256,17 @@ class SetItem {
     _value := ""		    ; Current value. For "select" type, stores the mapped value (e.g. "&YES")
     _key := ""              ; For "select" type only. Stores the key (e.g. "Yes")
 
+    ; Called when a new SetItem object is created.
+    ; No bounds checking on the passed defaultvalue.
+    ; Current value of the Settting is set to the same as the default value for new objects.
+	__New(settingname, settingtype := "", defaultvalue := "", possiblevalues:= 0, desc := "") {
+        this.name := settingname
+        this.type := settingtype
+        this.default := defaultvalue
+		this.possible := possiblevalues        
+		this.description := desc
+		this.value := defaultvalue        ; value prop should be assigned last
+	}
 
     ; For "select" type, reading the value property returns the mapped
     ; value. To retrieve the key, use the key property.
@@ -265,7 +276,7 @@ class SetItem {
     ; possible map.
     ;
     ; For example:
-    ;   s := Setting("Keyname", "select", "Yes", Map("Yes", "&YES", "No", "&NO", "Description")
+    ;   s := SetItem("Keyname", "select", "Yes", Map("Yes", "&YES", "No", "&NO", "Description")
     ;   MsgBox(s.value)         ; => "&YES"
     ;   MsgBox(s.key)           ; => "Yes"
     ;   s.value := "No"
@@ -274,12 +285,7 @@ class SetItem {
     ;
     value {
         get {
-            ; switch this.type {
-            ;     case "select":
-            ;         return this._key
-            ;     default:
-                return this._value
-            ; }
+            return this._value
         }
         set { 
             global Setting
@@ -350,6 +356,13 @@ class SetItem {
 
                                     ; set inifile to application-wide settings.ini file
                                     Setting["inifile"].value := FILE_SETTINGSBASE ".ini"
+                                    if FileExist(Setting["inifile"].value) {
+                                        ; Read the generic, non-user specific settings
+                                        SettingsReadAll()
+                                    } else {
+                                        ; No ini file, let's write a new one
+                                        SettingsWriteAll()
+                                    }
                                 }
 
                                 ; Update the displayed settings page form
@@ -374,12 +387,15 @@ class SetItem {
                     this._value := Trim(Value)
                     this._key := ""
 
-                    ; Need to special case EIkeylist setting. It requires a call to 
-                    ; PA_MapActivateEIKeys() on every update to update the hotkeys.
+                    ; Special case for EIactivate & EIkeylist settings. Whenever these
+                    ; are updated, we have to call PA_MapActivateEIKeys() to update the
+                    ; hotkey handlers.
                     switch this.name {
-                        case "EIkeylist":
-                            ttip("call PA_MapActivateEIKeys()")
-                            PA_MapActivateEIKeys()
+                        case "EIactivate", "EIkeylist":
+                            ; must use SetTimer to call with slight delay, because
+                            ; the value property of this instance is undefined until
+                            ; set returns
+                            SetTimer(PA_MapActivateEIKeys, -1000)
                         default:
                             ; no special processing
                     }
@@ -462,27 +478,15 @@ class SetItem {
             case "select":
                 ; in this case, save this._key instead of this._value)
                 if Setting.Has("inifile") && Setting["inifile"].value {
-                    IniWrite(this._key, Setting["inifile"].value, "PASettings", this.name) 
+                    IniWrite(this._key, Setting["inifile"].value, "Settings", this.name) 
                 }
             default:
                 ; save this._value
                 if Setting.Has("inifile") && Setting["inifile"].value {
-                    IniWrite(this._value, Setting["inifile"].value, "PASettings", this.name) 
+                    IniWrite(this._value, Setting["inifile"].value, "Settings", this.name) 
                 }
         }
     }
-
-    ; Called when a new Setting object is created.
-    ; No bounds checking on the passed defaultvalue.
-    ; Current value of the Settting is set to the same as the default value for new objects.
-	__New(settingname, settingtype := "", defaultvalue := "", possiblevalues:= 0, desc := "") {
-        this.name := settingname
-        this.type := settingtype
-        this.default := defaultvalue
-		this.possible := possiblevalues        
-		this.description := desc
-		this.value := defaultvalue        ; value prop should be assigned last
-	}
 
     ; Checks a new value against the list of allowed possibilites.
     ; Returns true if allowed, false if not allowed.
@@ -505,7 +509,8 @@ class SetItem {
                 }
             case "text", "special":
                 ; check string length against limit
-                if StrLen(newval) <=  this.possible {
+                ; if limit = 0, then any length is allowed
+                if this.possible = 0 || StrLen(newval) <= this.possible {
                     return true
                 } else {
                     return false
@@ -549,15 +554,15 @@ SettingsInit() {
 ;
 ; Updates "special" setting for password by reading from local store.
 ;
+; If no current user (i.e. Setting["username"].value is empty) then read from the system wide
+; .ini file.
 SettingsReadAll() {
     global Setting
     global CurrentUserCredentials
 
-    ; ensure username has a value
     if Setting["username"].value {
 
         inifile := Setting["inifile"].value
-        readvalue := ""
 
         for key, sett in Setting {
             switch sett.type {
@@ -583,17 +588,40 @@ SettingsReadAll() {
                 default:
                     if inifile {
                         ; try to read the saved value for this 
-                        readvalue := IniRead(inifile, "PASettings", sett.name, "")
-                    }
-                    ; only update setting if a non-empty value is retrieved
-                    if readvalue != "" {
-                        Setting[key].value := readvalue
-                    } else {
-                        Setting[key].value := Setting[key].default
+                        readvalue := IniRead(inifile, "Settings", sett.name, "")
+                        ; only use the inifile setting if a non-empty value is retrieved
+                        ; otherwise substitute the default value
+                        if readvalue != "" {
+                            Setting[key].value := readvalue
+                        } else {
+                            Setting[key].value := Setting[key].default
+                        }
                     }
             }
         }
 
+    } else {
+        ; username is blank
+
+        inifile := Setting["inifile"].value
+        for key, sett in Setting {
+            switch sett.type {
+                case "special":
+                    ; do nothing
+                default:
+                    if inifile {
+                        ; try to read the saved value for this 
+                        readvalue := IniRead(inifile, "Settings", sett.name, "")
+                        ; only use the inifile setting if a non-empty value is retrieved
+                        ; otherwise substitute the default value
+                        if readvalue != "" {
+                            Setting[key].value := readvalue
+                        } else {
+                            Setting[key].value := Setting[key].default
+                        }
+                    }
+            }
+        }
     }
 }
 
@@ -606,11 +634,12 @@ SettingsReadAll() {
 ; The current user is specified by PASettings["username"].
 ; The current user-specific .ini file is specified by PASettings["inifile"].
 ;
+; If no current user (i.e. Setting["username"].value is empty) then write to the system wide
+; .ini file.
 SettingsWriteAll() {
     global Setting
 
-    ; ensure username has a value
-    if Setting["username"].value {
+;    if Setting["username"].value {
         for key, sett in Setting {
             switch sett.type {
                 case "special":
@@ -619,7 +648,7 @@ SettingsWriteAll() {
                     sett.SaveSetting()
             }
         }
-    }
+;    }
 }
 
 
@@ -709,7 +738,7 @@ SettingsGeneratePage(show := true) {
 
     ; intialize the form to be generated
     form := ''
-    form .= '<form id="PASettings">'
+    form .= '<form id="Settings">'
 
     in_cat := false     ; track whether we are inside a category section so we remember to close it
 
