@@ -26,11 +26,11 @@ The first time you run PACS Assistant, you'll need to enter your PACS username a
 
 On home workstations, PACS Assistant can connect to the VPN and start EI, Powerscribe, and Epic with minimal supervision. To begin, click on the **Power** button, wait a few seconds, and enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
 
-On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, but you will have to enter your password each time you start PACS Assistant. Your password is not stored for security reasons.
+On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic. You will have to enter your password each time you run PACS Assistant. For security reasons, your password is not stored after PACS Assistamt is closed.
 
 ## Window management
 
-[nb current version is buggy, desktops don't always restore.]
+[nb current version is buggy, desktops don't restore properly.]
 
 PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. In PACS Assistant, go to the Window Manager tab. Arrange your EI, PowerScribe, Epic, and Epic Chat windows as you like. Then click Remember window positions.
 
@@ -38,7 +38,7 @@ PACS Assistant can automatically dismiss selected popup messages such as PowerSc
 
 ## Focus following
 
-PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were a single unified application instead of separate applications. PACS Assistant follows your mouse and keeps the appropriate window in focus. You don't need to click to switch focus.
+PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were a single unified application instead of separate applications. PACS Assistant tracks your mouse and keeps the appropriate window in focus. You don't need to click to switch focus.
 
 In most cases, key presses are transmitted to the window which has focus. However, when appropriate, keys or commands may be transmitted to a different window or application.
 
@@ -54,14 +54,14 @@ Before you enable this functionality, you first need to tell PACS Assistant whic
 
 * All W/L presets
 * Invert
-* Flip horizontal
-* Flip vertical
-* Rotate 90 left
 * Rotate 90 right
-* Switch viewport to next series
+* Rotate 90 left
+* Flip vertical
+* Flip horizontal
 * Switch viewport to previous series
-* Next set of images
+* Switch viewport to next series
 * Previous set of images
+* Next set of images
 
 Use the prefix `+` for Shift, `^` for Ctrl, and `!` for Alt. For example, Shift-A would be entered as *+a*, Ctrl-X would be entered as *^x*, and Shift-Ctrl-T would be entered as *+^t*. Special keys can be entered using AutoHotkey key names such as *Numpad0* for the number pad `0` key (see [full list of key names](https://www.autohotkey.com/docs/v2/KeyList.htm#general)).
 
