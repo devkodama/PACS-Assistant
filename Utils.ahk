@@ -196,6 +196,6 @@ TTip("Quit PACS Assistant")
 	; tray.ClickCount := 1
 
     ; set tray icon's tooltip
-    A_IconTip := "PACS Assistant`n" . (A_IsCompiled ? "c " : "") . A_Version
+    A_IconTip := "PACS Assistant`n" . A_Version . (A_IsCompiled ? "c" : "")
 
 }

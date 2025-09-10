@@ -89,7 +89,7 @@ Setting["EIkeylist"] := SetItem("EIkeylist", "text", "", , "List of EI shortcuts
 
 ; PS settings
 Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
-Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Always center PowerScribe popup messages over the main PowerScribe window")
+Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Center PowerScribe popup messages over the main PowerScribe window")
 
 Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
 Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")

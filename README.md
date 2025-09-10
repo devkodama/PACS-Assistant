@@ -2,33 +2,43 @@
 
 ## Introduction
 
-PACS Assistant helps Agfa Enterprise Imaging (EI), PowerScribe, and Epic function work together more seamlessly and efficiently.
+PACS Assistant helps you work with Agfa Enterprise Imaging (EI), PowerScribe, and Epic more seamlessly and efficiently. PACS Assistant has many features which are described below. Some features are:
 
-PACS Assistant has many features which are described below. PACS Assistant is highly customizable--most of its features can be selectively enabled or disabled from the Settings page.
+* Single sign on - Log onto VPN and start EI, Powerscribe, and Epic with minimal effort
+* Window management - Remember window layouts, automatically dismiss popup messages
+* Focus following - Always keep the window under the mouse active
+* Viewport activation for EI - Reduce unnecessary clicks
+* New hotkeys - Toggle microphone, go to next field, sign report, click lock for image scrolling, show comparison report, and more
+* Microphone on/off - Automatically turn on the microphone when opening a new report
+* Mouse jiggler - Keep the Windows screensaver from activating
+
+PACS Assistant is highly customizable--most of its features can be selectively enabled or disabled from the Settings page.
 
 ## How to use
 
-In the Documents folder on your computer, create a folder named PACS Assistant and copy the file PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run it.
+In the Documents folder on your computer, create a folder named PACS Assistant and copy the file PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run.
 
-The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant will remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username but not your password.
+The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant will remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username and settings but not your password.
 
 > ℹ️ Your stored username and password are protected by your Windows login credentials. Anyone who knows your Windows login can access your stored username and password.
 
 ## Single sign on
 
-On home workstations, PACS Assistant can start the VPN and start EI, Powerscribe, and Epic with minimal input. To begin, click on the **Power** button, wait a few seconds, and enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
+On home workstations, PACS Assistant can start the VPN and start EI, Powerscribe, and Epic with minimal supervision. To begin, click on the **Power** button, wait a few seconds, and enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
 
-On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, but you will have to enter your password the first time you use PACS Assistant. Your password is not stored for security reasons.
+On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, but you will have to enter your password when you start PACS Assistant. Your password is not stored for security reasons.
 
 ## Window management
 
-PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. [nb current version is slightly buggy, EI desktop doesn't always restore.]
+[nb current version is buggy, desktops don't always restore.]
 
-PACS Assistant can automatically dismiss selected popup messages, such as the PowerScribe, EI, or Epic confirmation messages.
+PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. In PACS Assistant, go to the Window Manager tab. Arrange your EI, PowerScribe, Epic, and Epic Chat windows as you like. Then click Remember window positions.
+
+PACS Assistant can automatically dismiss selected popup messages such as PowerScribe, EI, or Epic confirmation messages.
 
 ## Focus following
 
-PACS Assistant treats EI, PowerScribe, and Epic as though they were unified instead of being separate applications. PACS Assistant watches your mouse and keeps the appropriate application window in focus. You don't need to click on each application to switch focus.
+PACS Assistant treats EI, PowerScribe, and Epic as though they were a single unified application instead of separate applications. PACS Assistant watches your mouse and keeps the appropriate application window in focus. You don't need to click to switch focus.
 
 In most cases, key presses are transmitted to the window which has focus. However, when appropriate, some keys may be transmitted to a different window or application.
 
@@ -36,11 +46,11 @@ In most cases, key presses are transmitted to the window which has focus. Howeve
 
 ## Viewport activation for EI
 
-PACS Assistant can activate the EI viewport under the mouse pointer when certain EI keyboard shortcuts are pressed. This eliminates the need to click or turn the mouse wheel to activate the viewport before you press a shortcut key.
+PACS Assistant can activate the EI viewport under the mouse pointer when certain EI keyboard shortcuts are pressed. This eliminates the need to click the mouse button or spin the mouse wheel to activate the viewport before you press a shortcut key.
 
 > For example, if the `X` key is mapped to the EI Invert image tool, pressing the `X` key will first activate the viewport under the mouse pointer and *then* invert the image, since that is what you likely intended.
 
-In order to enable this functionality, you first need to tell PACS Assistant which shortcut keys you have mapped to which tools in EI. You can do this by entering a comma-separated list of shortcut keys on the Settings page. I would recommend including shortcut keys for the following tools:
+Before you enable this functionality, you first need to tell PACS Assistant which shortcut keys you have mapped to which tools in EI. Do this by entering a comma-separated list of shortcut keys on the Settings page. I would recommend including shortcut keys for the following tools:
 
 * All W/L presets
 * Invert
@@ -53,7 +63,7 @@ In order to enable this functionality, you first need to tell PACS Assistant whi
 * Next set of images
 * Previous set of images
 
-Use the prefix `+` for Shift, `^` for Ctrl, and `!` for Alt. For example, Shift-A would be entered as *+a*, Ctrl-X would be entered as *^x*, and Shift-Ctrl-T would be entered as *+^t*.
+Use the prefix `+` for Shift, `^` for Ctrl, and `!` for Alt. For example, Shift-A would be entered as *+a*, Ctrl-X would be entered as *^x*, and Shift-Ctrl-T would be entered as *+^t*. Special keys can be entered using AutoHotkey key names such as *Numpad0* for the number pad `0` key (see [full list of key names](https://www.autohotkey.com/docs/v2/KeyList.htm#general)).
 
 > For example, my list of shortcut keys, corresponding to the above list of tools, looks like:
 >
@@ -63,7 +73,7 @@ Use the prefix `+` for Shift, `^` for Ctrl, and `!` for Alt. For example, Shift-
 
 ## New keyboard shortcuts
 
-PACS Assistant provides several new keyboard shortcuts (hotkeys) for working with PowerScribe and EI. Most of these keys will work when the mouse is hovering over the Powerscribe, EI, Epic, or PACS Assistant windows.
+PACS Assistant provides several new keyboard shortcuts (hotkeys) for working with EI and PowerScribe. Most of these keys will work when the mouse is hovering over the EI, Powerscribe, Epic, or PACS Assistant windows.
 
 ### CapsLock key
 
@@ -73,11 +83,11 @@ PACS Assistant provides several new keyboard shortcuts (hotkeys) for working wit
 
 * If a report is currently being dictated, signs the report. Equivalent to the PowerScribe *Sign* button (F4).
 
-* If a study is open and ready for dictation, then start (or resume) dictation. Equivalent to the EI *Start* (or *Resume*) *reading* button.
+* If a study is open and ready for dictation, starts (or resumes) dictation. Equivalent to the EI *Start* (or *Resume*) *reading* button.
 
-* If the open study is not ready for dictation or if there is no open study, and if one or more studies are selected on the EI List page, then start dictation of the selected studies. Equivalent to the EI *Start* (or *Resume*) *reading* button.
+* If there is no open study or the study that is open is not ready for dictation, and if one or more studies are selected on the EI List page, starts dictation of the selected studies. Equivalent to the EI *Start* (or *Resume*) *reading* button.
 
-* If no studies are selected studies on the EI List page, then start dictation of all the studies on the worklist. Equivalent to the EI *Start list* button.
+* If no studies are selected studies on the EI List page, starts dictation of all studies on the worklist. Equivalent to the EI *Start list* button.
 
 **Ctrl-CapsLock** saves the report currently being dictated as a Draft. Equivalent to the PowerScribe *Draft* button (F12).
 
@@ -128,6 +138,7 @@ The **Spacebar** can do one of several things:
 **Ctrl-Z** and **Ctrl-Y** send *Undo* and *Redo* commands, respectively, to PowerScribe.
 
 > ⚠️ Disable this if you have Ctrl-Z or Ctrl-Y mapped as EI shortcuts (or remap your EI shortcuts).
+> 💡 *Ctrl-Z* can be helpful to quickly revert accidentally transcribed noise.
 
 ## Miscellaneous functions
 

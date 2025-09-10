@@ -332,8 +332,10 @@ GUIMain(*) {
 
     ; load the GUI page
     PAGUI.Load(GUIHOMEPAGE)
-    PAGUI.Title := GUIWINDOWTITLE
-
+    ; without this sleep, the window title doesn't get updated (?maybe GUI not ready)
+    Sleep(200)
+    PAGUI.Title := GUIWINDOWTITLE . " " . A_Version . (A_IsCompiled ? " c" : "")
+    
     /**
 	 * In order to use PostWebMessageAsJson() or PostWebMessageAsString(), you'll need to setup your webpage to listen to messages
 	 *
