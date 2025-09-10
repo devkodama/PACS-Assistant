@@ -16,7 +16,7 @@ PACS Assistant is highly customizable--most of its features can be selectively e
 
 ## How to use
 
-In the Documents folder on your computer, create a folder named PACS Assistant and copy the file PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run.
+In the Documents folder on your computer, create a folder named _PACS Assistant_ and copy the file _PACS Assistant.exe_ into it. Double-click _PACS Assistant.exe_ to run.
 
 The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant can remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username and settings but not your password.
 
@@ -38,13 +38,13 @@ PACS Assistant can automatically dismiss selected popup messages such as PowerSc
 
 ## Focus following
 
-PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were a single unified application instead of separate applications. PACS Assistant watches your mouse and keeps the appropriate window in focus. You don't need to click to switch focus.
+PACS Assistant lets you treat EI, PowerScribe, and Epic as though they were a single unified application instead of separate applications. PACS Assistant follows your mouse and keeps the appropriate window in focus. You don't need to click to switch focus.
 
 In most cases, key presses are transmitted to the window which has focus. However, when appropriate, keys or commands may be transmitted to a different window or application.
 
 > For example, if the Tab key is assigned to the PowerScribe command "Next Field", pressing Tab will send a "Next Field" command to PowerScribe regardless of whether the mouse is hovering over the PowerScribe window or over an EI image window.
 
-## Viewport activation for EI
+## EI viewport activation
 
 PACS Assistant can activate the EI viewport under the mouse pointer when certain EI keyboard shortcuts are pressed. This eliminates the need to click the mouse button or turn the mouse wheel to activate a viewport before you press the shortcut key.
 
@@ -161,6 +161,6 @@ PACS Assistant is optimized for a handsfree setup, *i.e.* a handsfree microphone
 
 PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to keypad keys. (This can be done the file Hotkeys.ahk.) I've found that I prefer using the regular keyboard because it doesn't require extra hardware and so is available on every workstation.
 
-PACS Assistant is still under heavy development with more features to come. You may (will) encounter bugs or conflicts with other applications; in most cases, temporariliy disabling PACS Assistant with the on/off toggle switch can bypass the problem.
+PACS Assistant is still under heavy development with more features to come. You may (will) encounter bugs or conflicts with other applications; in many cases, temporariliy disabling PACS Assistant with the on/off toggle switch can bypass the problem.
 
-Feedback is welcome, let me know of any issues you encounter or new features you'd like to see.
+Feedback is welcome--let me know of any issues you encounter or features you'd like to see.
