@@ -37,7 +37,7 @@ inputIcoFile := "PA.ico"
 
 ; output file destinations
 outputScriptFile := "Compiled.ahk"
-outputExeFile := "..\PACS Assistant Distributable\PACS Assistant.exe"
+outputExeFile := "Standalone\PACS Assistant\PACS Assistant.exe"
 
 ; Product name and description
 productDescription := "PACS Assistant"
