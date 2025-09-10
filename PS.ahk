@@ -23,6 +23,7 @@
  * 	PSShow_savespeech()
  * 	PSShow_savereport()
  * 	PSShow_deletereport()
+ *	PSShow_saveautotext()
  * 	PSShow_unfilled()
  * 	PSShow_confirmaddendum()
  * 	PSShow_confirmanotheraddendum()
@@ -440,7 +441,7 @@ PSShow_ras(hwnd, hook, dwmsEventTime) {
 	}
 	if Setting["PSras_dismiss"].enabled {
 		ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
-		MsgBox("Clicked on " Setting["PSras_dismiss_reply"].value " for ras dialog (" App["PS"].Win["ras"].hwnd ")" )
+;		MsgBox("Clicked on " Setting["PSras_dismiss_reply"].value " for ras dialog (" App["PS"].Win["ras"].hwnd ")" )
 	}
 }
 

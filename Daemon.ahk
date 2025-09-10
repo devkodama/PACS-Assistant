@@ -381,7 +381,7 @@ _RefreshGUI() {
 }
 
 
-; Update the status of all windows
+; Monitor windows of interest
 ;
 ; Typically used with a timer, e.g. SetTimer(_WatchWindows, UPDATE_INTERVAL)
 _WatchWindows() {
@@ -395,18 +395,20 @@ _WatchWindows() {
 
 	; trigger close hooks before show hooks
 
-	; poll windows to trigger hook_close
+	; poll windows and trigger hook_close
 	for w in PollClose {
-		if !w.IsReady() && !w._closestate && w.hook_close { 
+		if !w.IsReady() && !w._closestate { 
 			w._closestate := true
+			w._showstate := false
 			HookQueue.Push(w.hook_close)
 		}
 	}
 
 	; poll windows to trigger hook_show
 	for w in PollShow {
-		if w.IsReady() && !w._showstate && w.hook_show {
+		if w.IsReady() && !w._showstate {
 			w._showstate := true
+			w._closestate := false
 			HookQueue.Push(w.hook_show)
 		}
 	}
@@ -416,6 +418,7 @@ _WatchWindows() {
 		PAWindowInfo := PrintWindows( , , false) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 	} else {
 		PAWindowInfo := ""
+;		PAWindowInfo := "Debug off<br />" . PrintWindows("PS", "home", true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 	}
 
 }

@@ -77,6 +77,19 @@ SetWorkingDir A_ScriptDir
 
 
 /**********************************************************
+ * Prepare resources for compiled scripts
+ * 
+ * This needs to be run before anything else.
+ *
+ */
+
+
+#Include Compiled.ahk
+
+
+
+
+/**********************************************************
  * Extended AHK Script Properties
  * 
  * These are not defined by AHK but should be
@@ -98,7 +111,9 @@ A_ProgramFiles_x86 := EnvGet("ProgramFiles(x86)")
 
 ; A_Version
 ; 	The program version, as a string. For example: 1.0.2-beta
-if !A_IsCompiled {
+if A_IsCompiled {
+	A_Version := Compiled_VersionString
+} else {
     try {
 		A_Version := FileRead("version")
 	    A_Version := SubStr(A_Version, 1, 32)       ; limit to 32 chars
@@ -111,7 +126,7 @@ if !A_IsCompiled {
 ;	The executable file that is running.
 ;	For example, for a non-compiled script: AutoHotkey64.exe
 ;	For example, for a compiled script: PACS Assistant.exe
-SplitPath A_AhkPath, &A_AhkExe
+SplitPath A_AhkPath, &A_AhkExe			; just the filename
 
 
 
@@ -155,9 +170,6 @@ SplitPath A_AhkPath, &A_AhkExe
 #Include Help.ahk
 
 #Include Hotkeys.ahk
-
-; for compiled scripts
-#Include Compiled.ahk
 
 ; for debugging
 #Include <Peep.v2>				; for debugging
@@ -239,17 +251,17 @@ PAShowWindows() {
 
 
 ; Hook function called when PS main window opens
-PAShow_main(hwnd, hook, dwmsEventTime) {
-	App["PA"].Win["main"].hwnd := hwnd
+; PAShow_main(hwnd, hook, dwmsEventTime) {
+; 	App["PA"].Win["main"].hwnd := hwnd
 
-	; crit := hook.MatchCriteria[1]
-	; text := hook.MatchCriteria[2]
+; 	; crit := hook.MatchCriteria[1]
+; 	; text := hook.MatchCriteria[2]
 
-;TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
-	if Setting["Debug"].enabled
-		PlaySound("PACS Assistant show main")
+; ;TTip("PAShow_main(" hwnd ": ('" crit "','" text "')")
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PACS Assistant show main")
 
-}
+; }
 
 
 

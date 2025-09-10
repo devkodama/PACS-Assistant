@@ -146,7 +146,7 @@ GenerateCompileDirectives() {
     propertyDirectives .= ";@Ahk2Exe-SetCopyright Copyright " . A_Year . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetName " . productName . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetDescription " . productDescription . "`n"
-    propertyDirectives .= "`nif A_IsCompiled {`n`tA_Version := `"" . productVersion . "`"`n}`n"
+    propertyDirectives .= "`nCompiled_VersionString := `"" . productVersion . "`"`n"
 
     ; Process WVTresourcesList, build directives for adding resources
     wvtAddDirectives := ''
