@@ -34,7 +34,7 @@ On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic, bu
 
 PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. In PACS Assistant, go to the Window Manager tab. Arrange your EI, PowerScribe, Epic, and Epic Chat windows as you like. Then click Remember window positions.
 
-PACS Assistant can automatically dismiss selected popup messages such as PowerScribe, EI, or Epic confirmation messages.
+PACS Assistant can automatically dismiss selected popup messages such as PowerScribe, EI, or Epic confirmation messages. In PACS Assistant, go to the Settings tab to enable or disable.
 
 ## Focus following
 
