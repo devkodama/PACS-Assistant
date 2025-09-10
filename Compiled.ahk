@@ -11,12 +11,12 @@
 
 
 ; ### RESOURCE BLOCK START ###
-;@Ahk2Exe-SetVersion 0.7.2-beta
+;@Ahk2Exe-SetVersion 0.7.3-beta
 ;@Ahk2Exe-SetCopyright Copyright 2025
 ;@Ahk2Exe-SetName PACS Assistant
 ;@Ahk2Exe-SetDescription PACS Assistant
 
-Compiled_VersionString := "0.7.2-beta"
+Compiled_VersionString := "0.7.3-beta"
 
 ;@Ahk2Exe-AddResource Lib\64bit\WebView2Loader.dll, 64bit\WebView2Loader.dll
 ;@Ahk2Exe-AddResource Lib\32bit\WebView2Loader.dll, 32bit\WebView2Loader.dll
