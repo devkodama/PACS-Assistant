@@ -1,5 +1,7 @@
 This directory holds the standalone version of PACS Assistant.
 
-Download the folder PACS Assistant and put it in your Documents folder.
+In your Windows Documents folder, create a directory named PACS Assistant.
 
-Run the PACS Assistant.exe file which is within the PACS Assistant directory.
+Put the file PACS Assistant.exe inside the PACS Assistant folder
+
+Run PACS Assistant.exe.
