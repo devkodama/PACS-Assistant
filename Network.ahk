@@ -381,7 +381,8 @@ VPNStart(cred := CurrentUserCredentials) {
 			; We are in the VPN UI main window.
 
 			statustext := ControlGetText("Static2", hwndmain)
-			if statustext = "Ready to connect." {
+			if statustext = "Ready to connect."
+				|| statustext = "Certificate Validation Failure" {
 				; at this point, if the last dialog box was "otp", then we
 				; infer the user clicked the Cancel button so we abort the entire login process
 				if lastdialog = "otp" {

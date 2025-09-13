@@ -16,7 +16,9 @@ PACS Assistant is highly customizable--most of its features can be selectively e
 
 ## How to use
 
-In the Documents folder on your computer, create a folder named PACS Assistant and copy the file PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run.
+From this [GitHub repository](https://github.com/devkodama/PACS-Assistant), click on the folder _Standalone/PACS Assistant_. Click on the file named _PACS Assistant.exe_,  then click on the button named _Raw_ to download the file.
+
+In the Documents folder on your computer, create a folder named PACS Assistant and put PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run.
 
 The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant will remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username and settings but not your password.
 

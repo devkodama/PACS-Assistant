@@ -130,7 +130,7 @@ $^+CapsLock:: {
 ;
 $Tab:: {
 	if Setting["hkTab"].enabled 
-		&& (PSIsReport() || PSIsAddendum())
+		&& PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		PSCmdNextField()
@@ -140,7 +140,7 @@ $Tab:: {
 }
 $+Tab:: {
 	if Setting["+hkTab"].enabled 
-		&& (PSIsReport() || PSIsAddendum())
+		&& PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		PSCmdPrevField()
@@ -150,7 +150,7 @@ $+Tab:: {
 }
 $^Tab:: {
 	if Setting["^hkTab"].enabled 
-		&& (PSIsReport() || PSIsAddendum())
+		&& PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		if A_PriorHotkey = ThisHotkey {
@@ -164,7 +164,7 @@ $^Tab:: {
 }
 $^+Tab:: {
 	if Setting["^+hkTab"].enabled 
-		&& (PSIsReport() || PSIsAddendum())
+		&& PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		PSCmdPrevEOL()
@@ -244,7 +244,7 @@ $+Esc:: {
 ;
 $^y:: {
 	if Setting["hkCtrlYZ"].enabled
-		&& (PSIsReport() || PSIsAddendum())
+		&& PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA")
 	{
 		PSSend("^y")
@@ -254,7 +254,7 @@ $^y:: {
 }
 $^z:: {
 	if Setting["hkCtrlYZ"].enabled
-		&& (PSIsReport() || PSIsAddendum())
+		&& PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA")
 	{
 		PSSend("^z")
@@ -282,7 +282,8 @@ $Space:: {
 	global LButton_ClickLockon
 	global LButton_ClickLocktrigger
 	
-	if Context(WindowUnderMouse(), "EI i1 i2") {
+	getwin := WindowUnderMouse()
+	if Context(getwin, "EI i1 i2") {
 		if Setting["ClickLock"].value = "Manual" && GetKeyState("LButton") {
 			; space was pressed while L mouse button is logically down, inside an EI images window
 			if !LButton_ClickLocktrigger {
@@ -312,14 +313,14 @@ $Space:: {
 				BlockInput false
 			}
 		}
-	} else if Context(WindowUnderMouse(), "EI list") {
+	} else if Context(getwin, "EI list") {
 		; avoid double clicking on a window by checking system double click timeout
 		if Setting["hkSpaceClick"].enabled && (!A_TimeSincePriorHotkey || A_PriorHotkey != A_ThisHotkey || A_TimeSincePriorHotkey > PA_DoubleClickSetting) {
 			BlockInput true
 			Click 2
 			BlockInput false
 		}
-	} else if Context(WindowUnderMouse(), "PS report addendum") {
+	} else if Context(getwin, "PS report addendum") {
 		if Setting["hkSpaceDelete"].enabled {
 			; Check to see if there is a text selection in the PS report area
 			; If so, smart delete it
@@ -488,9 +489,6 @@ _LButton_beep() {
 PA_MapActivateEIKeys() {
 	static definedhklist := Array()		; remembers all hotkeys which have been defined previously through this function
                             
-	if Setting["Debug"]
-		TTip("PA_MapActivateEIKeys() called")
-
 	; retrieve list of EI shortcut keys from Settings
 	; generate keylist array of hotkeys
 	if Setting["EIkeylist"].value != "" {

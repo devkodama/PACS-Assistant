@@ -35,7 +35,7 @@ EXE_AHK2EXE := "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
 inputScriptFile := "AutoHotkey64.ahk"
 inputIcoFile := "PA.ico"
 
-; output file destinations
+; output file(s)
 outputScriptFile := "Compiled.ahk"
 outputExeFile := "Standalone\PACS Assistant\PACS Assistant.exe"
 

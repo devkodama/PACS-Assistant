@@ -14,8 +14,10 @@
  * 	PSDictateIsOn(forceupdate := false)		- Returns the state of the PS360 Dictate (mic) button
  * 	PSIsRunning()							- Returns TRUE if PS is running, FALSE if not
  * 	PSIsLogin()
- * 	PSIsMain()
+ * 	PSIsHome()
  * 	PSIsReport()
+ * 	PSIsAddendum()
+ * 	PSIsReportOrAddendum()
  * 	
  * 	PSShow_main()							- Callback functions
  * 	PSShow_recognition()
@@ -279,6 +281,23 @@ PSIsAddendum() {
 		; look for the wintext string within the PS main window
 		try {
 			if InStr(WinGetText(PShwnd), App["PS"].Win["addendum"].wintext) {
+				; found the wintext string, return the hwnd of the parent window
+				return PShwnd
+			}
+		} catch { 
+		}
+	}
+	return 0
+}
+PSIsReportOrAddendum() {
+	PShwnd := App["PS"].Win["main"].IsReady() 
+	if PShwnd {
+		; look for the wintext string within the PS main window
+		try {
+			gettext := WinGetText(PShwnd)
+			if InStr(gettext, App["PS"].Win["report"].wintext) 
+				|| InStr(gettext, App["PS"].Win["addendum"].wintext) 
+			{
 				; found the wintext string, return the hwnd of the parent window
 				return PShwnd
 			}
