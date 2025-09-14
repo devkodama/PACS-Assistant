@@ -14,6 +14,8 @@
 #SingleInstance Force
 
 
+
+
 if FileExist("updater.exe") {
 	try {
 		FileDelete("updater.exe")

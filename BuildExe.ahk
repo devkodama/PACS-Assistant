@@ -2,10 +2,15 @@
  * BuildExe.ahk
  * 
  * Helper script to make a compiled version of PACS Assistant (stand-alone exe).
+ * Run this script by itself. It is not part of the main PACS Assistant script.
  * 
- * Run this script by itself. It will regenerate the Compiled.ahk file
- * to contain necessary compile-time directives for embedding the necessary
- * files with the executable, plus other compiled version requirements.
+ * Update productVersion with the current version specification before running.
+ * 
+ * This script will regenerate the Compiled.ahk file to contain necessary 
+ * compile-time directives for embedding the necessary files with the executable,
+ * plus other compiled version requirements.
+ * 
+ * It will generate version and checksum files, for use by the updater.
  * 
  * Subsequently it will run ahk2exe to create the PACS Assistant.exe runtime.
  * 
@@ -24,12 +29,28 @@
 
 
 /**********************************************************
+ * Includes
+ * 
+ */
+
+
+#include Utils.ahk
+
+
+
+
+/**********************************************************
  * Configuration
  * 
 */
 
-; ahk2exe.exe executable
-EXE_AHK2EXE := "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
+
+; Version to generate
+productVersion := "0.7.4-beta"
+
+; Application name and description
+productName := "PACS Assistant"
+productDescription := "PACS Assistant"
 
 ; input file(s)
 inputScriptFile := "AutoHotkey64.ahk"
@@ -39,9 +60,8 @@ inputIcoFile := "PA.ico"
 outputScriptFile := "Compiled.ahk"
 outputExeFile := "Standalone\PACS Assistant\PACS Assistant.exe"
 
-; Product name and description
-productDescription := "PACS Assistant"
-productName := "PACS Assistant"
+; ahk2exe.exe executable path
+EXE_AHK2EXE := "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
 
 ; The auto-generated directives written to outputScriptFile are
 ; placed in between the resourceBlockStart and resourceBlockEnd markers.
@@ -89,7 +109,7 @@ filesList := [
 
 
 /**********************************************************
- * 
+ * Functions
  * 
 */
 
@@ -135,13 +155,6 @@ GenerateCompileDirectives() {
     ; Add properties
     propertyDirectives := ''
 
-    ; Get build version from the text file "version".
-    if FileExist("version") {
-        productVersion := FileRead("version")
-        productVersion := SubStr(productVersion, 1, 32)       ; limit to 32 chars
-    } else {
-        productVersion := ""
-    }
     propertyDirectives .= ";@Ahk2Exe-SetVersion " . productVersion . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetCopyright Copyright " . A_Year . "`n"
     propertyDirectives .= ";@Ahk2Exe-SetName " . productName . "`n"
@@ -286,12 +299,28 @@ try {
     if !result {
         ; success
         MsgBox(outputExeFile . " created successfully")
+
+        ; Now generate the version and checksum files
+        if FileExist("version") {
+            FileDelete("version")
+        }
+        FileAppend(productVersion, "version")
+
+        if FileExist("checksum") {
+            FileDelete("checksum")
+        }
+        checksum := ComputeChecksum(outputExeFile)
+        if checksum {
+            FileAppend(checksum, "checksum")
+        } else {
+            MsgBox("Error generating checksum file for " outputExeFile)
+        }
+
     } else {
         ; failure
         MsgBox(outputExeFile . " could not be created (Ahk2Exe result code " . result . ")")
     }
+
 } catch {
-    MsgBox(outputExeFile . " could not be created, " EXE_AHK2EXE . " could not be found")
+    MsgBox(outputExeFile . " could not be created." )
 }
-
-

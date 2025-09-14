@@ -17,7 +17,13 @@
  *  StdoutToVar(sCmd, sDir:="", sEnc:="CP0")            - Function to run a command line command and return its output as an
  *                                                          object of the form {Output: sOutput, ExitCode: nExitCode}
  *
- *  SetTray(version := "")                              - Redefines the tray menu and tray tooltip
+ *  VersionStringIsValid(version)           - Returns true if version string is a valid semantic version string.
+ * 
+ *  MD5StringIsValid(filename)              - Return a string containing the MD5 checksum of 
+ *                                          - the specified file, or "" on failure.
+ * 
+ *  ComputeChecksum(filename)               - Return a string containing the MD5 checksum of the specified file, 
+ *                                          - or "" on failure.
  * 
  */
 
@@ -157,45 +163,42 @@ StdoutToVar(sCmd, sDir:="", sEnc:="CP0") {
 }
 
 
-; Replaces the system tray icon, right-click menu, and tooltip.
+; Returns true if version string is a valid semantic version string.
+; Uses regex to match semantic version string, see:
+;   https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+;   https://regex101.com/r/Ly7O1x/3/
 ;
-; Copied from https://github.com/Nigh/ahk-autoupdate-template/blob/main/tray.ahk
-SetTray() {
-	
-    ; returns a function that runs the specified webpage
-    gotoWebpage_maker(url) {
-        webpage(*) {
-            Run(url)
-        }
-        return webpage
+VersionStringIsValid(version) {
+    return RegExMatch(version, "^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+}
+
+
+; Returns true if version string is a valid MD5 string, i.e. is a 32 digit hex string.
+;
+MD5StringIsValid(md5) {
+    return RegExMatch(md5, "^[a-fA-F0-9]{32}$")
+}
+
+
+; Return a string containing the MD5 checksum of the specified file, or "" on failure.
+;
+; output of "certutil -hashfile <filename> MD5" looks like:
+;   MD5 hash of <filename>:
+;   0a4f2d7ef8be58dceb4a0d3b8e745aaf
+;   CertUtil: -hashfile command completed successfully.
+; on error:
+;   CertUtil: -hashfile command FAILED: 0x80070002 (WIN32: 2 ERROR_FILE_NOT_FOUND)
+;   CertUtil: The system cannot find the file specified.
+;
+ComputeChecksum(filename) {
+
+    certutilout := StdoutToVar('cmd.exe /q /c CertUtil -hashfile "' . filename . '" MD5').Output
+
+    if InStr(certutilout, "successfully") && RegExMatch(certutilout, "\n([0-9a-f]+)", &regout) {
+            checksum := regout[1]       ; just the checksum digits
+    } else {
+        checksum := ""
     }
 
-    ; exit the application
-	quit_pa(*) {
-TTip("Quit PACS Assistant")
-;		trueExit("", "")
-	}
-
-    ; set PACS Assistant tray icon
-	TraySetIcon("PA.ico")
-
-
-    ; create the tray menu
-	tray := A_TrayMenu
-
-;    tray.delete
-
-;	tray.add("v" . version, (*) => {})
-
-    ; tray.add()
-	; tray.add("Github ahk-autoupdate-template", gotoWebpage_maker("https://github.com/Nigh/ahk-autoupdate-template"))
-    ; tray.add("Other", other_callback(ItemName, ItemPos, MenuRef))
-
-    ; tray.add()
-	; tray.add("Quit PACS Assistant", quit_pa)
-	; tray.ClickCount := 1
-
-    ; set tray icon's tooltip
-    A_IconTip := "PACS Assistant`n" . A_Version . (A_IsCompiled ? "c" : "")
-
+    return checksum
 }
