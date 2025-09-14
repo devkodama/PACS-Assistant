@@ -231,18 +231,20 @@ Updater() {
     
     latestversion := UpdaterLatestVersion("https://raw.githubusercontent.com/devkodama/PACS-Assistant/refs/heads/main/version")
 
-;https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/checksum
-
 MsgBox(latestversion " vs. " A_Version)
 
     if VerCompare(latestversion, A_Version) >= 0 {
         ; latest version is higher than current version, so try to update
         if MsgBox("A newer version of PACS Assistant is available. Do you want to update?", "PACS Assistant Update", "Y/N") = "Yes" {
             ; user said Yes, do the update
-            if UpdaterPerformUpdate(A_AhkExe, "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe")
-            ; success, restart the script
-            MsgBox("Click OK to restart PACS Assistant")
-            Reload()
+            if UpdaterPerformUpdate(A_AhkExe, "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe", "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/checksum") {
+                ; success, restart the script
+                MsgBox("Click OK to restart PACS Assistant")
+                Reload()
+            } else {
+                ; failed to update
+                MsgBox("Update failed.")
+            }
         }
     } else {
         MsgBox("No update is available.", "PACS Assistant Update", "OK")
