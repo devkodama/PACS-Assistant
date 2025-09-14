@@ -384,6 +384,7 @@ EILOGINShow_login(hwnd, hook, dwmsEventTime) {
 		PlaySound("EI show login")
 }
 
+; This function isn't getting called. There is a bug with EI desktop window detection.
 EIShow_d() {
 	if Setting["Debug"].enabled
 		PlaySound("EI show desktop")
@@ -397,6 +398,12 @@ EIShow_i1(hwnd, hook, dwmsEventTime) {
 	App["EI"].Win["i1"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("EI show images1")
+	; because of unknown bug, EI desktop window is not being detect at show
+	; so we hijack images1 window hook to restore desktop window position
+	if Setting["EI_restoreatopen"].enabled {
+		; Restore EI desktop window position
+		App["EI"].Win["d"].RestorePosition()
+	}
 }
 
 EIShow_i2(hwnd, hook, dwmsEventTime) {
