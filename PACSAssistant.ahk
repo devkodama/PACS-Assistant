@@ -17,6 +17,8 @@
  * 	PACSStop()									- Shut down PACS
  * 
  * 	PAInit()					- Called once at startup to do necessary initialization
+ *  SetTray()			        - Redefines the tray menu and tray tooltip
+ * 
  * 	PAMain()					- Main starting point for PACS Assistant
  * 
  * 
@@ -417,8 +419,8 @@ PAInit() {
 	global PollShow
 	global PollClose
 
-	; Updater housekeeping
-	UpdaterInit()
+	; Call Updater to update this program file.
+	Updater()
 
 	; Initialize systemwide settings
 	SettingsInit()
@@ -472,6 +474,50 @@ PAInit() {
 
 	; Get Windows system double click setting
 	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
+
+}
+
+
+; Replaces the system tray icon, right-click menu, and tooltip.
+;
+; Copied from https://github.com/Nigh/ahk-autoupdate-template/blob/main/tray.ahk
+SetTray() {
+	
+    ; returns a function that runs the specified webpage
+    gotoWebpage_maker(url) {
+        webpage(*) {
+            Run(url)
+        }
+        return webpage
+    }
+
+    ; exit the application
+	quit_pa(*) {
+TTip("Quit PACS Assistant")
+;		trueExit("", "")
+	}
+
+    ; set PACS Assistant tray icon
+	TraySetIcon("PA.ico")
+
+
+    ; create the tray menu
+	tray := A_TrayMenu
+
+;    tray.delete
+
+;	tray.add("v" . version, (*) => {})
+
+    ; tray.add()
+	; tray.add("Github ahk-autoupdate-template", gotoWebpage_maker("https://github.com/Nigh/ahk-autoupdate-template"))
+    ; tray.add("Other", other_callback(ItemName, ItemPos, MenuRef))
+
+    ; tray.add()
+	; tray.add("Quit PACS Assistant", quit_pa)
+	; tray.ClickCount := 1
+
+    ; set tray icon's tooltip
+    A_IconTip := "PACS Assistant`n" . A_Version . (A_IsCompiled ? "c" : "")
 
 }
 

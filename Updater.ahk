@@ -10,13 +10,22 @@
  *  UpdaterInit()                           - Performs housekeeping. Should be called 
  *                                          - once every script startup.
  * 
- *  UpdaterLatestVersion(urllatestversion)      - Returns a string specifying the latest
- *                                              - available version.
+ *  UpdaterLatestVersion(urllatestversion)  - Returns a string specifying the latest
+ *                                          - available version, obtained from urllatestversion.
+ *
+ *  UpdaterLatestChecksum(urlchecksum)      - Returns a string specifying the checksum of latest
+ *                                          - available version, obtained from urlchecksum.
  * 
- *  UpdaterPerformUpdate(filename, urllatestrelease)    - Replaces filename with the 
- *                                                      - latest version downloaded 
- *                                                      - from urllatestrelease, then 
- *                                                      - reloads the script.
+ *  UpdaterPerformUpdate(filename, urllatestrelease, urlchecksum)       - Replaces filename with the 
+ *                                                      - latest version downloaded from urllatestrelease,
+ *                                                      - after confirming download with checksum obtained from
+ *                                                      - urlchecksum, then reloads the script.
+ * 
+ *  Updater()                               - The main function to be called externally.
+ *                                          - Checks for a new version of PACS Assistant, asks the user
+ *                                          - for permission to update, then performs the update and restarts.
+ *                                          - Only works for compiled version of script.
+ *                                          - A_AhkExe must be defined as the name of the script exe file.
  * 
  */
 
@@ -32,6 +41,10 @@
  */
 
 
+; Updater files are kept in this directory
+updaterdir := "update"
+
+
 
 
 /**********************************************************
@@ -40,9 +53,27 @@
 
 
 ; Should be called on startup to perform clean up operations (like deleting old files).
+;
 UpdaterInit() {
-    ; remove any undeleted old files
-    FileRecycle("___deprecated_*")
+    if DirExist(updaterdir) {
+        ; remove any undeleted temp files
+        try {
+            FileDelete(updaterdir . "\__partial__*")
+            FileDelete(updaterdir . "\__version__")
+            FileDelete(updaterdir . "\__checksum__")
+        } catch {
+        }
+        ; remove saved versions of exe files which are older than 60 days
+        try {
+            loop files updaterdir . "\*.exe" {
+                if DateDiff(A_LoopFileTimeCreated, A_Now, "D") > -1 {
+                    FileDelete(A_LoopFileFullPath)
+                }
+            }
+        } catch {
+        }
+    }
+
 }
 
 
@@ -51,112 +82,167 @@ UpdaterInit() {
 ;
 ; The returned string should be a valid semantic versioning expression.
 ; Otherwise "" (empty string) is returned.
+;
 UpdaterLatestVersion(urllatestversion) {
     
+    if !DirExist(updaterdir) {
+        DirCreate(updaterdir)
+    }
     ; get the latest version
-    Download(urllatestversion, "___latestversion")
+    Download(urllatestversion, updaterdir . "\__version__")
     try {
-        latestversion := FileRead("___latestversion")
-        FileDelete("___latestversion")
+        latestversion := FileRead(updaterdir . "\__version__")
+        FileDelete(updaterdir . "\__version__")
     } catch {
         latestversion := ""
     }
 
-    ; Use regex to match semantic version string, see:
-    ; https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-    ; https://regex101.com/r/Ly7O1x/3/
-    if RegExMatch(latestversion, "/^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/gm") {
-        return latestversion
-    } else {
-        return ""
-    }
+    ; check the version string for validity before returning
+    return VersionStringIsValid(latestversion) ? latestversion : ""
 }
 
 
-; Downloads the latest version of the file filename from urllatestrelease.
-; Replaces the file, restarts the running script.
-UpdaterPerformUpdate(filename, urllatestrelease) {
-
+; Returns a string specifying the expected checksum for the latest version.
+; The expected checksum is obtained from urlchecksum, which should return only simple text.
+; The returned string should be a valid MD5 hash (i.e. 32-digit hex string).
+;
+UpdaterLatestChecksum(urlchecksum) {
+    
+    if !DirExist(updaterdir) {
+        DirCreate(updaterdir)
+    }
+    ; get the latest version
+    Download(urlchecksum, updaterdir . "\__checksum__")
     try {
-        Download(urllatestrelease, "___partial_" . filename)
+        checksum := FileRead(updaterdir . "\__checksum__")
+        FileDelete(updaterdir . "\__checksum__")
     } catch {
-        ; download failed, delete any residual partial file
+        checksum := ""
+    }
+
+    ; check the hash string for validity before returning
+    return MD5StringIsValid(checksum) ? checksum : ""
+}
+
+
+; Downloads the latest version of the exe file filename from urllatestrelease.
+; Verifies the download against the checksum (unless urlchecksum is omitted or blank).
+; Replaces the script exe file, saving the old one in the updater folder as a backup.
+;
+; The script must be compiled for this function to succeed. If not compiled, returns failure.
+;
+; If urlchecksum is omitted or blank, then checksum verification is skipped (NOT RECOMMENDED).
+;
+; On success, returns true.
+; On failure, returns false.
+;
+UpdaterPerformUpdate(filename, urllatestrelease, urlchecksum:="") {
+
+    if !A_IsCompiled {
+        return false        ; failure
+    }
+
+    if urlchecksum {
+        ; get the expected MD5 of the download
+        checksum := UpdaterLatestChecksum(urlchecksum)
+        if !checksum {
+            return false        ; failure
+        }
+    } else {
+        checksum := ""
+    }
+
+    if !DirExist(updaterdir) {
+        DirCreate(updaterdir)
+    }
+
+    ; download the latest release executable file
+    try {
+        Download(urllatestrelease, updaterdir . "\__partial__" . filename)
+    } catch {
+        ; download failed, delete any residual partial file and return failure
         try {
-            FileDelete("___partial_" . filename)
+            FileDelete(updaterdir . "\__partial__" . filename)
+        }    
+        return false        ; failure
+    }    
+
+    if checksum {
+        ; verify checksum
+        if !(ComputeChecksum(updaterdir . "\__partial__" . filename) == checksum) {
+            ; verify failed, delete any residual partial file and return failure
+            try {
+                FileDelete(updaterdir . "\__partial__" . filename)
+            }    
+            return false        ; failure
+        }
+        ; checksums match
+    }    
+
+    ; Save current file as backup and replace it with downloaded file.
+    if !FileExist(filename) {
+        ; this should never happen
+        msgbox(filename . "doesn't exist")
+        return false        ; failure
+    }
+
+    ; rename current file with its version appended and save it in the updater folder
+    SplitPath(filename, , , &ext, &fn)
+    savename := fn . " " . A_Version . "." . ext
+    try {
+        FileMove(filename, updaterdir . "\" . savename)
+    } catch {
+        return false        ; failure
+    }
+    ; replace current file with new file
+    try {
+        FileMove(updaterdir . "\__partial__" . filename, filename)
+    } catch {
+        ; if error, try to revert
+        try {
+            FileMove(updaterdir . "\" . savename, filename)
+            FileDelete(updaterdir . "\__partial__" . filename)
         } catch {
+        return false        ; failure
         }
     }
 
-    ; [todo] need to verify good downloaded file
-    if FileExist("___partial_" . filename) {
-        
-        if FileExist(filename) {
-            ; rename existing file
-            try {
-                FileMove(filename, "___deprecated_" . filename)
-            } catch {
-            }            
-            ; replace with new file
-            try {
-                FileMove("___partial_" . filename, filename)
-            } catch {
-                ; if failed, try to revert
-                try {
-                    FileMove("___deprecated_" . filename, filename)
-                    FileDelete("___partial_" . filename)
-                } catch {
-                }
-            }
-            ; hopefully filename is now the new file,
-            ; and the old deprecated file will be deleted after script restart
-        }
+    return true         ; success
+}
 
-    } else {
-        ; didn't succeed with download, don't do anything.
+
+; Check for a new version of PACS Assistant, asks the user for
+; permission to update, then performs the update and restarts.
+;
+; A_AhkExe must be defined as the name of the running exe file.
+;
+; Only works for compiled version of script. Returns false if non-compiled version is running.
+;
+; If update is performed, the script is restarted and this function never returns.
+; If no update is performed, simply returns.
+;
+Updater() {
+
+    UpdaterInit()
+
+    if !A_IsCompiled {
+        return false
     }
     
-    ; restart the script
-    Reload()
+    latestversion := UpdaterLatestVersion("https://raw.githubusercontent.com/devkodama/PACS-Assistant/refs/heads/main/version")
+
+MsgBox(latestversion " vs. " A_Version)
+
+    if VerCompare(latestversion, A_Version) >= 0 {
+        ; latest version is higher than current version, so try to update
+        if MsgBox("A newer version of PACS Assistant is available. Do you want to update?", "PACS Assistant Update", "Y/N") = "Yes" {
+            ; user said Yes, do the update
+            if UpdaterPerformUpdate(A_AhkExe, "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe")
+            ; success, restart the script
+            MsgBox("Click OK to restart PACS Assistant")
+            ; Reload()
+        }
+    } else {
+        MsgBox("No update is available.", "PACS Assistant Update", "OK")
+    }
 }
-
-
-
-
-
-
-
-; Download "http://subrads.com/system/files/ref/images/03_990973_01B.jpeg", "test.jpeg"
-
-
-
-
-; httpreq := ComObject("Msxml2.XMLHTTP")
-; ; Open a request with async enabled.
-; httpreq.open("GET", "http://subrads.com/", true)
-; ; Set our callback function.
-; httpreq.onreadystatechange := Ready
-; ; Send the request.  Ready() will be called when it's complete.
-; httpreq.send()
-
-
-
-/*
-; If you're going to wait, there's no need for onreadystatechange.
-; Setting async=true and waiting like this allows the script to remain
-; responsive while the download is taking place, whereas async=false
-; will make the script unresponsive.
-while req.readyState != 4
-    sleep 100
-*/
-
-; Persistent
-
-; Ready() {
-;     if (httpreq.readyState != 4)  ; Not done yet
-;         return
-;     if (httpreq.status == 200) ; OK
-;         return MsgBox "Latest AutoHotkey version: " httpreq.responseText
-;     else
-;         MsgBox "Status " httpreq.status,, 16
-;     ExitApp
-; }
