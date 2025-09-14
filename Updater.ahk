@@ -44,6 +44,11 @@
 ; Updater files are kept in this directory
 updaterdir := "update"
 
+; URLs for version, checksum, and exe file
+urllatestversion := "https://raw.githubusercontent.com/devkodama/PACS-Assistant/refs/heads/main/version"
+urlchecksum := "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/checksum"
+urllatestrelease := "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe"
+
 
 
 
@@ -66,7 +71,7 @@ UpdaterInit() {
         ; remove saved versions of exe files which are older than 60 days
         try {
             loop files updaterdir . "\*.exe" {
-                if DateDiff(A_LoopFileTimeCreated, A_Now, "D") > -1 {
+                if DateDiff(A_LoopFileTimeCreated, A_Now, "D") > 60 {
                     FileDelete(A_LoopFileFullPath)
                 }
             }
@@ -169,7 +174,8 @@ UpdaterPerformUpdate(filename, urllatestrelease, urlchecksum:="") {
 
     if checksum {
         ; verify checksum
-        if !(ComputeChecksum(updaterdir . "\__partial__" . filename) == checksum) {
+        newchecksum := ComputeChecksum(updaterdir . "\__partial__" . filename)
+        if !(newchecksum == checksum) {
             ; verify failed, delete any residual partial file and return failure
             try {
                 FileDelete(updaterdir . "\__partial__" . filename)
@@ -182,7 +188,7 @@ UpdaterPerformUpdate(filename, urllatestrelease, urlchecksum:="") {
     ; Save current file as backup and replace it with downloaded file.
     if !FileExist(filename) {
         ; this should never happen
-        msgbox(filename . "doesn't exist")
+        MsgBox(filename . "doesn't exist")
         return false        ; failure
     }
 
@@ -229,15 +235,13 @@ Updater() {
         return false
     }
     
-    latestversion := UpdaterLatestVersion("https://raw.githubusercontent.com/devkodama/PACS-Assistant/refs/heads/main/version")
+    latestversion := UpdaterLatestVersion(urllatestversion)
 
-MsgBox(latestversion " vs. " A_Version)
-
-    if VerCompare(latestversion, A_Version) >= 0 {
+    if VerCompare(latestversion, A_Version) > 0 {
         ; latest version is higher than current version, so try to update
         if MsgBox("A newer version of PACS Assistant is available. Do you want to update?", "PACS Assistant Update", "Y/N") = "Yes" {
             ; user said Yes, do the update
-            if UpdaterPerformUpdate(A_AhkExe, "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe", "https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/checksum") {
+            if UpdaterPerformUpdate(A_AhkExe, urllatestrelease, urlchecksum) {
                 ; success, restart the script
                 MsgBox("Click OK to restart PACS Assistant")
                 Reload()
@@ -246,7 +250,5 @@ MsgBox(latestversion " vs. " A_Version)
                 MsgBox("Update failed.")
             }
         }
-    } else {
-        MsgBox("No update is available.", "PACS Assistant Update", "OK")
     }
 }

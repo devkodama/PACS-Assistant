@@ -283,11 +283,15 @@ GenerateCompileDirectives() {
 */
 
 
+; Verify version number
+if MsgBox("Confirm version to generate: " productVersion, "Confirm", "OKCancel") != "OK" {
+    return
+}
+
 ; Regenerate the Compiled.ahk file.
 GenerateCompileDirectives()
 
 ; Run ahk2exe.exe to generate the standalone exe.
-
 try {
     if FileExist(outputExeFile) {
         try {
