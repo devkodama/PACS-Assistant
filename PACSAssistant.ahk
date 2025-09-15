@@ -128,7 +128,7 @@ if A_IsCompiled {
 ;	The executable file that is running.
 ;	For example, for a non-compiled script: AutoHotkey64.exe
 ;	For example, for a compiled script: PACS Assistant.exe
-SplitPath A_AhkPath, &A_AhkExe			; just the filename
+SplitPath(A_AhkPath, &A_AhkExe)			; just the filename
 
 
 
@@ -157,6 +157,7 @@ SplitPath A_AhkPath, &A_AhkExe			; just the filename
 #Include Updater.ahk
 
 #Include AppManager.ahk
+#Include Layout.ahk
 
 #Include Sound.ahk
 #Include Info.ahk
@@ -464,7 +465,7 @@ PAInit() {
 
 	
 	; Read all stored window positions from user's settings.ini file
-	ReadPositionsAll()
+;	ReadPositionsAll()
 
 	; Read ICD code file
 	ICDReadCodeFile()

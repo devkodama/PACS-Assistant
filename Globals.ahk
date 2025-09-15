@@ -243,6 +243,9 @@ global PAStatusBarText := ""
 global PAStatus_PowerButton := ""
 
 
+; Map of Layouts saved by PACS Assistant
+global Layout := Map()
+
 
 ; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
 global PA_DoubleClickSetting := 400

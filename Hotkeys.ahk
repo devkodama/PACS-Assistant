@@ -586,7 +586,7 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
-	EICLINCmdResize()
+	Layout["default"].Revert()
 }
 
 

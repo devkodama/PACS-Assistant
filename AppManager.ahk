@@ -6,9 +6,6 @@
  * 
  * This module defines the following classes:
  * 
- *  WinPos - stores a 4-tuple x, y, w, h that specifies the position and size
- *  of a window.
- * 
  *  WinItem - tracks and returns information about an individual window that
  *  belongs to an AppItem.
  * 
@@ -37,11 +34,6 @@
  *  WritePositionsAll()     - For all windows of all apps, write window's savepos to user specific settings.ini file.
  *  ReadPositionsAll()      - For all windows of all apps, reads window's savepos from user specific settings.ini file.
  * 
- *  MonitorCount()          - Returns the system monitor count
- *  MonitorNumber(x, y)     - Returns the monitor number that contains the x, y coordinates
- *  MonitorPos(N)           - For monitor N, returns the monitor position and size (WinPos).
- *  VirtualScreenPos()      - Returns a WinPos with  the coordinates and size of the virtual screen.
- * 
  * 
  */
 
@@ -55,15 +47,6 @@
 /**********************************************************
 ** Global variables and constants used or defined in this module
  */
-
-
-; The number of system monitors
-global _MonitorCount := 0
-
-; Array of objects of {l, t, r, b}, representing the left, top, right, bottom
-; coordinates for each monitor. The right and bottom coordinates are just outside
-; the displayable area.
-global _MonitorCoords := Array()
 
 
 ; App is a Map which stores information about all the windows that belong to a
@@ -190,31 +173,10 @@ App["EPIC"].Win["chart"] := WinItem("chart", App["EPIC"], App["EPIC"].Win["main"
 
 
 
-
 /**********************************************************
  * Classes defined by this module
  * 
  */
-
-
-; WinPos class
-;
-; A simple class to hold the position and size of a window
-;
-; Properties:
-;   x           - current screen x position of the window
-;   y           - current screen y position of the window
-;   w           - current width of the window
-;   h           - current height of the window
-;
-class WinPos {
-    __New(x := 0, y := 0, w := 0, h := 0) {
-        this.x := x
-        this.y := y
-        this.w := w
-        this.h := h
-    }
-}
 
 
 ; AppItem class
@@ -245,19 +207,17 @@ class WinPos {
 ;
 ;   Print()     - Returns diagnostic info about the window(s) for this app as a string
 ;
-;;;   CountOpenWindows()   - Returns the number of open (and visible?) windows that belong to this app
 ;
-;
-;	SavePositions()     - For all windows of this app,
-;                           saves the current x, y, width, and height
-;                           of each in its savepos proprety.
-;	RestorePositions() 	- For all windows of this app,
-;                           restores window to the size and position in its savepos property.
-;
-;	WritePositions()	- For all windows of this app,
-;                           write window's savepos to user specific settings.ini file.
-;	ReadPositions()	    - For all windows of this app,
-;                           reads window's savepos from user specific settings.ini file.
+	; SavePositions()     - For all windows of this app,
+    ;                       saves the current x, y, width, and height
+    ;                       of each in its savepos proprety.
+	; RestorePositions() 	- For all windows of this app,
+    ;                       restores window to the size and position in its savepos property.
+
+	; WritePositions()	- For all windows of this app,
+    ;                       write window's savepos to user specific settings.ini file.
+	; ReadPositions()	    - For all windows of this app,
+    ;                       reads window's savepos from user specific settings.ini file.
 ;
 ;
 ; To instantiate a new AppItem, use:
@@ -330,6 +290,8 @@ class AppItem {
         return output
     }
 
+
+/*
     ; For all windows of this app, saves the current x, y, width, and height
     ; of each in its savepos proprety.
     SavePositions() {
@@ -361,6 +323,7 @@ class AppItem {
             w.ReadPosition()
         }
     }
+*/
 
 }
 
@@ -405,13 +368,13 @@ class AppItem {
 ;               - When set, it maintains a reverse lookup table used to retrieve
 ;               -   a WinItem from a hwnd (by calling WinItem.LookupHwnd() -- see below). 
 ;
-;   savepos     - WinPos, remembered position of the window
-;
 ;   PWin[]      - array, An array of child pseudowindows.
+;
+;   pos         - Pos, current position of the window.
+;               - Assigning pos has the side effect of moving/resizing the window via WinMove().
 ;
 ; read-only properties:
 ;
-;   pos         - WinPos, current position of the window
 ;   pid         - Process id of the window. Returns 0 if not found. 
 ;               -   For pseudowindows, returns pid of its parentwindow.
 ;	visible		- boolean, true if window state is visible (i.e. has WF_VISIBLE style)
@@ -428,8 +391,7 @@ class AppItem {
 ; internal properties:
 ;
 ;   _hwnd       - integer, Stores the actual hwnd. For pseudowindows, stores the parent's hwnd.
-;   _pos        - WinPos, stores the actual value
-;   _savepos    - WinPos, stores the actual value
+;   _pos        - Pos, stores the actual value
 ;
 ;   this._showstate     - boolean, False if window is not showing, becomes true when a polled hook_show is (queued to) run.
 ;                       - Reset to false when hwnd is set to 0.
@@ -455,13 +417,7 @@ class AppItem {
 ;
 ;   Close()     - Closes the window, via call to WinClose()
 ;
-;	SavePosition()	    - Saves the current x, y, width, and height of a window in its savepos proprety
-;	RestorePosition() 	- Restores window to the size and position in its savepos property.
-;
 ;	CenterWindow(parentwindow)	- Centers a window over a parent window or specific monitor
-;
-;	WritePosition()	- Write window's savepos to user specific settings.ini file.
-;	ReadPosition()	- Reads window's savepos from user specific settings.ini file.
 ;
 ;
 ; To instantiate a new WinItem, use:
@@ -486,8 +442,7 @@ class WinItem {
         
         ; internal use variables
         this._hwnd := 0
-        this._pos := WinPos()
-        this._savepos := WinPos()
+        this._pos := Pos()
 
         this.PWin := Array()
 
@@ -643,38 +598,48 @@ class WinItem {
         get {
             try {
                 WinGetPos(&x, &y, &w, &h, this.hwnd)
-                this._pos.x := x
-                this._pos.y := y
-                this._pos.w := w
-                this._pos.h := h
-            } catch {
-                this._pos.x := 0
-                this._pos.y := 0
-                this._pos.w := 0
-                this._pos.h := 0
+                return Pos(x, y, w, h)
+                ; this._pos.x := x
+                ; this._pos.y := y
+                ; this._pos.w := w
+                ; this._pos.h := h
+            ; } catch {
+                ; this._pos.x := 0
+                ; this._pos.y := 0
+                ; this._pos.w := 0
+                ; this._pos.h := 0
             }
-            return this._pos
-        }
-        ; set {
-        ;     this._pos.x := Value.x
-        ;     this._pos.y := Value.y
-        ;     this._pos.w := Value.w
-        ;     this._pos.h := Value.h
-        ; }
-    }
-    
-    savepos {
-        get {
-            return this._savepos
+            return Pos(0, 0, 0, 0)
+            ; return this._pos
         }
         set {
-            this._savepos.x := Value.x
-            this._savepos.y := Value.y
-            this._savepos.w := Value.w
-            this._savepos.h := Value.h
+            if !this.parentwindow {
+                ; this is a real window
+                try {
+                    gethwnd := this.hwnd
+                    if gethwnd {
+                        ; Value should be a Pos object
+                        x := Value.x
+                        y := Value.y
+                        w := Value.w
+                        h := Value.h
+                        ttip("(" x ", " y ", " w ", " h ")")
+                        if w >= WINPOS_MINWIDTH && h >= WINPOS_MINHEIGHT {
+                            ; move and resize
+                            WinMove(x, y, w, h, gethwnd)
+                        } else {
+                            ; move but don't resize
+                            WinMove(x, y, , , gethwnd)
+                        }
+                    }
+                }
+            } else {
+                ; this is a pseudowindow
+                ; do nothing
+            }
         }
     }
-
+    
     visible {
         get {
             if !this.parentwindow {
@@ -799,10 +764,6 @@ class WinItem {
                 }
                 output .= ")"
                 
-                ; show savepos
-                p := this.savepos
-                output .= "(" p.x "," p.y ")[" p.w "," p.h "]"
-
                 ; output .= " _showstate=" this._showstate
                 output .= "<br />"
 
@@ -859,6 +820,8 @@ class WinItem {
         }
     }
 
+
+/*
     ; Saves the current x, y, width, and height of a window in its savepos proprety.
     ;
     ; Return true on success, false on failure.
@@ -888,7 +851,9 @@ class WinItem {
         }
         return false
     }
+*/
 
+/*
     ; Moves (restores) window to the size and position recorded in its savepos property.
     ;
     ; Return true on success, false on failure.
@@ -913,59 +878,63 @@ class WinItem {
         }
         return false
     }
+*/
 
-    ; Centers this window over the passed parent window (WinItem),
-    ; window position (WinPos), or monitor (integer).
+
+    ; Centers this window over the passed target window (WinItem), window position (Pos),
+    ; or monitor (integer).
     ;
     ; If no parameter is passed, then centers within the monitor which the window is in.
     ;
     ; Returns true on success, false on failure.
     ;
     ; For pseudowindows, do nothing and return false.
-    CenterWindow(parent := 0) {
+    CenterWindow(target := 0) {
 
         if !this.parentwindow {
             ; this is a real window
-            if IsObject(parent) {
-                if parent.HasOwnProp("parentapp") {
-                    ; parent is a WinItem object
+            if IsObject(target) {
+                if target.HasOwnProp("parentapp") {
+                    ; target is a WinItem object
                     try {
+                        chwnd := this.hwnd
                         cw := 0
-                        pw := 0
-                        ; get child and parent window positions and dimensions
-                        WinGetPos( , , &cw, &ch, this._hwnd)
-                        WinGetPos(&px, &py, &pw, &ph, parent.hwnd)
+                        tw := 0
+                        ; get child and target window positions and dimensions
+                        WinGetPos( , , &cw, &ch, chwnd)
+                        WinGetPos(&tx, &ty, &tw, &th, target.hwnd)
 
-                        if cw = 0 || pw = 0 {
+                        if cw = 0 || tw = 0 {
                             return false
                         }
 
                         ; calculate new position
-                        nx := px + (pw - cw) / 2
-                        ny := py + (ph - ch) / 2
+                        nx := tx + (tw - cw) / 2
+                        ny := ty + (th - ch) / 2
 
-                        ; move child window to center of parentwindow, without resizing
-                        WinMove(nx, ny, , , this._hwnd)
+                        ; move child window to center of target window, without resizing
+                        WinMove(nx, ny, , , chwnd)
                         return true
                     } catch {
                     }
                 } else {
-                    ; parent is assumed to be a WinPos object
+                    ; target is assumed to be a WinPos object
                     try {
+                        chwnd := this.hwnd
                         cw := 0
                         ; get child window position and dimensions
-                        WinGetPos( , , &cw, &ch, this._hwnd)
+                        WinGetPos( , , &cw, &ch, chwnd)
 
                         if cw = 0 {
                             return false
                         }
 
                         ; calculate new position
-                        nx := parent.x + (parent.w - cw) / 2
-                        ny := parent.y + (parent.h - ch) / 2
+                        nx := target.x + (target.w - cw) / 2
+                        ny := target.y + (target.h - ch) / 2
 
                         ; move child window to center of parentwindow, without resizing
-                        WinMove(nx, ny, , , this._hwnd)
+                        WinMove(nx, ny, , , chwnd)
                         return true
                     } catch {
                     }
@@ -973,28 +942,29 @@ class WinItem {
             } else {
                 ; parent is assumed to be an integer specifying a monitor number
                 ; if parent is zero, the get the monitor number that window is on
-                if !parent {
+                if !target {
                     pos := this.pos
-                    parent := MonitorNumber(pos.x, pos.y)
+                    target := MonitorNumber(pos.x, pos.y)
                 }
-                if parent >= 1 && parent <= MonitorCount() {
+                if target >= 1 && target <= MonitorCount() {
+                    chwnd := this.hwnd
                     cw := 0
                     ; get child window position and dimensions
-                    WinGetPos( , , &cw, &ch, this._hwnd)
+                    WinGetPos( , , &cw, &ch, chwnd)
 
                     if cw = 0 {
                         return false
                     }
 
                     ; get position of monitor N (parent)
-                    monpos := MonitorPos(parent)
+                    monpos := MonitorPos(target)
 
                     ; calculate new position
                     nx := monpos.x + (monpos.w - cw) / 2
                     ny := monpos.y + (monpos.h - ch) / 2
 
-                    ; move child window to center of parentwindow
-                    WinMove(nx, ny, , , this._hwnd)
+                    ; move child window to center of target window
+                    WinMove(nx, ny, , , chwnd)
 
                     return true
                 }
@@ -1008,6 +978,8 @@ class WinItem {
         return false
     }
 
+
+/*
     ; Write window's savepos to user specific settings.ini file.
     ; Returns true on success, false on failure.
     ; If this is a pseudowindow, do nothing, return failure.
@@ -1034,7 +1006,9 @@ class WinItem {
             }
         }
     }
+*/
 
+/*
     ; Reads window's savepos from user specific settings.ini file.
     ; Returns true on success, false on failure.
     ; If this is a pseudowindow, do nothing, return failure.
@@ -1067,6 +1041,8 @@ class WinItem {
         }
         return false
     }
+*/
+
 
 }
 
@@ -1264,6 +1240,10 @@ PrintWindows(appkey := "", winkey := "", showall := false) {
 }
 
 
+
+
+
+/*
 ; For all windows of all apps, saves the current x, y, width, and height
 ; of each in its savepos proprety.
 SavePositionsAll() {
@@ -1295,80 +1275,7 @@ ReadPositionsAll() {
         a.ReadPositions()
     }
 }
+*/
 
 
-; Helper function to other Monitor functions
-_MonitorGetInfo() {
-    global _MonitorCount
-    global _MonitorCoords
 
-    ; if first time, get and cache info about the montors
-    if !_MonitorCount {
-        _MonitorCount := MonitorGetCount()
-        n := 1
-        while n <= _MonitorCount {
-            MonitorGetWorkArea(n, &left, &top, &right, &bottom)
-            _MonitorCoords.Push({l: left, t: top, r: right, b: bottom})
-            n++
-        }
-    }
-}
-
-
-; Returns the system monitor count
-MonitorCount() {
-    if !_MonitorCount {
-        _MonitorGetInfo()
-    }
-    return _MonitorCount
-}
-
-
-; Returns the monitor number that contains the passed x, y coordinates.
-;
-; Returns 0 if coordinates are not on any monitor.
-MonitorNumber(x, y) {
-    if !_MonitorCount {
-        _MonitorGetInfo()
-    }
-
-    ; determine which monitor the passed x, y coordinates falls on
-    monitorN := 0
-    for mon in _MonitorCoords {
-        if x >= mon.l && x < mon.r && y >= mon.t && y < mon.b {
-            monitorN := A_Index
-            break               ; for
-        }
-    }
-
-    return monitorN
-}
-
-
-; For monitor N, returns a WinPos reflecting the monitor's position and size (x,y,w,h).
-;
-; Returns 0 if an invalid monitor number is passed.
-MonitorPos(N) {
-    if !_MonitorCount {
-        _MonitorGetInfo()
-    }
-
-    if N < 1 || N > _MonitorCount {
-        return 0
-    }
-
-    mon := _MonitorCoords[N]
-    return WinPos(mon.l, mon.t, (mon.r - mon.l), (mon.b - mon.t))
-}
-
-
-; Returns a WinPos (x, y, w, h) reflecting the coordinates and size of the
-; virtual screen, which is the bounding rectangle of all display monitors.
-;
-; SM_XVIRTUALSCREEN := 76   - Coordinates for the left side and the top of the virtual screen.
-; SM_YVIRTUALSCREEN := 77
-; SM_CXVIRTUALSCREEN := 78  - Width and height of the virtual screen, in pixels.
-; SM_CYVIRTUALSCREEN := 79
-VirtualScreenPos() {
-    return WinPos(SysGet(76), SysGet(77), SysGet(78), SysGet(79))
-}
