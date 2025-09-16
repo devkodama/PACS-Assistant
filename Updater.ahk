@@ -68,7 +68,7 @@ UpdaterInit() {
             FileDelete(updaterdir . "\__checksum__")
         } catch {
         }
-        ; remove saved versions of exe files which are older than 60 days
+        ; [todo] not working? remove saved versions of exe files which are older than 60 days
         try {
             loop files updaterdir . "\*.exe" {
                 if DateDiff(A_LoopFileTimeCreated, A_Now, "D") > 60 {
