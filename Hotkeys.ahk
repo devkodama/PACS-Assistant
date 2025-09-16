@@ -586,7 +586,7 @@ _PA_EIHotkey(key) {
 
 ; this one is for testing
 +F2:: {
-	Layout["default"].Revert()
+	App["PA"].Win["main"].Restore()
 }
 
 
@@ -655,28 +655,37 @@ F3:: {
 
 
 F8:: {
-	pos := VirtualScreenPos()
-
-	out := ""
-	out .= "monitor count=" MonitorCount() "`n`n"
-	Peep(_MonitorCoords)
-	n := 1
-	while n <= MonitorCount() {
-		pos := MonitorPos(n)
-		out .= "  " A_Index ": " pos.x ", " pos.y ", " pos.w ", " pos.h "`n"
-		n++
-	}
-	out .= "`n"
-	
-	pos := VirtualScreenPos()
-	out .= "virtual screen: " pos.x ", " pos.y ", " pos.w ", " pos.h "`n"
-	MsgBox(out)
+	TTip("F8")
+	Layout["Default"].Save("default")
 }
 
 +F8:: {
-	VPNStop()
-
+	TTip("Shift F8")
+	Layout["Default"].Read("default")
 }
+
+
+
+
+
+	; pos := VirtualScreenPos()
+
+	; out := ""
+	; out .= "monitor count=" MonitorCount() "`n`n"
+	; Peep(_MonitorCoords)
+	; n := 1
+	; while n <= MonitorCount() {
+	; 	pos := MonitorPos(n)
+	; 	out .= "  " A_Index ": " pos.x ", " pos.y ", " pos.w ", " pos.h "`n"
+	; 	n++
+	; }
+	; out .= "`n"
+	
+	; pos := VirtualScreenPos()
+	; out .= "virtual screen: " pos.x ", " pos.y ", " pos.w ", " pos.h "`n"
+	; MsgBox(out)
+
+
 
 ^F8:: {
 	

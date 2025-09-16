@@ -853,32 +853,19 @@ class WinItem {
     }
 */
 
-/*
-    ; Moves (restores) window to the size and position recorded in its savepos property.
+    ; Moves (restores) window to the size and position saved in the currently active layout.
     ;
-    ; Return true on success, false on failure.
-    ;
-    ; For pseudowindows, do nothing and return false.
-    RestorePosition() {
+    ; Calls Restore() method of the current layout.
+    Restore() {
         if !this.parentwindow {
             ; this is a real window
-            try {
-                if this.hwnd {
-                    if this._savepos.w >= WINPOS_MINWIDTH && this._savepos.h >= WINPOS_MINHEIGHT {
-                        WinMove(this._savepos.x, this._savepos.y, this._savepos.w, this._savepos.h, this.hwnd)
-                        ; success, return true
-                        return true
-                    }
-                }
-            } catch {
-            }
+            Layout[Setting["Layout"].value].Restore(this)
         } else {
             ; this is a pseudowindow
             ; do nothing
         }
         return false
     }
-*/
 
 
     ; Centers this window over the passed target window (WinItem), window position (Pos),

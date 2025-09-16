@@ -272,17 +272,8 @@ GUISaveWindowPositions(*) {
 
     GUIStatus("Remembering window positions...")
 
-    Layout["default"].Memorize()
-
-;    Peep(Layout)
-
-;    SavePositionsAll()
-
-;    Peep(App["PS"].Win["login"].savepos)
-;    Peep(App["PS"].Win["main"].savepos)
-
-    ; write to settings file
-;    WritePositionsAll()
+    Layout[Setting["Layout"].value].Memorize()
+    Layout[Setting["Layout"].value].Save(Setting["Layout"].value)        ; save to .ini file
 
     GUIStatus("Remembered")
 
@@ -305,10 +296,8 @@ GUIRestoreWindowPositions(*) {
 
     GUIStatus("Restoring windows...")
 
-    Layout["default"].Restore()
-
-    ; ReadPositionsAll()
-    ; RestorePositionsAll()
+    Layout[Setting["Layout"].value].Read(Setting["Layout"].value)        ; read from .ini file
+    Layout[Setting["Layout"].value].Restore()
 
     GUIStatus("Restored")
 
@@ -403,30 +392,36 @@ GUIMain(*) {
     }
 */
 
-    ; calculate a default position for PA
-    ; position PA GUI in upper right corner of 3rd monitor from right
-    ; with a width of PA_DEFAULTWIDTH
-    n := MonitorCount()
-    if n > 2 {
-        n := n - 2
+    ; If we have a saved position in this layout for the PA window, use it.
+    getpos := Layout[Setting["Layout"].value].GetPos(App["PA"].Win["main"])
+    if getpos {
+        ; use saved position
+        x := getpos.x
+        y := getpos.y
+        w := getpos.w
+        h := getpos.h        
     } else {
-        n := 1
+        ; calculate a default position for PA
+        ; position PA GUI in upper right corner of 3rd monitor from right
+        ; with a width of PA_DEFAULTWIDTH
+        n := MonitorCount()
+        if n > 2 {
+            n := n - 2
+        } else {
+            n := 1
+        }
+        getpos := MonitorPos(n)
+        x := getpos.x + getpos.w - PA_DEFAULTWIDTH
+        y := 0
+        w := PA_DEFAULTWIDTH
+        h := PA_DEFAULTHEIGHT
     }
-    pos := MonitorPos(n)
-    x := pos.x + pos.w - PA_DEFAULTWIDTH
-    y := 0
-    w := PA_DEFAULTWIDTH
-    h := PA_DEFAULTHEIGHT
 
     ; now show the PACS Assistant GUI window
     PAGUI.Show("x" x " y" y " w" w " h" h)
     Sleep(750)                      ; need time for GUI to be set up
 
-    ; PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
-
     GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
-
-;    PAmain.Update()
 
     ; declare GUI to be up and running
     _GUIIsRunning := true

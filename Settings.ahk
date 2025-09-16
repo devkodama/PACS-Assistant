@@ -75,6 +75,8 @@ Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus f
 Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
+Setting["Layout"] := SetItem("Layout", "select", "Default", Map("Default", "Default", "Layout1", "Layout1"), "Current window layout")
+
 ; VPN settings
 Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When the VPN window appears, center it on the screen")
 
@@ -224,6 +226,7 @@ SettingsPage.Push("#Advanced")
 SettingsPage.Push("Debug")
 SettingsPage.Push("VPN_url")
 SettingsPage.Push("EI_SERVER")
+SettingsPage.Push("Layout")
 
 SettingsPage.Push("#Beta - Experimental, not working yet")
 SettingsPage.Push("hkSpaceDelete")
@@ -291,7 +294,6 @@ class SetItem {
             global Setting
             global CurrentUserCredentials
 
-    ; PAToolTip(this.name " = " Value)
             switch this.type {
                 case "select":
                     if IsObject(this.possible) {
@@ -306,6 +308,17 @@ class SetItem {
                         this._value := Value
                         this._key := Value
                     }
+
+                    ; Special case handling for specific settings:
+                    ; Layout - 
+                    switch this.name {
+                        case "Layout":
+                            ; ensure the value exists as a key in the Layout[] Map
+                            if !Layout.Has(this._value) {
+                                Layout[this._value] := LayoutItem()
+                            }
+                    }
+
                 case "special":
                     switch this.name {
                         case "username":
@@ -387,17 +400,13 @@ class SetItem {
                     this._value := Trim(Value)
                     this._key := ""
 
-                    ; Special case for EIactivate & EIkeylist settings. Whenever these
-                    ; are updated, we have to call PA_MapActivateEIKeys() to update the
-                    ; hotkey handlers.
+                    ; Special case handling for specific settings:
+                    ;   EIactivate & EIkeylist - Whenever these are updated, we have to call PA_MapActivateEIKeys() to update the hotkey handlers.
                     switch this.name {
                         case "EIactivate", "EIkeylist":
-                            ; must use SetTimer to call with slight delay, because
-                            ; the value property of this instance is undefined until
-                            ; set returns
+                            ; must use SetTimer to call with slight delay, because the
+                            ; value property of this instance is undefined until set returns
                             SetTimer(PA_MapActivateEIKeys, -1000)
-                        default:
-                            ; no special processing
                     }
 
             }

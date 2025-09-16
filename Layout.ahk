@@ -37,7 +37,7 @@
 
 
 ; Map of Layouts saved by PACS Assistant
-Layout["default"] := LayoutItem()
+Layout["Default"] := LayoutItem()
 
 
 ; The number of system monitors
@@ -113,11 +113,20 @@ class WinPos {
 ; Methods:
 ;   Memorize()          - Remebers current position/size of all visible true windows as a layout.
 ;
-;   Restore()           - Repositions/resizes the windows in this layout to their saved positions.
+;   Restore(witem := 0) - If witem (WinItem) is passed (and non-zero), and this layout has a saved position for the
+;                       - window, repositions/resizes the window.
+;                       - If witem is zero, repositions/resizes all the windows in this layout to their saved positions.
 ;
 ;   Revert()            - Returns the windows in this layout to their previous positions/sizes
 ;                       - before Activate() was called for this layout. If Activate() was not previously
 ;                       - called for this layout, does nothing.
+;
+;   GetPos(witem)       - Returns a Pos for the remembered position/size of the witem (WinItem), if stored in this layout.
+;                       - If no stored layout, returns 0.
+;
+;   Save(layoutname)    - Save the layout layoutname to the user specific settings.ini file.
+;
+;   Read(layoutname)    - Read the layout layoutname from the user specific settings.ini file.
 ;
 ;   Print()             - Returns the windows and positions stored in this layout as a string (for diagnostic use).
 ;
@@ -144,10 +153,22 @@ class LayoutItem {
         }
     }
 
-    Restore() {
-        for wp in this.winpos {
-            ; move the window to the current saved position
-            wp.window.pos := wp.position
+    Restore(witem := 0) {
+        if witem {
+            ; Restore a single winitem, if it has a saved postion in this layout.
+            for wp in this.winpos {
+                if wp.window == witem {
+                    ; move the window to the current saved position
+                    wp.window.pos := wp.position
+                    break       ; for
+                }
+            }
+        } else {
+            ; Restore all windows saved in this layout.
+            for wp in this.winpos {
+                ; move the window to the current saved position
+                wp.window.pos := wp.position
+            }
         }
     }
 
@@ -161,15 +182,77 @@ class LayoutItem {
         }
     }
 
+    GetPos(witem) {
+        if witem {
+            ; Restore a single winitem, if it has a saved postion in this layout.
+            for wp in this.winpos {
+                if wp.window == witem {
+                    ; found the item, return its saved position
+                    return wp.position
+                }
+            }
+        }
+        return 0
+    }
+
+    Save(layoutname) {
+        inifile := Setting["inifile"].value
+        
+        if inifile {
+            sectionname := "Layout_" . layoutname
+            
+            for wp in this.winpos {
+                appkey := wp.window.parentapp.key
+                winkey := wp.window.key
+                position := wp.position.x . "," . wp.position.y . "," . wp.position.w . "," . wp.position.h
+                try {
+                    IniWrite(position, inifile, sectionname, appkey . "_" . winkey)
+                }
+            }
+        }
+    }
+    
+    Read(layoutname) {
+        inifile := Setting["inifile"].value
+        
+        if inifile {
+            sectionname := "Layout_" . layoutname
+            sectiontext := IniRead(inifile, sectionname, , "")
+            ;MsgBox(sectiontext)
+            loop parse sectiontext, "`n" {
+                ;                MsgBox(A_LoopField)
+                keyval := StrSplit(A_LoopField, "=")
+                key := keyval[1]
+                value := keyval[2]
+                
+                delimpos := InStr(key, "_")
+                appkey := SubStr(key, 1, delimpos - 1)
+                winkey := SubStr(key, delimpos + 1)
+                
+                getpos := StrSplit(value, ",")
+                x := getpos[1]
+                y := getpos[2]
+                w := getpos[3]
+                h := getpos[4]
+                
+                this._lastwinpos := this.winpos     ; save winpos in _lastwinpos before reading new positions
+                this.winpos := Array()              ; create new empty array for winpos
+                
+                this.winpos.Push(WinPos(App[appkey].Win[winkey], Pos(x, y, w, h)))
+            }
+        }    
+    }    
+    
     Print() {
-        output := "Layout:<br/>"
+        output := ""
         for wp in this.winpos {
-            output .= wp.window.parentapp.key "/" wp.window.key " (" wp.position.x ", " wp.position.y ", " wp.position.w ", " wp.position.h ")<br/>"
+            output .= "&nbsp;&nbsp;&nbsp;&nbsp;" wp.window.parentapp.key "/" wp.window.key " (" wp.position.x ", " wp.position.y ", " wp.position.w ", " wp.position.h ")<br/>"
         }
         output .= "<br/>"
         return output
     }
-}
+
+}    
 
 
 ; Monitors class
