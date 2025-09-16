@@ -128,7 +128,7 @@ if A_IsCompiled {
 ;	The executable file that is running.
 ;	For example, for a non-compiled script: AutoHotkey64.exe
 ;	For example, for a compiled script: PACS Assistant.exe
-SplitPath A_AhkPath, &A_AhkExe			; just the filename
+SplitPath(A_AhkPath, &A_AhkExe)			; just the filename
 
 
 
@@ -157,6 +157,7 @@ SplitPath A_AhkPath, &A_AhkExe			; just the filename
 #Include Updater.ahk
 
 #Include AppManager.ahk
+#Include Layout.ahk
 
 #Include Sound.ahk
 #Include Info.ahk
@@ -418,12 +419,16 @@ PAInit() {
 	global App
 	global PollShow
 	global PollClose
+	gLobal Layout
 
 	; Call Updater to update this program file.
 	Updater()
 
 	; Initialize systemwide settings
 	SettingsInit()
+	
+	; Read current layout from user's settings.ini file
+    Layout[Setting["Layout"].value].Read(Setting["Layout"].value)        ; read from .ini file
 
 	; Register Windows hooks to monitor window show events for all the windows of interest.
 	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.
@@ -462,17 +467,10 @@ PAInit() {
 		}
 	}
 
-	
-	; Read all stored window positions from user's settings.ini file
-	ReadPositionsAll()
-
 	; Read ICD code file
 	ICDReadCodeFile()
 
-	; Set up special EI key mappings
-	;PA_MapActivateEIKeys() - this gets called when settings are loaded, so don't need to call?
-
-	; Get Windows system double click setting
+	; Get Windows system double click setting - [todo] move this somewhere else
 	PA_DoubleClickSetting := DllCall("GetDoubleClickTime")
 
 }

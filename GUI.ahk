@@ -126,10 +126,10 @@ ClickId(WebView, id) {
             DispatchQueue.Push(EPICStop)
 
         ; Window save and restore buttons
-        case "button-restorewindows":
-            DispatchQueue.Push(GUIRestoreWindowPositions)
         case "button-savewindows":
             DispatchQueue.Push(GUISaveWindowPositions)
+        case "button-restorewindows":
+            DispatchQueue.Push(GUIRestoreWindowPositions)
 
         ; Cancel buttons
         case "cancelbutton":
@@ -259,31 +259,9 @@ GUICancelButton() {
 }
 
 
-; Restore saved window positions from settings file
-GUIRestoreWindowPositions(*) {
-    static running := false
-
-    ; prevent reentry
-    if running {
-        return
-    }
-    running := true
-
-    GUIStatus("Restoring windows...")
-
-    ReadPositionsAll()
-    RestorePositionsAll()
-
-    GUIStatus("Restored")
-
-    ;done
-    running := false
-    return
-}
-
-
 ; Save current window positions to settings file
 GUISaveWindowPositions(*) {
+    global Layout
     static running := false
 
     ; prevent reentry
@@ -294,15 +272,34 @@ GUISaveWindowPositions(*) {
 
     GUIStatus("Remembering window positions...")
 
-    SavePositionsAll()
-
-;    Peep(App["PS"].Win["login"].savepos)
-;    Peep(App["PS"].Win["main"].savepos)
-
-    ; write to settings file
-    WritePositionsAll()
+    Layout[Setting["Layout"].value].Memorize()
+    Layout[Setting["Layout"].value].Save(Setting["Layout"].value)        ; save to .ini file
 
     GUIStatus("Remembered")
+
+    ;done
+    running := false
+    return
+}
+
+
+; Restore saved window positions from settings file
+GUIRestoreWindowPositions(*) {
+    global Layout
+    static running := false
+
+    ; prevent reentry
+    if running {
+        return
+    }
+    running := true
+
+    GUIStatus("Restoring windows...")
+
+    Layout[Setting["Layout"].value].Read(Setting["Layout"].value)        ; read from .ini file
+    Layout[Setting["Layout"].value].Restore()
+
+    GUIStatus("Restored")
 
     ;done
     running := false
@@ -362,7 +359,7 @@ GUIMain(*) {
 
     PAGUI.AddCallbackToScript("Hover", HoverEvent)  ; [todo] don't want to continue to use this for hovers
 
-
+/*
     ; get previously saved PACS Assistant window position
     App["PA"].ReadPositions()
     PAmain := App["PA"].Win["main"]
@@ -393,16 +390,38 @@ GUIMain(*) {
         PAmain.savepos.h := h
     
     }
+*/
+
+    ; If we have a saved position in this layout for the PA window, use it.
+    getpos := Layout[Setting["Layout"].value].GetPos(App["PA"].Win["main"])
+    if getpos {
+        ; use saved position
+        x := getpos.x
+        y := getpos.y
+        w := getpos.w
+        h := getpos.h        
+    } else {
+        ; calculate a default position for PA
+        ; position PA GUI in upper right corner of 3rd monitor from right
+        ; with a width of PA_DEFAULTWIDTH
+        n := MonitorCount()
+        if n > 2 {
+            n := n - 2
+        } else {
+            n := 1
+        }
+        getpos := MonitorPos(n)
+        x := getpos.x + getpos.w - PA_DEFAULTWIDTH
+        y := 0
+        w := PA_DEFAULTWIDTH
+        h := PA_DEFAULTHEIGHT
+    }
 
     ; now show the PACS Assistant GUI window
     PAGUI.Show("x" x " y" y " w" w " h" h)
     Sleep(750)                      ; need time for GUI to be set up
 
-    ; PAGUI.GetClientPos(, , &w, &h)  ; get actual size of client window
-
     GUISize(PAGUI, 0, w, h)         ; call resize to calculate and set the height of the main display area
-
-;    PAmain.Update()
 
     ; declare GUI to be up and running
     _GUIIsRunning := true
@@ -619,10 +638,14 @@ GUIExit(*) {
 
     GUIStatus("Closing PACS Assistant...")
 
+
+/*
     ; save PA window positions
     appPA := App["PA"]
     appPA.SavePositions()
     appPA.WritePositions()
+*/
+
 
     ; stop daemons
     DaemonInit(false)

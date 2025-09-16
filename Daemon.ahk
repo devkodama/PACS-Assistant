@@ -415,7 +415,10 @@ _WatchWindows() {
 
 	if Setting["Debug"].enabled {
 		; update window info for GUI
-		PAWindowInfo := PrintWindows( , , false) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
+		PAWindowInfo := PrintWindows( , , false) 
+		PAWindowInfo .= "Layout=" . Setting["Layout"].value . "<br/>"
+		PAWindowInfo .= Layout[Setting["Layout"].value].Print()
+		PAWindowInfo .= FormatTime(A_Now,"M/d/yyyy HH:mm:ss")
 	} else {
 		PAWindowInfo := ""
 ;		PAWindowInfo := "Debug off<br />" . PrintWindows("PS", "home", true) . FormatTime(A_Now,"M/d/yyyy HH:mm:ss")

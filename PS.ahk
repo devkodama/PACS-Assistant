@@ -320,7 +320,7 @@ PSShow_main(hwnd, hook, dwmsEventTime) {
 	if Setting["Debug"].enabled
 		PlaySound("PS show main")
 	if Setting["PS_restoreatopen"].enabled {
-		App["PS"].Win["main"].RestorePosition()
+		App["PS"].Win["main"].Restore()
 	}
 }
 

@@ -390,7 +390,7 @@ EIShow_d() {
 		PlaySound("EI show desktop")
 	if Setting["EI_restoreatopen"].enabled {
 		; Restore EI desktop window position
-		App["EI"].Win["d"].RestorePosition()
+		App["EI"].Win["d"].Restore()
 	}
 }
 
@@ -402,7 +402,7 @@ EIShow_i1(hwnd, hook, dwmsEventTime) {
 	; so we hijack images1 window hook to restore desktop window position
 	if Setting["EI_restoreatopen"].enabled {
 		; Restore EI desktop window position
-		App["EI"].Win["d"].RestorePosition()
+		App["EI"].Win["d"].Restore()
 	}
 }
 
