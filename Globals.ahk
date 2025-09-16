@@ -78,6 +78,8 @@ EI_COLLABORATOR_TIMEOUT := 30
 EI_SHUTDOWN_TIMEOUT := 60
 ; EI server string
 EI_SERVER := "mivcsp.adventhealth.com"
+; default width of EI desktop window
+EI_DEFAULTWIDTH := 1080
 
 
 ; timeout (seconds) for starting up PS to get to login window
@@ -98,6 +100,12 @@ EPIC_LOGIN_TIMEOUT := 120
 EPIC_SHUTDOWN_TIMEOUT := 30
 ; timezone string for Epic
 EPIC_TIMEZONE := "America/Chicago"
+; default width and height of EPIC main window
+EPIC_DEFAULTWIDTH := 1080
+EPIC_DEFAULTHEIGHT := 800
+; default width and height of EPIC chat window
+EPICCHAT_DEFAULTWIDTH := 900
+EPICCHAT_DEFAULTHEIGHT := 600
 
 
 ; maximum username length

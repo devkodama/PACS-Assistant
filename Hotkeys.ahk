@@ -656,12 +656,13 @@ F3:: {
 
 F8:: {
 	TTip("F8")
-	Layout["Default"].Save("default")
+	newlayout := GenerateLayout()
+	Layout["Layout1"] := newlayout
 }
 
 +F8:: {
 	TTip("Shift F8")
-	Layout["Default"].Read("default")
+	Layout["Layout1"].Save("Layout1")
 }
 
 

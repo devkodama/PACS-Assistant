@@ -317,6 +317,8 @@ class SetItem {
                             if !Layout.Has(this._value) {
                                 Layout[this._value] := LayoutItem()
                             }
+                            ; read the layout from the .ini file
+                            Layout[this._value].Read(this._value)
                     }
 
                 case "special":

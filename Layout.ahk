@@ -6,20 +6,22 @@
  * 
  * This module defines the following classes:
  * 
- *  WinPos - stores a 4-tuple x, y, w, h that specifies the position and size
- *  of a window.
+ *  Pos         - Stores a 4-tuple x, y, w, h that specifies the position and size of a window.
  * 
+ *  WinPos      - Associates a window (WinItem) with a location/size (Pos)
  * 
+ *  LayoutItem  - Holds one layout, i.e. a set of windows and their positions.
  * 
  * 
  * This module defines the functions:
  *  
- * 
- * 
  *  MonitorCount()          - Returns the system monitor count
  *  MonitorNumber(x, y)     - Returns the monitor number that contains the x, y coordinates
  *  MonitorPos(N)           - For monitor N, returns the monitor position and size (Pos).
  *  VirtualScreenPos()      - Returns a Pos with  the coordinates and size of the virtual screen.
+ * 
+ *  GenerateLayout()        - Returns a LayoutItem that holds an auto generated layout.
+ *                          - Generated layout is based on number and sizes of monitors.
  * 
  * 
  */
@@ -111,17 +113,20 @@ class WinPos {
 ;                       - repositioned the windows, for use by Revert(). Empty (_lastwinpos == 0) if no previous layout.
 ;
 ; Methods:
+;   Add(window, position)   - Adds the passed window (WinItem) and position (Pos) to the layout. If the window
+;                           - already has a saved position, replaces the position.
+;
 ;   Memorize()          - Remebers current position/size of all visible true windows as a layout.
 ;
-;   Restore(witem := 0) - If witem (WinItem) is passed (and non-zero), and this layout has a saved position for the
+;   Restore(window := 0) - If window (WinItem) is passed (and non-zero), and this layout has a saved position for the
 ;                       - window, repositions/resizes the window.
-;                       - If witem is zero, repositions/resizes all the windows in this layout to their saved positions.
+;                       - If window is zero, repositions/resizes all the windows in this layout to their saved positions.
 ;
 ;   Revert()            - Returns the windows in this layout to their previous positions/sizes
 ;                       - before Activate() was called for this layout. If Activate() was not previously
 ;                       - called for this layout, does nothing.
 ;
-;   GetPos(witem)       - Returns a Pos for the remembered position/size of the witem (WinItem), if stored in this layout.
+;   GetPos(window)       - Returns a Pos for the remembered position/size of the window (WinItem), if stored in this layout.
 ;                       - If no stored layout, returns 0.
 ;
 ;   Save(layoutname)    - Save the layout layoutname to the user specific settings.ini file.
@@ -133,6 +138,22 @@ class WinPos {
 class LayoutItem {
     winpos := Array()
     _lastwinpos := Array()
+
+    Add(window, position) {
+        if window && position {
+            ; See if the window already has a saved position in this layout
+            for wp in this.winpos {
+                if wp.window == window {
+                    ; found, just update the position
+                    wp.window.pos := position
+                    ;done
+                    return
+                }
+            }
+            ; didn't find the window, so add a new WinPos
+            this.winpos.Push(WinPos(window, position))
+        }
+    }
 
     Memorize() {
         this._lastwinpos := this.winpos      ; save winpos in _lastwinpos before memorizing new positions
@@ -153,11 +174,11 @@ class LayoutItem {
         }
     }
 
-    Restore(witem := 0) {
-        if witem {
+    Restore(window := 0) {
+        if window {
             ; Restore a single winitem, if it has a saved postion in this layout.
             for wp in this.winpos {
-                if wp.window == witem {
+                if wp.window == window {
                     ; move the window to the current saved position
                     wp.window.pos := wp.position
                     break       ; for
@@ -182,11 +203,11 @@ class LayoutItem {
         }
     }
 
-    GetPos(witem) {
-        if witem {
+    GetPos(window) {
+        if window {
             ; Restore a single winitem, if it has a saved postion in this layout.
             for wp in this.winpos {
-                if wp.window == witem {
+                if wp.window == window {
                     ; found the item, return its saved position
                     return wp.position
                 }
@@ -218,9 +239,11 @@ class LayoutItem {
         if inifile {
             sectionname := "Layout_" . layoutname
             sectiontext := IniRead(inifile, sectionname, , "")
-            ;MsgBox(sectiontext)
+
+            this._lastwinpos := this.winpos     ; save winpos in _lastwinpos before reading new positions
+            this.winpos := Array()              ; create new empty array for winpos
+
             loop parse sectiontext, "`n" {
-                ;                MsgBox(A_LoopField)
                 keyval := StrSplit(A_LoopField, "=")
                 key := keyval[1]
                 value := keyval[2]
@@ -234,10 +257,6 @@ class LayoutItem {
                 y := getpos[2]
                 w := getpos[3]
                 h := getpos[4]
-                
-                this._lastwinpos := this.winpos     ; save winpos in _lastwinpos before reading new positions
-                this.winpos := Array()              ; create new empty array for winpos
-                
                 this.winpos.Push(WinPos(App[appkey].Win[winkey], Pos(x, y, w, h)))
             }
         }    
@@ -350,4 +369,128 @@ MonitorPos(N) {
 ; SM_CYVIRTUALSCREEN := 79
 VirtualScreenPos() {
     return Pos(SysGet(76), SysGet(77), SysGet(78), SysGet(79))
+}
+
+
+; Returns a LayoutItem that holds an auto generated layout.
+; Generated layout is based on number and sizes of monitors.
+;
+; Returned layout includes positions for each of the windows:
+;   PA main
+;   EI d
+;   PS main
+;   EICLIN main
+;   EPIC main, chat
+;
+;
+GenerateLayout() {
+    static MPos := Array()
+    
+    newlayout := LayoutItem()
+
+    count := MonitorCount()
+
+    ; retrieve the sizes of all monitors, cache it in MPos
+    if MPos.Length = 0 {
+        n := 1
+        while n <= count {
+            MPos.Push(MonitorPos(n))
+            n++
+        }
+    }
+
+    ; base the layout on monitor configuration
+    switch count {
+        case 3:
+            ; ensure 1st monitor is sufficiently large landscape
+            if (MPos[1].w > EI_DEFAULTWIDTH + PA_DEFAULTWIDTH) && (MPos[1].w > MPos[1].h) {
+                ; PA main - upper right corner of 1st monitor
+                ; with width of PA_DEFAULTWIDTH and height of PA_DEFAULTHEIGHT
+                w := PA_DEFAULTWIDTH
+                h := PA_DEFAULTHEIGHT
+                x := MPos[1].x + MPos[1].w - w
+                y := 0
+                newlayout.Add(App["PA"].Win["main"], Pos(x, y, w, h))
+                ; PS main - right side of 1st monitor below PA
+                ; with width of PA_DEFAULTWIDTH and height of monitor height minus PA_DEFAULTHEIGHT
+                w := PA_DEFAULTWIDTH
+                h := MPos[1].h - PA_DEFAULTHEIGHT
+                x := MPos[1].x + MPos[1].w - w
+                y := PA_DEFAULTHEIGHT
+                newlayout.Add(App["PS"].Win["main"], Pos(x, y, w, h))
+                ; EI d - 1st monitor to the left of PA and PS
+                ; with width of EI_DEFAULTWIDTH and same height as PS
+                w := EI_DEFAULTWIDTH
+                h := MPos[1].h - PA_DEFAULTHEIGHT
+                x := MPos[1].x + MPos[1].w - PA_DEFAULTWIDTH - w
+                y := PA_DEFAULTHEIGHT
+                newlayout.Add(App["EI"].Win["d"], Pos(x, y, w, h))
+                ; EPIC main - 1st monitor to the left of PS and EI
+                ; with width of EPIC_DEFAULTWIDTH and height of EPIC_DEFAULTHEIGHT
+                w := EPIC_DEFAULTWIDTH
+                h := EPIC_DEFAULTHEIGHT
+                x := MPos[1].x + MPos[1].w - PA_DEFAULTWIDTH - EI_DEFAULTWIDTH - w
+                y := PA_DEFAULTHEIGHT
+                newlayout.Add(App["EPIC"].Win["main"], Pos(x, y, w, h))
+                ; EPIC chat - 1st monitor above (and overlapping with) EPIC main window, right justified
+                ; with width of EPICCHAT_DEFAULTWIDTH and height of EPICCHAT_DEFAULTHEIGHT
+                w := EPICCHAT_DEFAULTWIDTH
+                h := EPICCHAT_DEFAULTHEIGHT
+                x := MPos[1].x + MPos[1].w - PA_DEFAULTWIDTH - EI_DEFAULTWIDTH - w
+                y := 0
+                newlayout.Add(App["EPIC"].Win["chat"], Pos(x, y, w, h))
+            }
+
+        case 4:
+            ; assume 4 portrait monitors
+            ; PA main - top of 2nd monitor
+            ; with width of monitor and height of PA_DEFAULTHEIGHT
+            w := MPos[2].w
+            h := PA_DEFAULTHEIGHT
+            x := MPos[2].x
+            y := 0
+            newlayout.Add(App["PA"].Win["main"], Pos(x, y, w, h))
+            ; PS main - 2nd monitor below PA
+            ; with width of monitor and height of monitor height minus PA_DEFAULTHEIGHT
+            w := MPos[2].w
+            h := MPos[2].h - PA_DEFAULTHEIGHT
+            x := MPos[2].x
+            y := PA_DEFAULTHEIGHT
+            newlayout.Add(App["PS"].Win["main"], Pos(x, y, w, h))
+            ; EI d - 1st monitor
+            ; with width of monitor and same height as PS
+            w := MPos[1].w
+            h := MPos[2].h - PA_DEFAULTHEIGHT
+            x := MPos[1].x
+            y := PA_DEFAULTHEIGHT
+            newlayout.Add(App["EI"].Win["d"], Pos(x, y, w, h))
+        
+        case 5:
+            ; assume 5 portrait monitors
+            ; PA main - top of 3rd monitor
+            ; with width of monitor and height of PA_DEFAULTHEIGHT
+            w := MPos[3].w
+            h := PA_DEFAULTHEIGHT
+            x := MPos[3].x
+            y := 0
+            newlayout.Add(App["PA"].Win["main"], Pos(x, y, w, h))
+            ; PS main - 3rd monitor below PA
+            ; with width of monitor and height of monitor height minus PA_DEFAULTHEIGHT
+            w := MPos[3].w
+            h := MPos[3].h - PA_DEFAULTHEIGHT
+            x := MPos[3].x
+            y := PA_DEFAULTHEIGHT
+            newlayout.Add(App["PS"].Win["main"], Pos(x, y, w, h))
+            ; EI d - 2nd monitor
+            ; with width of monitor and same height as PS
+            w := MPos[2].w
+            h := MPos[3].h - PA_DEFAULTHEIGHT
+            x := MPos[2].x
+            y := PA_DEFAULTHEIGHT
+            newlayout.Add(App["EI"].Win["d"], Pos(x, y, w, h))
+        default:
+            ; nothing
+    }
+                
+    return newlayout
 }
