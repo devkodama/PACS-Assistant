@@ -927,8 +927,8 @@ class WinItem {
                     }
                 }
             } else {
-                ; parent is assumed to be an integer specifying a monitor number
-                ; if parent is zero, the get the monitor number that window is on
+                ; target is assumed to be an integer specifying a monitor number
+                ; if target is zero, the get the monitor number that window is on
                 if !target {
                     pos := this.pos
                     target := MonitorNumber(pos.x, pos.y)
@@ -943,7 +943,7 @@ class WinItem {
                         return false
                     }
 
-                    ; get position of monitor N (parent)
+                    ; get position of monitor N (target)
                     monpos := MonitorPos(target)
 
                     ; calculate new position

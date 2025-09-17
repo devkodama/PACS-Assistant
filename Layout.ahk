@@ -274,16 +274,29 @@ class LayoutItem {
 }    
 
 
-; Monitors class
+; Monitor class
 ;
 ; Represents the system's monitor configuration.
 ;
-; Properties:
-;   N               - integer, number of monitors
-;   Monitor[]       - array, one WinPos for each monitor
-;   
-class Monitors {
+; Read-only properties:
+;   coords      - 4-tuple of {l: left, t: top, r: right, b: bottom}
+;   pos         - Pos, location/size of monitor
+;   orient      - string, "portrait" or "landscape", orientation of the monitor
+; 
+; To instantiate a new monitor object, use:
+;   newmonitor := Monitor(N)
+; where N is the monitor number
+class Monitor {
+    coords := 0
+    pos := 0
+    orient := ""
 
+    __New(n) {
+            MonitorGetWorkArea(n, &left, &top, &right, &bottom)
+            this.coords := {l: left, t: top, r: right, b: bottom}
+            this.pos := Pos(left, top, (right - left), (bottom - top))
+            this.orient := (this.pos.w > this.pos.h) ? "landscape" : "portrait"
+    }
 }
 
 
@@ -293,6 +306,17 @@ class Monitors {
  * Functions defined by this module
  * 
  */
+
+
+MonitorsInit() {
+    ; build out global Monitors configuration array
+    count := MonitorGetCount()
+    n := 1
+    while n <= count {
+        Monitors.Push(Monitor(n))
+        n++
+    }
+}
 
 
 ; Helper function to other Monitor functions
@@ -315,10 +339,10 @@ _MonitorGetInfo() {
 
 ; Returns the system monitor count
 MonitorCount() {
-    if !_MonitorCount {
-        _MonitorGetInfo()
+    if Monitors.Length = 0 {
+        MonitorsInit()
     }
-    return _MonitorCount
+    return Monitors.Length
 }
 
 
@@ -326,14 +350,10 @@ MonitorCount() {
 ;
 ; Returns 0 if coordinates are not on any monitor.
 MonitorNumber(x, y) {
-    if !_MonitorCount {
-        _MonitorGetInfo()
-    }
-
     ; determine which monitor the passed x, y coordinates falls on
     monitorN := 0
-    for mon in _MonitorCoords {
-        if x >= mon.l && x < mon.r && y >= mon.t && y < mon.b {
+    for mon in Monitors {
+        if x >= mon.coords.l && x < mon.coords.r && y >= mon.coords.t && y < mon.coords.b {
             monitorN := A_Index
             break               ; for
         }
@@ -347,16 +367,13 @@ MonitorNumber(x, y) {
 ;
 ; Returns 0 if an invalid monitor number is passed.
 MonitorPos(N) {
-    if !_MonitorCount {
-        _MonitorGetInfo()
+    if Monitors.Length = 0 {
+        MonitorsInit()
     }
-
-    if N < 1 || N > _MonitorCount {
+    if N < 1 || N > Monitors.Length {
         return 0
     }
-
-    mon := _MonitorCoords[N]
-    return Pos(mon.l, mon.t, (mon.r - mon.l), (mon.b - mon.t))
+    return Monitors[N].pos
 }
 
 
@@ -383,7 +400,7 @@ VirtualScreenPos() {
 ;   EPIC main, chat
 ;
 ;
-GenerateLayout() {
+xxGenerateLayout() {
     static MPos := Array()
     
     newlayout := LayoutItem()
@@ -398,6 +415,9 @@ GenerateLayout() {
             n++
         }
     }
+
+    ; determine monitor configuration, generate an internal code
+    ;
 
     ; base the layout on monitor configuration
     switch count {
@@ -492,5 +512,165 @@ GenerateLayout() {
             ; nothing
     }
                 
+    return newlayout
+}
+
+
+; Returns a LayoutItem that holds an auto generated layout.
+; Generated layout is based on number and sizes of monitors.
+;
+; Returned layout includes positions for each of the windows:
+;   PA main
+;   EI d
+;   PS main
+;   EICLIN main
+;   EPIC main, chat
+;
+; Assumptions:
+;   Two diagnostic monitors are the two rightmost monitors
+;   Can have 3, 4, or 5 monitors
+;   If 3, the first could be a large landscape or a small landscape
+;   If 4 or 5 monitors, they should all be portraits
+; If these assumptions don't hold, then a layout may not be generated.
+;
+GenerateLayout() {
+    
+    newlayout := LayoutItem()
+
+    count := MonitorCount()
+
+    ; determine monitor configuration, create an internal code to base the layout generation
+    ;
+    switch count {
+        case 3:
+            ; is the 1st monitor a large landscape, a small landscape, or a portrait?
+            switch Monitors[1].orient {
+                case "landscape":
+                    if Monitors[1].pos.w >= PA_DEFAULTWIDTH + EI_DEFAULTWIDTH + EPIC_DEFAULTWIDTH {
+                        ; large enough for PA, EI, and EPIC side by side
+                        config := "3LargeLandscape"
+                    } else if Monitors[1].pos.w >= PA_DEFAULTWIDTH + EI_DEFAULTWIDTH {
+                        ; large enough for PA and EI but not EPIC side by side 
+                        config := "3SmallLandscape"
+                    } else {
+                        ; not large enough for PA and EI
+                        config := "3Landscape"
+                    }
+                case "portrait":
+                    config := "3Portrait"
+            }
+        case 4:
+            ; is this 4 portraits?
+            if Monitors[1].orient = "portrait"
+                && Monitors[2].orient = "portrait"
+                && Monitors[3].orient = "portrait"
+                && Monitors[4].orient = "portrait"
+            {
+                config := "4Portrait"
+            } else {
+                config := "4Other"
+            }
+        case 5:
+            ; is this 4 portraits?
+            if Monitors[1].orient = "portrait"
+                && Monitors[2].orient = "portrait"
+                && Monitors[3].orient = "portrait"
+                && Monitors[4].orient = "portrait"
+                && Monitors[5].orient = "portrait"
+            {
+                config := "5Portrait"
+            } else {
+                config := "5Other"
+            }
+        default:
+            config := "Other"
+    }
+
+    ; generate a layout based on monitor configuration code
+    switch config {
+        case "3LargeLandscape":
+        case "3SmallLandscape":
+        case "3Landscape":
+        case "3Portrait":
+        case "4Portrait":
+        case "4Other":
+        case "5Portrait":
+        case "5Other":
+        case "Other":
+        default:
+    }
+
+    ; PA main - Top of first monitor to the left of the two diagnostic monitors
+    ;   width is PA_DEFAULTWIDTH or width of a portrait monitor
+    ;   height of PA_DEFAULTHEIGHT
+    PAn := count - 2
+    if config = "3LargeLandscape" || config = "3SmallLandscape" || config = "3Landscape" {
+        PAw := PA_DEFAULTWIDTH
+    } else {
+        PAw := Monitors[PAn].pos.w
+    }
+    PAh := PA_DEFAULTHEIGHT
+    PAx := Monitors[PAn].pos.x + Monitors[PAn].pos.w - PAw
+    PAy := 0
+    newlayout.Add(App["PA"].Win["main"], Pos(PAx, PAy, PAw, PAh))
+
+    ; PS main - Same monitor as PA, positioned under PA
+    ;   same width as PA 
+    ;   height of monitor height minus PA height
+    PSn := PAn
+    PSw := PAw
+    PSy := PAh
+    PSx := PAx
+    PSh := Monitors[PSn].pos.h - PAh
+    newlayout.Add(App["PS"].Win["main"], Pos(PSx, PSy, PSw, PSh))
+
+    ; EI d - If 3 monitors and widescreen, then on the first monitor to the left of the PS window
+    ;   If 4 or 5 monitors, then on the 2nd monitor to the left of the two diagnostic monitors
+    ;   width is EI_DEFAULTWIDTH or width of a portrait monitor
+    ;   height is same as PS
+    if config = "5Portrait" || config = "5Other" {
+        EIn := 2
+    } else {
+        EIn := 1
+    }
+    if config = "3LargeLandscape" || config = "3SmallLandscape" || config = "3Landscape" {
+        EIw := EI_DEFAULTWIDTH
+    } else {
+        EIw := Monitors[EIn].pos.w
+    }
+    EIh := PSh
+    if EIn = 1 {
+        EIx := Monitors[EIn].pos.x + Monitors[EIn].pos.w - PSw - EIw
+    } else {
+        EIx := Monitors[EIn].pos.x
+    }
+    EIy := PSy
+    newlayout.Add(App["EI"].Win["d"], Pos(EIx, EIy, EIw, EIh))
+
+    ; EPIC main - If 3 monitors and widescreen, then on the first monitor to the left of the PS and EI windows
+    ;   If 4 monitors, then on the 2nd monitor to the left of the two diagnostic monitors
+    ;   If 5 monitors, then on the 3rd monitor to the left of the two diagnostic monitors
+    ;   width is EPIC_DEFAULTWIDTH 
+    ;   height is EPIC_DEFAULTHEIGHT
+    EPICn := 1
+    EPICw := EPIC_DEFAULTWIDTH
+    EPICh := EPIC_DEFAULTHEIGHT
+    if config = "3LargeLandscape" || config = "3SmallLandscape" || config = "3Landscape" {
+        EPICx := Monitors[EPICn].pos.x + Monitors[EPICn].pos.w - PSw - EIw - EPICw
+    } else {
+        EPICx := Monitors[EPICn].pos.x
+    }
+    EPICy := EIy
+    newlayout.Add(App["EPIC"].Win["main"], Pos(EPICx, EPICy, EPICw, EPICh))
+
+    ; EPIC chat - Same monitor as EPIC, top of monitor, right justified with EPIC
+    ; with width of EPICCHAT_DEFAULTWIDTH and height of EPICCHAT_DEFAULTHEIGHT
+    EPICCHATw := EPICCHAT_DEFAULTWIDTH
+    EPICCHATh := EPICCHAT_DEFAULTHEIGHT
+    EPICCHATx := EPICx + (EPICw - EPICCHATw)
+    EPICCHATy := 0
+    newlayout.Add(App["EPIC"].Win["chat"], Pos(EPICCHATx, EPICCHATy, EPICCHATw, EPICCHATh))
+
+    
     return newlayout
 }

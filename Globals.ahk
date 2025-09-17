@@ -254,6 +254,8 @@ global PAStatus_PowerButton := ""
 ; Map of Layouts saved by PACS Assistant
 global Layout := Map()
 
+; Array of Monitor objects, representing system configuration
+global Monitors := Array()
 
 ; This holds the Windows double click setting (in ms) - value is updated by PA_Init()
 global PA_DoubleClickSetting := 400

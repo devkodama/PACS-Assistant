@@ -424,6 +424,9 @@ PAInit() {
 	; Call Updater to update this program file.
 	Updater()
 
+	; Init Monitors configuration
+	MonitorsInit()
+
 	; Initialize systemwide settings
 	SettingsInit()
 	
