@@ -46,7 +46,7 @@
 
 
 ; Version to generate
-productVersion := "0.7.6-beta"
+productVersion := "0.7.7-beta"
 
 ; Application name and description
 productName := "PACS Assistant"
