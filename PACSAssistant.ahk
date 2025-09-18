@@ -424,7 +424,7 @@ PAInit() {
 	; Call Updater to update this program file.
 	Updater()
 
-	; Init Monitors configuration
+	; Init Monitors configuration (is this necessary?)
 	MonitorsInit()
 
 	; Initialize systemwide settings
@@ -432,6 +432,12 @@ PAInit() {
 	
 	; Read current layout from user's settings.ini file
     Layout[Setting["Layout"].value].Read(Setting["Layout"].value)        ; read from .ini file
+
+	; If this is the default Layout and it is empty, then generate a default layout and save it
+	if Setting["Layout"].value = Setting["Layout"].default && Layout[Setting["Layout"].value].count = 0 {
+		Layout[Setting["Layout"].value] := LayoutGenerate()
+		Layout[Setting["Layout"].value].Save(Setting["Layout"].value)	; save it to .ini file
+	}
 
 	; Register Windows hooks to monitor window show events for all the windows of interest.
 	; Set up arrays of windows that need to be polled for hook_show and hook_close calls.

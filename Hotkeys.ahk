@@ -656,7 +656,7 @@ F3:: {
 
 F8:: {
 	TTip("F8")
-	newlayout := GenerateLayout()
+	newlayout := LayoutGenerate()
 	Layout["Layout1"] := newlayout
 }
 
