@@ -196,12 +196,22 @@ EPICShow_main(hwnd, hook, dwmsEventTime)
 {
 	App["EPIC"].Win["main"].hwnd := hwnd
 	PlaySound("EPIC show main")
+
+	if Setting["EPIC_restoreatopen"].enabled {
+		; Restore EPIC window positions
+		App["EPIC"].Win["main"].Restore()
+	}
 }
 
 EPICShow_chat(hwnd, hook, dwmsEventTime)
 {
 	App["EPIC"].Win["chat"].hwnd := hwnd
 	PlaySound("EPIC show chat")
+	
+	if Setting["EPIC_restoreatopen"].enabled {
+		; Restore EPIC window positions
+		App["EPIC"].Win["chat"].Restore()
+	}
 }
 
 
