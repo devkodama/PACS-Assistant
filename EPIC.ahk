@@ -21,7 +21,7 @@
  * 
  * 
  * 
- * 
+ *	EPICNewChat()								- Start a new secure chat message to the Ordering provider regarding the current exam
  * 
  * 
  *
@@ -522,3 +522,36 @@ EPICStop() {
  *  
  */
 
+
+EPICNewChat() {
+
+	; Make sure EPIC Chat window is available (showing).
+	chathwnd := App["EPIC"].Win["chat"].IsReady()
+	if chathwnd {
+		msgbox(PACurrentStudy.orderingmd "/" PACurrentStudy.description)
+		PAWindowBusy := true
+		BlockInput true				; prevent user input from interfering
+		WinActivate(chathwnd)
+		Sleep(1000)
+		Send("!n")
+		Sleep(1000)
+		Send("+{Tab}")
+		Sleep(1000)
+		Send("{Enter}")
+		Sleep(1000)
+		; Send(PACurrentStudy.orderingmd)
+		; Sleep(500)
+		; Send("{Tab}")
+		; Sleep(500)
+		; Send("{Enter}")
+		; Sleep(500)
+		; Send("!y")
+		; Sleep(500)
+		; Send("{{Escape}}")
+		; Sleep(500)
+		; Send(PACurrentStudy.description . " ->")
+		BlockInput false
+		PAWindowBusy := false
+	}
+
+}

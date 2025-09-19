@@ -479,6 +479,13 @@ PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
 	if Setting["Debug"].enabled
 		PlaySound("PS show spelling")
 	if Setting["PScenter_dialog"].enabled {
+		; also limit window width to <= 90% of parent width
+		pssppos := App["PSSP"].Win["spelling"].pos
+		sppos_w := 0.9 * App["PS"].Win["main"].pos.w
+		if pssppos.w > sppos_w {
+			pssppos.w := sppos_w
+			App["PSSP"].Win["spelling"].pos := pssppos
+		}
 		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
 	}
 }
