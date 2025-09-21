@@ -388,7 +388,7 @@ EILOGINShow_login(hwnd, hook, dwmsEventTime) {
 EIShow_d() {
 	if Setting["Debug"].enabled
 		PlaySound("EI show desktop")
-	if Setting["EI_restoreatopen"].enabled {
+	if Setting["EI_restore"].enabled {
 		; Restore EI desktop window position
 		App["EI"].Win["d"].Restore()
 	}
@@ -400,7 +400,7 @@ EIShow_i1(hwnd, hook, dwmsEventTime) {
 		PlaySound("EI show images1")
 	; because of unknown bug, EI desktop window is not being detect at show
 	; so we hijack images1 window hook to restore desktop window position
-	if Setting["EI_restoreatopen"].enabled {
+	if Setting["EI_restore"].enabled {
 		; Restore EI desktop window position
 		App["EI"].Win["d"].Restore()
 	}
@@ -471,7 +471,7 @@ EICLINShow_vessel() {
 
 ; 	PlaySound("EI desktop opened")
 
-; 	if Setting["EI_restoreatopen"].enabled {
+; 	if Setting["EI_restore"].enabled {
 ; 		; Restore EI window positions
 ; 		App["EI"].RestorePositions()
 ; 	}
@@ -904,7 +904,7 @@ EIRetrievePatientInfo() {
 								SendInput("^a^c")
 								if !ClipWait(0.05) {				; wait until clipboard contains data, with 100 ms timeout
 ;									PAToolTip("ClipWait (1) timed out")
-									SoundBeep(250)
+									; SoundBeep(250)
 								}
 								MouseMove(savex, savey)
 								BlockInput false
@@ -1070,7 +1070,7 @@ EIRetrieveStudyInfo(patient) {
 									SendInput("^a^c")
 									if !ClipWait(0.1) {				; wait until clipboard contains data, with 100 ms timeout
 ;										PAToolTip("ClipWait (2) timed out")
-										SoundBeep(250)
+										; SoundBeep(250)
 									}
 									MouseMove(savex, savey)
 									BlockInput false
@@ -1114,7 +1114,7 @@ if n++ > 2 {
 									SendInput("^a^c")
 									if !ClipWait(0.1) {				; wait until clipboard contains data, with 100 ms timeout
 ;										PAToolTip("ClipWait (3) timed out")
-										SoundBeep(250)
+										; SoundBeep(250)
 									}
 									MouseMove(savex, savey)
 									BlockInput false
@@ -1215,7 +1215,7 @@ _EIParseStudyInfo(&studyinfo := "", contents := "", section := "study") {
 					founddescription := true
 					studyinfo.description := contents
 ;					PAToolTip(contents)
-				} else if RegExMatch(contents, "^[A-Z ]+,[A-Z ]+") {
+				} else if RegExMatch(contents, "^[A-Z\- ]+,[A-Z\- ]+") {
 					if !foundorderingmd {
 						studyinfo.orderingmd := contents
 						foundorderingmd := true

@@ -195,9 +195,10 @@ TTip("EPICIsChart")
 EPICShow_main(hwnd, hook, dwmsEventTime)
 {
 	App["EPIC"].Win["main"].hwnd := hwnd
-	PlaySound("EPIC show main")
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show main")
 
-	if Setting["EPIC_restoreatopen"].enabled {
+	if Setting["EPIC_restore"].enabled {
 		; Restore EPIC window positions
 		App["EPIC"].Win["main"].Restore()
 	}
@@ -206,9 +207,10 @@ EPICShow_main(hwnd, hook, dwmsEventTime)
 EPICShow_chat(hwnd, hook, dwmsEventTime)
 {
 	App["EPIC"].Win["chat"].hwnd := hwnd
-	PlaySound("EPIC show chat")
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show chat")
 	
-	if Setting["EPIC_restoreatopen"].enabled {
+	if Setting["EPIC_restore"].enabled {
 		; Restore EPIC window positions
 		App["EPIC"].Win["chat"].Restore()
 	}
@@ -229,7 +231,7 @@ EPICOpened_EPICmain() {
 
 	PlaySound("Epic started")
 
-	if Setting["EPIC_restoreatopen"].value {
+	if Setting["EPIC_restore"].value {
 		; Restore EPIC window positions
 		App["EPIC"].RestorePositions()
 	}

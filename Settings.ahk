@@ -72,7 +72,7 @@ Setting["ClearCapsLock"] := SetItem("ClearCapsLock", "bool", true, , "Reset Caps
 Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus following to keep the window under the mouse active")
 ;Setting["RememberWindows"] := SetItem("RememberWindows", "bool", true, , "Automatically remember window positions on exit.")
 
-Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable synthesized voice feedback")
+Setting["UseVoice"] := SetItem("UseVoice", "bool", true, , "Enable voice feedback")
 Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1), "Which voice to use")
 
 Setting["Layout"] := SetItem("Layout", "select", "Default", Map("Default", "Default", "Layout1", "Layout1"), "Current window layout")
@@ -81,16 +81,19 @@ Setting["Layout"] := SetItem("Layout", "select", "Default", Map("Default", "Defa
 Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
-Setting["EI_restoreatopen"] := SetItem("EI_restoreatopen", "bool", true, , "When EI opens, auto restore windows to their saved positions")
+Setting["EI_restore"] := SetItem("EI_restore", "bool", true, , "When EI opens, auto restore windows to their saved positions")
 Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
 Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
-Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
 Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic image viewport activation before specific shortcut keys. Before enabling, enter a list of EI shortcuts on the next line.") 
 Setting["EIkeylist"] := SetItem("EIkeylist", "text", "", , "List of EI shortcuts (see Help), e.g. 1,2,3,4,5,x,w,+w,e,+e,d,f,+d,+f")
 
+Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat window at EI startup")
+
+Setting["EI_parsedata"] := SetItem("EI_parsedata", "bool", false, , "Parse EI patient and study info on PS report open")
+
 ; PS settings
-Setting["PS_restoreatopen"] := SetItem("PS_restoreatopen", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+Setting["PS_restore"] := SetItem("PS_restore", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
 Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Center PowerScribe popup messages over the main PowerScribe window")
 
 Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
@@ -110,13 +113,13 @@ Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 1,
 Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' error message")
 Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' error message.")
 
-Setting["PSras_dismiss"] := SetItem("PSRAS_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' error message")
-Setting["PSras_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'The call to RAS timed out' error message.")
+Setting["PSras_dismiss"] := SetItem("PSras_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' error message")
+Setting["PSras_dismiss_reply"] := SetItem("PSras_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'The call to RAS timed out' error message.")
 
 Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window if mouse is outside of the PowerScribe window")
 
 ; EPIC settings
-Setting["EPIC_restoreatopen"] := SetItem("EPIC_restoreatopen", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
+Setting["EPIC_restore"] := SetItem("EPIC_restore", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
 Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
 
 ; Hotkey settings
@@ -182,14 +185,14 @@ SettingsPage.Push("#VPN")
 SettingsPage.Push("VPN_center")
 
 SettingsPage.Push("#EI")
-SettingsPage.Push("EI_restoreatopen")
+SettingsPage.Push("EI_restore")
 SettingsPage.Push("ClickLock")
 ; PASettingsPage.Push(">ClickLock_interval")
 SettingsPage.Push("EIactivate")
 SettingsPage.Push(">EIkeylist")
 
 SettingsPage.Push("#PowerScribe")
-SettingsPage.Push("PS_restoreatopen")
+SettingsPage.Push("PS_restore")
 SettingsPage.Push("PS_dictate_autoon")
 SettingsPage.Push("PS_dictate_idleoff")
 SettingsPage.Push(">PS_dictate_idletimeout")
@@ -203,7 +206,7 @@ SettingsPage.Push("PSras_dismiss")
 SettingsPage.Push("PSSPspelling_autoclose")
 
 SettingsPage.Push("#Epic")
-SettingsPage.Push("EPIC_restoreatopen")
+SettingsPage.Push("EPIC_restore")
 SettingsPage.Push("EPICtimezone_dismiss")
 
 SettingsPage.Push("#Hotkeys")
@@ -228,11 +231,10 @@ SettingsPage.Push("VPN_url")
 SettingsPage.Push("EI_SERVER")
 SettingsPage.Push("Layout")
 
-SettingsPage.Push("#Beta - Experimental, not working yet")
+SettingsPage.Push("#Beta - Experimental, may not be working")
+SettingsPage.Push("EI_parsedata")
 SettingsPage.Push("hkSpaceDelete")
 SettingsPage.Push("EIchat_show")
-
-
 
 
 /**********************************************************
