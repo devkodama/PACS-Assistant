@@ -655,18 +655,19 @@ F3:: {
 
 
 F8:: {
-	TTip("F8")
-	newlayout := GenerateLayout()
-	Layout["Layout1"] := newlayout
+	EPICNewChat()
 }
 
 +F8:: {
-	TTip("Shift F8")
-	Layout["Layout1"].Save("Layout1")
+	Send("!n")
+
 }
 
 
 
+	; TTip("F8")
+	; newlayout := LayoutGenerate()
+	; Layout["Layout1"] := newlayout
 
 
 	; pos := VirtualScreenPos()

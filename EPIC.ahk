@@ -21,7 +21,7 @@
  * 
  * 
  * 
- * 
+ *	EPICNewChat()								- Start a new secure chat message to the Ordering provider regarding the current exam
  * 
  * 
  *
@@ -195,13 +195,25 @@ TTip("EPICIsChart")
 EPICShow_main(hwnd, hook, dwmsEventTime)
 {
 	App["EPIC"].Win["main"].hwnd := hwnd
-	PlaySound("EPIC show main")
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show main")
+
+	if Setting["EPIC_restore"].enabled {
+		; Restore EPIC window positions
+		App["EPIC"].Win["main"].Restore()
+	}
 }
 
 EPICShow_chat(hwnd, hook, dwmsEventTime)
 {
 	App["EPIC"].Win["chat"].hwnd := hwnd
-	PlaySound("EPIC show chat")
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show chat")
+	
+	if Setting["EPIC_restore"].enabled {
+		; Restore EPIC window positions
+		App["EPIC"].Win["chat"].Restore()
+	}
 }
 
 
@@ -219,7 +231,7 @@ EPICOpened_EPICmain() {
 
 	PlaySound("Epic started")
 
-	if Setting["EPIC_restoreatopen"].value {
+	if Setting["EPIC_restore"].value {
 		; Restore EPIC window positions
 		App["EPIC"].RestorePositions()
 	}
@@ -512,3 +524,36 @@ EPICStop() {
  *  
  */
 
+
+EPICNewChat() {
+
+	; Make sure EPIC Chat window is available (showing).
+	chathwnd := App["EPIC"].Win["chat"].IsReady()
+	if chathwnd {
+		msgbox(PACurrentStudy.orderingmd "/" PACurrentStudy.description)
+		PAWindowBusy := true
+		BlockInput true				; prevent user input from interfering
+		WinActivate(chathwnd)
+		Sleep(1000)
+		Send("!n")
+		Sleep(1000)
+		Send("+{Tab}")
+		Sleep(1000)
+		Send("{Enter}")
+		Sleep(1000)
+		; Send(PACurrentStudy.orderingmd)
+		; Sleep(500)
+		; Send("{Tab}")
+		; Sleep(500)
+		; Send("{Enter}")
+		; Sleep(500)
+		; Send("!y")
+		; Sleep(500)
+		; Send("{{Escape}}")
+		; Sleep(500)
+		; Send(PACurrentStudy.description . " ->")
+		BlockInput false
+		PAWindowBusy := false
+	}
+
+}

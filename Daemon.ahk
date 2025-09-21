@@ -139,7 +139,9 @@ _RefreshGUI() {
 		; studyinfo .= "<br />" . PACurrentStudy.facility
 		; studyinfo .= " // " . PACurrentStudy.patienttype
 		; studyinfo .= " // " . PACurrentStudy.priority
+
 		studyinfo .= "<br /> " . StrTitle(PACurrentStudy.orderingmd)
+		; [todo] Note that StrTitle doesn't handle hyphenated names correctly (JACKSON-SMITH => Jackson-smith)
 
 		if PACurrentStudy.laterality {
 			studyinfo .= "<br /><br />laterality: " . PACurrentStudy.laterality
@@ -176,7 +178,7 @@ _RefreshGUI() {
 
 		; if any icdcodes were found, show them 
 		if icdcodes {
-			studyinfo .= "ICD Codes: " . icdcodes . "<br />"
+			studyinfo .= "<br />ICD Codes: " . icdcodes . "<br />"
 		}
 	
 ; PAToolTip(studyinfo)

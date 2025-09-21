@@ -9,8 +9,6 @@
  * 	PSSend(cmdstring := "")					- Send keystrokes to PowerScribe
  * 	PSPaste(text := "")						- Paste a chunk of text into PowerScribe
  * 
- * 	PSParent()								- Returns the WinItem for either PSmain, PSreport, PSaddendum, or PSlogin, if one exists
- * 
  * 	PSDictateIsOn(forceupdate := false)		- Returns the state of the PS360 Dictate (mic) button
  * 	PSIsRunning()							- Returns TRUE if PS is running, FALSE if not
  * 	PSIsLogin()
@@ -123,7 +121,10 @@ PSPaste(text := "") {
 
 	if (text) {
 
-		if !(hwndPS := App["PS"].Win["report"].IsReady()) && !(hwndPS := App["PS"].Win["main"].IsReady()) && !(hwndPS := App["PS"].Win["addendum"].IsReady()) {
+		if !(hwndPS := App["PS"].Win["report"].IsReady()) 
+			&& !(hwndPS := App["PS"].Win["main"].IsReady()) 
+			&& !(hwndPS := App["PS"].Win["addendum"].IsReady())
+		{
 			return
 		}
 
@@ -141,29 +142,10 @@ PSPaste(text := "") {
 
 
 
+
 /**********************************************************
  * Functions to retrieve info about PS
  */
-
-
-; Returns the WinItem for either PSmain, PSreport, PSaddendum, or PSlogin, 
-; if they exist (checked in that order).
-;
-; Returns 0 if none of them exist.
-; [todo][need to deprecate this]
-PSParent() {
-	if App["PS"].Win["main"].hwnd {
-		return App["PS"].Win["main"]
-	} else if App["PS"].Win["report"].hwnd {
-		return App["PS"].Win["report"]
-	} else if App["PS"].Win["addendum"].hwnd {
-		return App["PS"].Win["addendum"]
-	} else if App["PS"].Win["login"].hwnd {
-		return App["PS"].Win["login"]
-	} else {
-		return 0
-	}
-}
 
 
 ; Returns the state of the PS360 Dictate (mic) button by reading the toolbar button
@@ -188,7 +170,10 @@ PSDictateIsOn(forceupdate := false) {
 	static lastcheck := 0
 
 	; If one of PS report, addendum, or main windows does not exist, return false
-	if !(hwndPS := App["PS"].Win["report"].IsReady()) && !(hwndPS := App["PS"].Win["main"].IsReady()) && !(hwndPS := App["PS"].Win["addendum"].IsReady()) {
+	if !(hwndPS := App["PS"].Win["report"].IsReady()) 
+		&& !(hwndPS := App["PS"].Win["main"].IsReady()) 
+		&& !(hwndPS := App["PS"].Win["addendum"].IsReady())
+	{
 		dictatestatus := false
 
 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
@@ -319,7 +304,7 @@ PSShow_main(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["main"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show main")
-	if Setting["PS_restoreatopen"].enabled {
+	if Setting["PS_restore"].enabled {
 		App["PS"].Win["main"].Restore()
 	}
 }
@@ -479,6 +464,13 @@ PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
 	if Setting["Debug"].enabled
 		PlaySound("PS show spelling")
 	if Setting["PScenter_dialog"].enabled {
+		; also limit window width to <= 90% of parent width
+		pssppos := App["PSSP"].Win["spelling"].pos
+		sppos_w := 0.9 * App["PS"].Win["main"].pos.w
+		if pssppos.w > sppos_w {
+			pssppos.w := sppos_w
+			App["PSSP"].Win["spelling"].pos := pssppos
+		}
 		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
 	}
 }
@@ -580,6 +572,31 @@ PSShow_home() {
 		; turn off the mic if it is on
 		_PSTurnOffMic(true, PS_DICTATEAUTOOFF_DELAY)
 	}
+
+	; [wip]
+	if Setting["EI_parsedata"].enabled {
+		global PACurrentPatient
+		global PACurrentStudy
+
+		; blank out the current patient and study
+		PACurrentPatient.lastname := ""
+		PACurrentPatient.firstname := ""
+		PACurrentPatient.dob := ""
+		PACurrentPatient.sex := ""
+
+		PACurrentStudy.accession := ""
+		PACurrentStudy.lastfirst := ""
+		PACurrentStudy.dobraw := ""
+		PACurrentStudy.description := ""
+		PACurrentStudy.facility := ""
+		PACurrentStudy.patienttype := ""
+		PACurrentStudy.priority := ""
+		PACurrentStudy.orderingmd := ""
+		PACurrentStudy.referringmd := ""
+		PACurrentStudy.reason := ""
+		PACurrentStudy.other := Array()
+		PACurrentStudy.techcomments := ""
+	}
 }
 
 PSClose_home() {
@@ -597,6 +614,38 @@ PSShow_report() {
 	if Setting["PS_dictate_autoon"].enabled {
 		; turn on the mic if it is not on
 		_PSTurnOnMic(true)
+	}
+
+	; [wip]
+	if Setting["EI_parsedata"].enabled {
+		global PACurrentPatient
+		global PACurrentStudy
+	
+		pt := EIRetrievePatientInfo()
+		if pt { 
+			PACurrentPatient.lastname := pt.lastname
+			PACurrentPatient.firstname := pt.firstname
+			PACurrentPatient.dob := pt.dob
+			PACurrentPatient.sex := pt.sex
+
+			st := EIRetrieveStudyInfo(pt)
+			if st {
+				PACurrentStudy.accession := st.accession
+				PACurrentStudy.lastfirst := st.lastfirst
+				PACurrentStudy.dobraw := st.dobraw
+				PACurrentStudy.description := st.description
+				PACurrentStudy.facility := st.facility
+				PACurrentStudy.patienttype := st.patienttype
+				PACurrentStudy.priority := st.priority
+				PACurrentStudy.orderingmd := st.orderingmd
+				PACurrentStudy.referringmd := st.referringmd
+				PACurrentStudy.reason := st.reason
+				PACurrentStudy.other := st.other
+				PACurrentStudy.techcomments := st.techcomments
+			}
+
+		}
+
 	}
 }
 
@@ -620,12 +669,6 @@ PSShow_addendum() {
 PSClose_addendum() {
 	if Setting["Debug"].enabled
 		PlaySound("PS close addendum")
-
-	; Automatically turn off microphone when closing a report
-	if Setting["PS_dictate_autoon"].enabled {
-		; turn off the mic if it is on
-		_PSTurnOffMic(true)
-	}
 }
 
 
