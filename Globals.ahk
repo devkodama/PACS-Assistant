@@ -153,7 +153,7 @@ EPIC_CLIOPTIONS := "Id=605 Env=PRD TZ=America/Chicago enableGPU=false"
 FILE_SETTINGSBASE := "settings"
 
 ; filepath to icd code table
-ICD_CODEFILE := "icd10codes.txt"
+ICD_CODEFILE := "resource\icd10codes.txt"
 
 
 ; Text and color to display when microphone is off

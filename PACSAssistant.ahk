@@ -505,7 +505,7 @@ TTip("Quit PACS Assistant")
 	}
 
     ; set PACS Assistant tray icon
-	TraySetIcon("PA.ico")
+	TraySetIcon("resource\PA.ico")
 
 
     ; create the tray menu

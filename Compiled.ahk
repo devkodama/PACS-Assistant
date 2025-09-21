@@ -11,12 +11,13 @@
 
 
 ; ### RESOURCE BLOCK START ###
-;@Ahk2Exe-SetVersion 0.7.7-beta
+
+;@Ahk2Exe-SetVersion 0.7.8-beta
 ;@Ahk2Exe-SetCopyright Copyright 2025
 ;@Ahk2Exe-SetName PACS Assistant
 ;@Ahk2Exe-SetDescription PACS Assistant
 
-Compiled_VersionString := "0.7.7-beta"
+Compiled_VersionString := "0.7.8-beta"
 
 ;@Ahk2Exe-AddResource Lib\64bit\WebView2Loader.dll, 64bit\WebView2Loader.dll
 ;@Ahk2Exe-AddResource Lib\32bit\WebView2Loader.dll, 32bit\WebView2Loader.dll
@@ -72,8 +73,12 @@ if A_IsCompiled {
 	WebViewToo.CreateFileFromResource("pages\js\scripts.js")
 }
 
-FileInstall "PA.ico", "PA.ico", 1
-FileInstall "icd10codes.txt", "icd10codes.txt", 1
+if !DirExist("resource") {
+	DirCreate("resource")
+}
+
+FileInstall "resource\PA.ico", "resource\PA.ico", 1
+FileInstall "resource\icd10codes.txt", "resource\icd10codes.txt", 1
 FileInstall "README.md", "README.md", 1
 
 ; ### RESOURCE BLOCK END ###

@@ -46,7 +46,7 @@
 
 
 ; Version to generate
-productVersion := "0.7.7-beta"
+productVersion := "0.7.8-beta"
 
 ; Application name and description
 productName := "PACS Assistant"
@@ -54,7 +54,7 @@ productDescription := "PACS Assistant"
 
 ; input file(s)
 inputScriptFile := "AutoHotkey64.ahk"
-inputIcoFile := "PA.ico"
+inputIcoFile := "resource\PA.ico"
 
 ; output file(s)
 outputScriptFile := "Compiled.ahk"
@@ -100,8 +100,8 @@ WVTresourcesList := [
 ; At runtime, these files will be created in the working directory of the compiled exe file.
 ; Directories will be created as needed.
 filesList := [
-    "PA.ico",
-    "icd10codes.txt",
+    "resource\PA.ico",
+    "resource\icd10codes.txt",
     "README.md",
 ]
 
@@ -234,7 +234,7 @@ GenerateCompileDirectives() {
     dirCreateDirectives := ''
     if directoryList.Count > 0 {
         for dir, in directoryList {
-            newDirDirectives .= 'if !DirExist("' . dir . '") {`n`tDirCreate("' . dir . '")`n}`n'
+            dirCreateDirectives .= 'if !DirExist("' . dir . '") {`n`tDirCreate("' . dir . '")`n}`n'
         }
     }
 
@@ -251,11 +251,12 @@ GenerateCompileDirectives() {
         newDirectives .= wvtCreateDirectives
         newDirectives .= '}`n`n'
     }
-    if fileInstallDirectives {
-        newDirectives .= fileInstallDirectives . '`n'
-    }
+    ; dirCreateDirectives must come before fileInstallDirectives (or FileInstall() will fail upon encountering a missing directory)
     if (dirCreateDirectives) {
         newDirectives .= dirCreateDirectives . '`n'
+    }
+    if fileInstallDirectives {
+        newDirectives .= fileInstallDirectives . '`n'
     }
 
     ; combine the new directives with the pre-existing script (that was outside the resource block markers)
