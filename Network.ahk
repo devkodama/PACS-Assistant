@@ -81,13 +81,13 @@ NetworkGetIP() {
 
 ; Returns whether we are on a hospital workstation.
 ;
-; Connected status is cached, only checked every WATCHNETWORK_UPDATE_INTERVAL.
+; Connected status is cached, only checked every WATCHWORKSTATION_UPDATE_INTERVAL.
 ; Can force an update by passing true for forceupdate.
 WorkstationIsHospital(forceupdate := false) {
 	static ishospital := false		; cached status
 	static lastcheck := 0			; setting lastcheck to 0 initially forces an update on the first call
 
-	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
+	if forceupdate || ((A_TickCount - lastcheck) > WATCHWORKSTATION_UPDATE_INTERVAL) {
 		ishospital := false
 		
 		; check for a matching hostname
