@@ -50,6 +50,8 @@ WATCHNETWORK_UPDATE_INTERVAL := 5000       ; 5000 = 5 seconds
 
 ; interval (ms) for jiggling mouse to keeping screen awake
 JIGGLEMOUSE_UPDATE_INTERVAL := 60000		; 60000 = 1 minute
+; mouse inactivity timeout (minutes) after which mouse jiggler is deactivated
+JIGGLEMOUSE_DEFAULTTIMEOUT := 0             ; 0 = never
 
 ; interval (ms) for clearing CapsLock after no keyboard input
 CAPSLOCK_TIMEOUT := 10000		; 10000 = 10 sec

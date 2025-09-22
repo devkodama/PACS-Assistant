@@ -67,7 +67,7 @@ Setting["PAautoupdate"] := SetItem("PAautoupdate", "bool", true, , "Enable autom
 
 ; General settings
 Setting["MouseJiggler"] := SetItem("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
-Setting["MouseJiggler_timeout"] := SetItem("MouseJiggler_timeout", "num", 240, [0, 1440], "Disable mouse jiggler after this many minutes of inactivity (0 = never disable)")
+Setting["MouseJiggler_timeout"] := SetItem("MouseJiggler_timeout", "num", JIGGLEMOUSE_DEFAULTTIMEOUT, [0, 1440], "Stop using mouse jiggler after this many minutes of inactivity (0 = never disable)")
 Setting["ClearCapsLock"] := SetItem("ClearCapsLock", "bool", true, , "Reset CapsLock to off after no keyboard input for " . Integer(CAPSLOCK_TIMEOUT / 1000) . " seconds")
 
 Setting["FocusFollow"] := SetItem("FocusFollow", "bool", true, , "Enable focus following to keep the window under the mouse active")
@@ -177,7 +177,7 @@ SettingsPage.Push(">storepassword")
 SettingsPage.Push("#General")
 SettingsPage.Push("FocusFollow")
 SettingsPage.Push("MouseJiggler")
-; SettingsPage.Push(">MouseJiggler_timeout")
+SettingsPage.Push(">MouseJiggler_timeout")
 SettingsPage.Push("ClearCapsLock")
 SettingsPage.Push("UseVoice")
 SettingsPage.Push(">Voice")
