@@ -149,6 +149,11 @@ GenerateCompileDirectives() {
         MsgBox("Could not find or add resource start and end markers. " outputScriptFile " was not created or modified.")
         ExitApp()
     }
+    if blockStartPos > blockEndPos {
+        ; error condition
+        MsgBox("Start marker comes after end marker, please manually edit " outputScriptFile " to correct.")
+        ExitApp()
+    }
 
     ; Start generating the new resource directives
 
