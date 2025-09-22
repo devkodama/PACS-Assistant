@@ -45,12 +45,12 @@
 */
 
 
-; Version to generate
-productVersion := "0.7.8-beta"
-
 ; Application name and description
 productName := "PACS Assistant"
 productDescription := "PACS Assistant"
+
+; Version to generate is specified by the version txt file
+versionFile := "version"
 
 ; input file(s)
 inputScriptFile := "AutoHotkey64.ahk"
@@ -284,9 +284,14 @@ GenerateCompileDirectives() {
 */
 
 
-; Verify version number
-if MsgBox("Confirm version to generate: " productVersion, "Confirm", "OKCancel") != "OK" {
-    return
+; Read product version from version.txt file
+try {
+    productVersion := FileRead(versionFile)
+    productVersion := VersionStringIsValid(productVersion) ? productVersion : ""
+}
+if !productVersion {
+    MsgBox("Error, version string is invalid, " outputExeFile " could not be created.", , "OK")
+    Exit()
 }
 
 ; Regenerate the Compiled.ahk file.
@@ -303,14 +308,14 @@ try {
     result := RunWait(EXE_AHK2EXE . ' /in "' . inputScriptFile . '" /out "' . outputExeFile . '" /icon "' . inputIcoFile . '"')
     if !result {
         ; success
-        MsgBox(outputExeFile . " created successfully")
+        MsgBox(outputExeFile . " version " . productVersion . "`n`nCreated successfully.")
 
-        ; Now generate the version and checksum files
-        if FileExist("version") {
-            FileDelete("version")
-        }
-        FileAppend(productVersion, "version")
-
+        ; if FileExist("version") {
+        ;     FileDelete("version")
+        ; }
+        ; FileAppend(productVersion, "version")
+            
+        ; Generate the checksum file
         if FileExist("checksum") {
             FileDelete("checksum")
         }
