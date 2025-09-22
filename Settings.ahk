@@ -181,6 +181,7 @@ SettingsPage.Push("MouseJiggler")
 SettingsPage.Push("ClearCapsLock")
 SettingsPage.Push("UseVoice")
 SettingsPage.Push(">Voice")
+SettingsPage.Push("PAautoupdate")
 
 SettingsPage.Push("#VPN")
 SettingsPage.Push("VPN_center")
