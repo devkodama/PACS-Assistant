@@ -239,15 +239,16 @@ Updater() {
 
     if VerCompare(latestversion, A_Version) > 0 {
         ; latest version is higher than current version, so try to update
-        if MsgBox("A newer version of PACS Assistant is available. Do you want to update?`n`nYour version: " A_Version "`nNewer version: " latestversion, "PACS Assistant Update", "Y/N") = "Yes" {
-            ; user said Yes, do the update
+        if Setting["PAautoupdate"].enabled
+            || MsgBox("A newer version of PACS Assistant is available. Do you want to update?`n`nYour version: " A_Version "`nNewer version: " latestversion, "PACS Assistant Update", "Y/N") = "Yes"
+        {
+            ; either auto update is enabled, or user said Yes, so do the update
             if UpdaterPerformUpdate(A_AhkExe, urllatestrelease, urlchecksum) {
                 ; success, restart the script
-                ; MsgBox("Click OK to restart PACS Assistant")
                 Reload()
             } else {
                 ; failed to update
-                MsgBox("Update failed.")
+                MsgBox("Version update failed.", "PACS Assistant")
             }
         }
     }

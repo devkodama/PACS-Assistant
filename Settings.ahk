@@ -63,6 +63,7 @@ Setting["username"] := SetItem("username", "special", "", PA_USERNAME_MAXLENGTH,
 Setting["password"] := SetItem("password", "special", "", PA_PASSWORD_MAXLENGTH, "Password")
 Setting["inifile"] := SetItem("inifile", "special", FILE_SETTINGSBASE . ".ini", 0, "Current .ini file")
 Setting["storepassword"] := SetItem("storepassword", "bool", true, , "Remember your password on this workstation")
+Setting["PAautoupdate"] := SetItem("PAautoupdate", "bool", true, , "Enable automatic updates of PACS Assistant")
 
 ; General settings
 Setting["MouseJiggler"] := SetItem("MouseJiggler", "bool", true, , "Enable mouse jiggler to prevent the screen from going to sleep")
@@ -78,7 +79,7 @@ Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1)
 Setting["Layout"] := SetItem("Layout", "select", "Default", Map("Default", "Default", "Layout1", "Layout1"), "Current window layout")
 
 ; VPN settings
-Setting["VPN_center"] := SetItem("VPN_center", "bool", true, , "When the VPN window appears, center it on the screen")
+Setting["VPN_center"] := SetItem("VPN_center", "bool", false, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
 Setting["EI_restore"] := SetItem("EI_restore", "bool", true, , "When EI opens, auto restore windows to their saved positions")
@@ -108,7 +109,7 @@ Setting["PSconfirmaddendum_dismiss_reply"] := SetItem("PSconfirmaddendum_dismiss
 Setting["PS_dictate_autoon"] := SetItem("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
 
 Setting["PS_dictate_idleoff"] := SetItem("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
-Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 1, [1, 120], "After how many minutes?")
+Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 2, [1, 120], "After how many minutes?")
 
 Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' error message")
 Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' error message.")
