@@ -63,6 +63,7 @@ Setting["username"] := SetItem("username", "special", "", PA_USERNAME_MAXLENGTH,
 Setting["password"] := SetItem("password", "special", "", PA_PASSWORD_MAXLENGTH, "Password")
 Setting["inifile"] := SetItem("inifile", "special", FILE_SETTINGSBASE . ".ini", 0, "Current .ini file")
 Setting["storepassword"] := SetItem("storepassword", "bool", true, , "Remember your password on this workstation")
+Setting["PApasswordtimeout"] := SetItem("PApasswordtimeout", "num", PA_DEFAULTPASSWORDTIMEOUT, [5, 1440], "Forget your password after this many minutes of inactivity")
 Setting["PAautoupdate"] := SetItem("PAautoupdate", "bool", true, , "Enable automatic updates of PACS Assistant")
 
 ; General settings
@@ -173,6 +174,7 @@ SettingsPage.Push("#Account")
 SettingsPage.Push("username")
 SettingsPage.Push("password")
 SettingsPage.Push(">storepassword")
+SettingsPage.Push(">PApasswordtimeout")
 
 SettingsPage.Push("#General")
 SettingsPage.Push("FocusFollow")
@@ -732,23 +734,24 @@ SettingsWriteAll() {
 SettingsGeneratePage(show := true) {
     static special := false
 
-    ; Need to special case the storepassword setting depending on whether this is 
-    ; a hospital workstation or a home workstation. The option is removed from the
-    ; SettingsPage[] array if we are running on a hospital workstation.
-    if !special && WorkstationIsHospital() {
-        ; this is a hospital workstation
+    ; Need to special case certain settings that are displayed depending on whether 
+    ; this is a hospital workstation or a home workstation. This loop removes
+    ; conditional settings from SettingsPage[] array as appropriate.
+    if !special {
         for item in SettingsPage {
             if !IsSet(item) {
                 ; this array element has been deleted, skip to next one
                 continue    ; for
             }
-            if item == ">storepassword" {
-                ; this is the setting we need to delete
+            if item == ">storepassword" && WorkstationIsHospital() {
+                ; delete this setting on hospital workstations
                 SettingsPage.Delete(A_Index)
-                special := true     ; so we don't have to do this again
-                break           ; for
+            } else if item == ">PApasswordtimeout" && !WorkstationIsHospital() {
+                ; delete this setting on non-hospital workstations
+                SettingsPage.Delete(A_Index)
             }
         }
+        special := true     ; so we don't have to do this again
     }
 
     ; intialize the form to be generated
