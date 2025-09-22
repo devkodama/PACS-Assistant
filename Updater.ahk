@@ -236,7 +236,6 @@ Updater() {
     }
     
     latestversion := UpdaterLatestVersion(urllatestversion)
-
     if VerCompare(latestversion, A_Version) > 0 {
         ; latest version is higher than current version, so try to update
         if Setting["PAautoupdate"].enabled
@@ -252,4 +251,6 @@ Updater() {
             }
         }
     }
+
+    return false        ; failed to update
 }

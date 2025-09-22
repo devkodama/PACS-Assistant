@@ -431,9 +431,7 @@ PAInit() {
 	SettingsInit()
 	
 	; Read current layout from user's settings.ini file
-MsgBox("layout=" Setting["Layout"].value)
     Layout[Setting["Layout"].value].Read(Setting["Layout"].value)        ; read from .ini file
-MsgBox("ret")
 
 	; If this is the default Layout and it is empty, then generate a default layout and save it
 	if Setting["Layout"].value = Setting["Layout"].default && Layout[Setting["Layout"].value].count = 0 {
