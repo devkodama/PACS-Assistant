@@ -152,11 +152,11 @@ SplitPath(A_AhkPath, &A_AhkExe)			; just the filename
 #Include Utils.ahk
 #Include FindTextStrings.ahk
 
+#Include AppManager.ahk			; nb - this must be included before Settings.ahk, or else issue #160
 #Include Settings.ahk
 
 #Include Updater.ahk
 
-#Include AppManager.ahk
 #Include Layout.ahk
 
 #Include Sound.ahk
@@ -431,7 +431,9 @@ PAInit() {
 	SettingsInit()
 	
 	; Read current layout from user's settings.ini file
+MsgBox("layout=" Setting["Layout"].value)
     Layout[Setting["Layout"].value].Read(Setting["Layout"].value)        ; read from .ini file
+MsgBox("ret")
 
 	; If this is the default Layout and it is empty, then generate a default layout and save it
 	if Setting["Layout"].value = Setting["Layout"].default && Layout[Setting["Layout"].value].count = 0 {

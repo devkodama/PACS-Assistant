@@ -267,30 +267,45 @@ class LayoutItem {
     }
     
     Read(layoutname) {
+    
         inifile := Setting["inifile"].value
         
         if inifile {
             sectionname := "Layout_" . layoutname
             sectiontext := IniRead(inifile, sectionname, , "")
 
-            this._lastwinpos := this.winpos     ; save winpos in _lastwinpos before reading new positions
-            this.winpos := Array()              ; create new empty array for winpos
+            if sectiontext {
 
-            loop parse sectiontext, "`n" {
-                keyval := StrSplit(A_LoopField, "=")
-                key := keyval[1]
-                value := keyval[2]
-                
-                delimpos := InStr(key, "_")
-                appkey := SubStr(key, 1, delimpos - 1)
-                winkey := SubStr(key, delimpos + 1)
-                
-                getpos := StrSplit(value, ",")
-                x := getpos[1]
-                y := getpos[2]
-                w := getpos[3]
-                h := getpos[4]
-                this.winpos.Push(WinPos(App[appkey].Win[winkey], Pos(x, y, w, h)))
+                this._lastwinpos := this.winpos     ; save winpos in _lastwinpos before reading new positions
+                this.winpos := Array()              ; create new empty array for winpos
+
+                loop parse sectiontext, "`n" {
+                    keyval := StrSplit(A_LoopField, "=")
+                    key := keyval[1]
+                    value := keyval[2]
+                    if !key || !value {
+                        break       ; loop
+                    }
+
+                    delimpos := InStr(key, "_")
+                    appkey := SubStr(key, 1, delimpos - 1)
+                    winkey := SubStr(key, delimpos + 1)
+                    if !delimpos || !appkey || !winkey {
+                        break       ; loop
+                    }
+
+                    getpos := StrSplit(value, ",")
+                    if getpos.Length != 4 {
+                        break       ; loop
+                    }
+                    try {
+                        x := getpos[1]
+                        y := getpos[2]
+                        w := getpos[3]
+                        h := getpos[4]
+                        this.winpos.Push(WinPos(App[appkey].Win[winkey], Pos(x, y, w, h)))
+                    }
+                }
             }
         }    
     }    
