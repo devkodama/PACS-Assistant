@@ -51,12 +51,13 @@
 EPICSend(cmdstring := "") {
     global PAWindowBusy
 
-	if PAActive && cmdstring {
-		if hwndEPIC := App["EPIC"].Win["main"].hwnd {
-			; at this point hwndPS is non-null and points to the current PS window
+	if cmdstring {
+		EPIChwnd := App["EPIC"].Win["main"].hwnd
+		if EPIChwnd {
+			; at this point EPIChwnd is non-null and points to the current EPIC window
 			PAWindowBusy := true
 			BlockInput true				; prevent user input from interfering
-			WinActivate(hwndEPIC)
+			WinActivate(EPIChwnd)
 			Sleep(200)
 			Send(cmdstring)
 			BlockInput false
@@ -69,46 +70,46 @@ EPICSend(cmdstring := "") {
 ; Helper function to look for and dismiss timezone window,
 ; setting the time zone to America/Chicago
 ;
-_EPIC_DismissTimezone(initialize := false) {
-	static tick0 := 0
+; _EPIC_DismissTimezone(initialize := false) {
+; 	static tick0 := 0
 
-	if initialize {
-TTip("0")
-		tick0 := A_TickCount
-		return					; return after initializing
-	}
+; 	if initialize {
+; TTip("0")
+; 		tick0 := A_TickCount
+; 		return					; return after initializing
+; 	}
 
-	if EPICIsTimezone() {
-		; dismiss Timezone dialog with Continue (Alt-O)
-TTip("a")
-		EPICSend("{Alt down}o{Alt up}")
-		SetTimer(_EPIC_DismissTimezone, 0)
-	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
-		; timed out, stop checking
-TTip("b")
-		SetTimer(_EPIC_DismissTimezone, 0)
-	} else {
-TTip("c")
-	}
-}
+; 	if EPICIsTimezone() {
+; 		; dismiss Timezone dialog with Continue (Alt-O)
+; TTip("a")
+; 		EPICSend("{Alt down}o{Alt up}")
+; 		SetTimer(_EPIC_DismissTimezone, 0)
+; 	} else if (A_TickCount - tick0) > EPIC_LOGIN_TIMEOUT * 1000 {
+; 		; timed out, stop checking
+; TTip("b")
+; 		SetTimer(_EPIC_DismissTimezone, 0)
+; 	} else {
+; TTip("c")
+; 	}
+; }
 
 
 ; Helper function to look for and dismmiss Break the Glass dialog window.
 ; Reason is Direct Patient Care.
 ; Requires password to be set
-_EPICBreakTheGlass() {
+; _EPICBreakTheGlass() {
 
-	; look for the window
-
-
-	; Alt-R goes to the Reason field
-	; Send the keys "d{Tab}" to put "Direct Patient Care" into the field
-
-	; Alt-P goes to the Password field
-	; Send the user's password, followed by "{Enter}" to complete the dialog.
+; 	; look for the window
 
 
-}
+; 	; Alt-R goes to the Reason field
+; 	; Send the keys "d{Tab}" to put "Direct Patient Care" into the field
+
+; 	; Alt-P goes to the Password field
+; 	; Send the user's password, followed by "{Enter}" to complete the dialog.
+
+
+; }
 
 
 
@@ -121,67 +122,50 @@ _EPICBreakTheGlass() {
 ; Returns TRUE if Epic is running, FALSE if not
 ;
 EPICIsRunning() {
-	return App["EPIC"].isrunning
+	return App["EPIC"].isrunning ? true : false
 }
 
 
-; Several functions below that return true if a specific EPIC page is showing
-; EPIC pages are: login, timezone, chart
+; Detect whether a specific EPIC pseudowindow is showing.
 ;
-; FindText() searches entire Epic window ([todo] could narrow the search to speed up slightly)
+; EPIC main window is main
+; 	EPIC pseudowindows which are subwindows of main are: login, timezone, chart
 ;
-
-
-; Returns true if the Epic login page is showing
-;
+; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
 EPICIsLogin() {
-	; App["EPIC"].Win["main"].Update()
-	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
-		try {
-			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
-			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
-TTip("EPICIsLogin")
-				return true
-			}
-		} catch {
+	EPIChwnd := App["EPIC"].Win["main"].IsReady()
+	if EPIChwnd {
+		; look for image match
+		WinGetClientPos(&x0, &y0, &w0, &h0, EPIChwnd)
+		if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsLogin"]) {
+			return EPIChwnd
 		}
 	}
-	return false
+	return 0
 }
 
-; Returns true if the Epic time zone confirmation page is showing
-;
 EPICIsTimezone() {
-	; App["EPIC"].Win["main"].Update()
-	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
-		try {
-			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
-			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
-TTip("EPICIsTimezone")
-				return true
-			}
-		} catch {
+	EPIChwnd := App["EPIC"].Win["main"].IsReady()
+	if EPIChwnd {
+		; look for image match
+		WinGetClientPos(&x0, &y0, &w0, &h0, EPIChwnd)
+		if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsTimezone"]) {
+			return EPIChwnd
 		}
 	}
-	return false
+	return 0
 }
 
-
-; Returns true if the Epic main chart page is showing
-;
 EPICIsChart() {
-	; App["EPIC"].Win["main"].Update()
-	if hwndEPIC := App["EPIC"].Win["main"].hwnd {
-		try {
-			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
-			if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
-TTip("EPICIsChart")
-				return true
-			}
-		} catch {
+	EPIChwnd := App["EPIC"].Win["main"].IsReady()
+	if EPIChwnd {
+		; look for image match
+		WinGetClientPos(&x0, &y0, &w0, &h0, EPIChwnd)
+		if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICIsChart"]) {
+			return EPIChwnd
 		}
 	}
-	return false
+	return 0
 }
 
 
@@ -192,28 +176,62 @@ TTip("EPICIsChart")
  */
 
 
-EPICShow_main(hwnd, hook, dwmsEventTime)
-{
+EPICShow_main(hwnd, hook, dwmsEventTime) {
 	App["EPIC"].Win["main"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("EPIC show main")
 
 	if Setting["EPIC_restore"].enabled {
-		; Restore EPIC window positions
+		; Restore EPIC window position
 		App["EPIC"].Win["main"].Restore()
 	}
 }
 
-EPICShow_chat(hwnd, hook, dwmsEventTime)
-{
+EPICShow_chat(hwnd, hook, dwmsEventTime) {
 	App["EPIC"].Win["chat"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("EPIC show chat")
 	
 	if Setting["EPIC_restore"].enabled {
-		; Restore EPIC window positions
+		; Restore EPIC chat window position
 		App["EPIC"].Win["chat"].Restore()
 	}
+}
+
+; pseudowindows
+EPICShow_login() {
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show login")
+}
+
+EPICClose_login() {
+	if Setting["Debug"].enabled
+		PlaySound("EPIC close login")
+}
+
+EPICShow_timezone() {
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show timezone")
+
+	if Setting["EPICtimezone_dismiss"].enabled {
+		; dismiss Timezone dialog with Continue (Alt-O)
+		EPICSend("{Alt down}o{Alt up}")
+	}
+}
+
+EPICClose_timezone() {
+	if Setting["Debug"].enabled
+		PlaySound("EPIC close timezone")
+}
+
+EPICShow_chart() {
+	if Setting["Debug"].enabled
+		PlaySound("EPIC show chart")
+}
+
+EPICClose_chart() {
+	if Setting["Debug"].enabled
+		PlaySound("EPIC close chart")
 }
 
 
@@ -224,31 +242,31 @@ EPICShow_chat(hwnd, hook, dwmsEventTime)
  */
 
 
-; Hook function called when EPIC main window opens
-;
-; When the Epic main window appears
-EPICOpened_EPICmain() {
+; ; Hook function called when EPIC main window opens
+; ;
+; ; When the Epic main window appears
+; EPICOpened_EPICmain() {
 
-	PlaySound("Epic started")
+; 	PlaySound("Epic started")
 
-	if Setting["EPIC_restore"].value {
-		; Restore EPIC window positions
-		App["EPIC"].RestorePositions()
-	}
+; 	if Setting["EPIC_restore"].value {
+; 		; Restore EPIC window positions
+; 		App["EPIC"].RestorePositions()
+; 	}
 	
-	if Setting["EPICtimezone_dismiss"].value {
-		; launch daemon to look for and dismiss timezone window
-		_EPIC_DismissTimezone(true)	; call directly to initialize the callback
-		SetTimer(_EPIC_DismissTimezone, 500)
-	}
-}
+; 	if Setting["EPICtimezone_dismiss"].value {
+; 		; launch daemon to look for and dismiss timezone window
+; 		_EPIC_DismissTimezone(true)	; call directly to initialize the callback
+; 		SetTimer(_EPIC_DismissTimezone, 500)
+; 	}
+; }
 
 
-; Hook function called when EPIC main window closed or minimized
-;
-EPICClosed_EPICmain() {
-	PlaySound("Epic closed")
-}
+; ; Hook function called when EPIC main window closed or minimized
+; ;
+; EPICClosed_EPICmain() {
+; 	PlaySound("Epic closed")
+; }
 
 
 
@@ -322,27 +340,28 @@ EPICStart(cred := CurrentUserCredentials) {
 	; App["EPIC"].Update()
 
 	; wait for login window to exist
-	while !cancelled && !(islogin := EPICIsLogin()) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
+	tick1 := A_TickCount
+	while !(hwndlogin := App["EPIC"].Win["login"].IsReady()) && (A_TickCount - tick1 < EPIC_LOGIN_TIMEOUT * 1000) {
 		GUIStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		Sleep(500)
 		if PACancelRequest {
-				cancelled := true
-				break		; while
+			cancelled := true
+			break		; while
 		}
 	}
 
-	; if couldn't get to the login window, return with failure
-	if !islogin {
+	if !hwndlogin {
+		; still no login window, return failure
 		failed := true
 	}
 
 	if !cancelled && !failed {
-		; got a login window, now enter credentials
+		; got the EPIC login window, now enter credentials
+		; delay to allow stabilization of interface
 		Sleep(500)
 
 		; locate the username field
-		hwndEPIC := App["EPIC"].Win["main"].hwnd
-		WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+		WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
 		ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICLoginUser"])
 		if ok {
 
@@ -351,17 +370,18 @@ EPICStart(cred := CurrentUserCredentials) {
 			BlockInput true				; prevent user input from interfering
 			MouseGetPos(&savex, &savey)	; save current mouse position
 			
-			Click(ok[1].x, ok[1].y)
-			Send("^a" . cred.username)
+			Click(ok[1].x, ok[1].y)		; click on the username field
+			Send("^a" . cred.username)	; send the username
 
 			; locate the password field
-			WinGetClientPos(&x0, &y0, &w0, &h0, hwndEPIC)
+			WinGetClientPos(&x0, &y0, &w0, &h0, hwndlogin)
 			ok := FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["EPICLoginPassword"])
 			if ok {
 				; enter the password and press OK to start login
-				Click(ok[1].x, ok[1].y)
-				Send("^a" . cred.password)
-				Send("!o")					; Presses OK key (Alt-O) to start login
+				Click(ok[1].x, ok[1].y)		; click on the password field
+				Send("^a" . cred.password)	; send the password
+				Send("!o")					; Press OK key (Alt-O) to start login
+				sleep(500)
 			} else {
 				; couldn't find the password field
 				failed := true
@@ -374,26 +394,25 @@ EPICStart(cred := CurrentUserCredentials) {
 				cancelled := true
 			}
 
-			; now wait for Epic to get to the chart screen to consider login successful
-			while !cancelled && !failed && !(ischart := EPICIsChart()) && (A_TickCount - tick0 < EPIC_LOGIN_TIMEOUT * 1000) {
-				GUIStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-				Sleep(500)
-				; App["EPIC"].Update()		; unncessary to update
-				if PACancelRequest {
-					cancelled := true
-					break		; while
-				}
-			}
-			; if couldn't get to the login window, return with failure
-			if !ischart {
-				failed := true
-			}
+; 			; waits for EPIC chart window to appear
+; 			tick1 := A_TickCount
+; 			while !(EPIChwnd := App["EPIC"].Win["chart"].IsReady()) && (A_TickCount - tick1 < EPIC_LOGIN_TIMEOUT * 1000) {
+; 				GUIStatus("Starting Epic... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+; 				Sleep(500)
+; 				if PACancelRequest {
+; 					cancelled := true
+; 					break		; while
+; 				}
+; 			}
+; MsgBox("b")
+			; if !cancelled && !EPIChwnd {
+			; 	; if EPIC chart window still not visible after time out, return failure
+			; 	failed := true
+			; }
 
 		} else {
-
 			; couldn't find the username field
 			failed := true
-
 		}
 	}	
 	
@@ -411,7 +430,7 @@ EPICStart(cred := CurrentUserCredentials) {
 		result := 0
 
 	} else {
-
+		; success
 		GUIStatus("EPIC startup completed (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 		result := 1
 

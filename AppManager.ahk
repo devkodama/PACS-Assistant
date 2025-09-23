@@ -156,9 +156,9 @@ App["PSSP"].Win["spelling"] := WinItem("spelling", App["PSSP"], , "Spelling", , 
 App["EPIC"].Win["main"] := WinItem("main", App["EPIC"], , "Production", , , EPICShow_main)
 App["EPIC"].Win["chat"] := WinItem("chat", App["EPIC"], , "Secure Chat", , , EPICShow_chat)
 ; pseudowindows, parent is main window App["EI"].Win["main"]
-App["EPIC"].Win["login"] := WinItem("login", App["EPIC"], App["EPIC"].Win["main"], , , , , , )
-App["EPIC"].Win["timezone"] := WinItem("timezone", App["EPIC"], App["EPIC"].Win["main"], , , , , , )
-App["EPIC"].Win["chart"] := WinItem("chart", App["EPIC"], App["EPIC"].Win["main"], , , , , , )
+App["EPIC"].Win["login"] := WinItem("login", App["EPIC"], App["EPIC"].Win["main"], , , true, EPICShow_login, EPICClose_login, EPICIsLogin)
+App["EPIC"].Win["timezone"] := WinItem("timezone", App["EPIC"], App["EPIC"].Win["main"], , , true, EPICShow_timezone, EPICClose_timezone, EPICIsTimezone)
+App["EPIC"].Win["chart"] := WinItem("chart", App["EPIC"], App["EPIC"].Win["main"], , , true, EPICShow_chart, EPICClose_chart, EPICIsChart)
 
 
 
@@ -1162,7 +1162,7 @@ Context(hwnd, contexts*) {
                     return true
                 }    
                 
-                ; there is also a window (or psuedowindow  to match),
+                ; there is also a window (or psuedowindow to match),
                 ; need to check for a match among each of the windows listed in the context
                 while j <= carr.Length {
                     cwin := App[appkey].Win[carr[j]]    ; get the winitem of the context item we're matching against
@@ -1178,17 +1178,16 @@ Context(hwnd, contexts*) {
                         }
                     } else {
                         ; this context is a pseudowindow, call its validate function to determine a match
-                            fn := cwin.validate
-                            if fn {
-                                if fn.Call() {
-                                    ; pseudowindow condition successfully validated
-                                    ; return success
-                                    if Setting["Debug"].enabled
-                                        TTip("Context(" appkey "/" winkey ", " StrJoin(contexts, ",") ")`n => " carr[1] "/" cwin.key "/" cwin.key, 2700)
-                                    return true
-                                }
+                        fn := cwin.validate
+                        if fn {
+                            if fn.Call() {
+                                ; pseudowindow condition successfully validated
+                                ; return success
+                                if Setting["Debug"].enabled
+                                    TTip("Context(" appkey "/" winkey ", " StrJoin(contexts, ",") ")`n => " carr[1] "/" cwin.key "/" cwin.key, 2700)
+                                return true
                             }
-;                        }
+                        }
                     }
                 }
             }
