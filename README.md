@@ -16,10 +16,11 @@ PACS Assistant is highly customizable--most of its features can be selectively e
 
 ## How to use
 
-From this [GitHub repository](https://github.com/devkodama/PACS-Assistant), click on the folder _Standalone/PACS Assistant_. Click on the file named _PACS Assistant.exe_,  then click on the button named _Raw_ to download the file.
+In the Documents folder on your computer, create a folder named _PACS Assistant_.
 
-In the Documents folder on your computer, create a folder named PACS Assistant and put PACS Assistant.exe into it. Doubleclick PACS Assistant.exe to run.
-In the Documents folder on your computer, create a folder named _PACS Assistant_ and copy the file _PACS Assistant.exe_ into it. Double-click _PACS Assistant.exe_ to run.
+Download the file [PACS Assistant.exe](https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe) and put it in the _PACS Assistant_ folder you just created.
+
+Doubleclick _PACS Assistant.exe_ to run. You may get a warning message from User Account Control--click Yes to continue.
 
 The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant can remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username and settings but not your password.
 
@@ -33,9 +34,13 @@ On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic. Yo
 
 ## Window management
 
-[nb current version is buggy, desktops don't restore properly.]
+(Work in progress...)
 
-PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. In PACS Assistant, go to the Window Manager tab. Arrange your EI, PowerScribe, Epic, and Epic Chat windows as you like. Then click Remember window positions.
+PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. In PACS Assistant, go to the Window Manager tab. Arrange your EI, PowerScribe, Epic, and Epic Chat windows as you like. Click the Remember windows button. Next time you start PACS, PACS Assistant will restore windows to their remembered positions.
+
+The Restore windows button moves windows back to their last remembered position(s).
+
+The Reset layout button autogenerates a window layout for EI, PowerScribe, and Epic based on the current monitor configuration. The new layout will replace the previously saved layout.
 
 PACS Assistant can automatically dismiss selected popup messages such as PowerScribe, EI, or Epic confirmation messages. In PACS Assistant, go to the Settings tab to enable or disable.
 
@@ -148,7 +153,7 @@ The **Spacebar** can do one of several things:
 
 ### Microphone auto on/off
 
-PACS Assistant can automatically turn on the microphone when you open a report for dictation and turn it off when you close it. It can also automatically turn off the microphone after a period of inactivity (*e.g.* if you leave your workstation).
+PACS Assistant can automatically turn on the microphone when you open a report (or addendum) for dictation and turn it off when you close it. It can also automatically turn off the microphone after a period of inactivity (*e.g.* if you leave your workstation).
 
 ### Mouse jiggler
 
@@ -162,7 +167,7 @@ PACS Assistant can return the CapsLock state to off after a short period of time
 
 PACS Assistant is optimized for a handsfree setup, *i.e.* a handsfree microphone, right hand on the mouse, and left hand on the keyboard. If frequently used EI keyboard shortcuts are mapped to the left half of the keyboard, then reading can be done with minimal hand movement and without needing to look away from the screen.
 
-PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to keypad keys. (This can be done the file Hotkeys.ahk.) I've found that I prefer using the regular keyboard because it doesn't require extra hardware and so is available on every workstation.
+PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to keypad keys. (This can be done the file Hotkeys.ahk.) I've found that I prefer using the regular keyboard because it doesn't require extra hardware and is always available on every workstation.
 
 PACS Assistant is still under heavy development with more features to come. You may (will) encounter bugs or conflicts with other applications; in many cases, temporariliy disabling PACS Assistant with the on/off toggle switch can bypass the problem.
 
