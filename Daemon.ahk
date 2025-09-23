@@ -399,7 +399,7 @@ _WatchWindows() {
 
 	; poll windows and trigger hook_close
 	for w in PollClose {
-		if !w.IsReady() && !w._closestate { 
+		if !w._closestate && !w.IsReady() { 
 			w._closestate := true
 			w._showstate := false
 			HookQueue.Push(w.hook_close)
@@ -408,7 +408,7 @@ _WatchWindows() {
 
 	; poll windows to trigger hook_show
 	for w in PollShow {
-		if w.IsReady() && !w._showstate {
+		if !w._showstate && w.IsReady() {
 			w._showstate := true
 			w._closestate := false
 			HookQueue.Push(w.hook_show)
