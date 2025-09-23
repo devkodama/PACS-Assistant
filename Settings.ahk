@@ -153,6 +153,7 @@ Setting["EI_SERVER"] := SetItem("EI_SERVER", "text", EI_SERVER, , "EI server (de
 
 ; Misc settings
 Setting["run"] := SetItem("run", "num", 0, , "")
+Setting["startmessage"] := SetItem("startmessage", "text", "")
 
 
 

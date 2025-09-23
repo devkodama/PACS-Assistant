@@ -94,8 +94,8 @@ UpdaterLatestVersion(urllatestversion) {
         DirCreate(updaterdir)
     }
     ; get the latest version
-    Download(urllatestversion, updaterdir . "\__version__")
     try {
+        Download(urllatestversion, updaterdir . "\__version__")
         latestversion := FileRead(updaterdir . "\__version__")
         FileDelete(updaterdir . "\__version__")
     } catch {
@@ -117,8 +117,8 @@ UpdaterLatestChecksum(urlchecksum) {
         DirCreate(updaterdir)
     }
     ; get the latest version
-    Download(urlchecksum, updaterdir . "\__checksum__")
     try {
+        Download(urlchecksum, updaterdir . "\__checksum__")
         checksum := FileRead(updaterdir . "\__checksum__")
         FileDelete(updaterdir . "\__checksum__")
     } catch {
@@ -244,10 +244,12 @@ Updater() {
             ; either auto update is enabled, or user said Yes, so do the update
             if UpdaterPerformUpdate(A_AhkExe, urllatestrelease, urlchecksum) {
                 ; success, restart the script
+                Setting["startmessage"].value := "Updated to version " . latestversion
+                Sleep(500)
                 Reload()
             } else {
                 ; failed to update
-                MsgBox("Version update failed.", "PACS Assistant")
+                Setting["startmessage"].value := "Could not update to version " . latestversion
             }
         }
     }

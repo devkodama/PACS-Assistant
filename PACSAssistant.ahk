@@ -561,4 +561,10 @@ PAMain() {
 		Setting["run"].value := n + 1
 	}
 
+	; Display startup messages if any
+	if Setting["startmessage"].value {
+		GUIAlert(Setting["startmessage"].value, "info")
+		Setting["startmessage"].value :=""
+	}
+
 }
