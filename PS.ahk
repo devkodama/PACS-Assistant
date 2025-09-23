@@ -97,12 +97,12 @@ global _PSlastparent := ""
 PSSend(cmdstring := "") {
     global PAWindowBusy
 
-	if (cmdstring) {
-		hwndPS := App["PS"].Win["main"].hwnd
-		if hwndPS {
-			; at this point hwndPS is non-null and points to the main PS window
+	if cmdstring {
+		PShwnd := App["PS"].Win["main"].hwnd
+		if PShwnd {
+			; at this point hwnPShwnddPS is non-null and points to the main PS window
 			PAWindowBusy := true
-			WinActivate(hwndPS)
+			WinActivate(PShwnd)
 			Send(cmdstring)
 			PAWindowBusy := false
 		}
@@ -121,18 +121,18 @@ PSPaste(text := "") {
 
 	if (text) {
 
-		if !(hwndPS := App["PS"].Win["report"].IsReady()) 
-			&& !(hwndPS := App["PS"].Win["main"].IsReady()) 
-			&& !(hwndPS := App["PS"].Win["addendum"].IsReady())
+		if !(PShwnd := App["PS"].Win["report"].IsReady()) 
+			&& !(PShwnd := App["PS"].Win["main"].IsReady()) 
+			&& !(PShwnd := App["PS"].Win["addendum"].IsReady())
 		{
 			return
 		}
 
-		; at this point hwndPS is non-null and points to the current PS window
+		; at this point PShwnd is non-null and points to the current PS window
 		PAWindowBusy := true
 		saveclipboard := A_Clipboard
 		A_Clipboard := text
-		WinActivate(hwndPS)
+		WinActivate(PShwnd)
 		SendInput("^v")				; paste the text
 		Sleep(100)					; requires a delay before restoring keyboard, or else the ^v paste will send the wrong contents (the saved clipboard)
 		A_Clipboard := saveclipboard
@@ -209,7 +209,7 @@ PSDictateIsOn(forceupdate := false) {
 
 ; Returns TRUE if PS is running, FALSE if not
 PSIsRunning() {
-	return App["PS"].isrunning
+	return App["PS"].isrunning ? true : false
 }
 
 
@@ -232,6 +232,7 @@ PSIsLogin() {
 	}
 	return 0
 }
+
 PSIsHome() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
@@ -246,6 +247,7 @@ PSIsHome() {
 	}
 	return 0
 }
+
 PSIsReport() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
@@ -260,6 +262,7 @@ PSIsReport() {
 	}
 	return 0
 }
+
 PSIsAddendum() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
@@ -274,6 +277,7 @@ PSIsAddendum() {
 	}
 	return 0
 }
+
 PSIsReportOrAddendum() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
@@ -550,7 +554,7 @@ _PSTurnOffMic(initial := false, delay := 0) {
 }
 
 
-;
+; pseudowindows
 PSShow_login() {
 	if Setting["Debug"].enabled
 		PlaySound("PS show login")
@@ -808,28 +812,51 @@ PSStart(cred := CurrentUserCredentials) {
 		}
 	}
 
-	if !cancelled {
+	if !hwndlogin {
+		; if PS Login window still not ready after time out, return failure
+		failed := true
+	}
 
-		if !hwndlogin {
-			; if PS Login window still not ready after time out, return failure
-			failed := true
+	if !cancelled && !failed {
+		; PS login window is ready
 
-		} else {
-			; PS login window is ready
-
-			; delay to allow enabling of Log On button
-			sleep(1000)
+		; delay to allow enabling of Log On button
+		sleep(1000)
 
 ;			WinActivate(hwndlogin)
 
-			; Need to wait until "Loading system components..." has completed and text is gone
-			; so that Log On button will be enabled
-			while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
+		; Need to wait until "Loading system components..." has completed and text is gone
+		; so that Log On button will be enabled
+		while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
+			GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
+			if !InStr(WinGetText(hwndlogin), "Loading system components", true) {
+				; success, exit while
+				break		; while
+			}
+			Sleep(500)
+			if PACancelRequest {
+				cancelled := true
+				break		; while
+			}
+		}
+
+		if !cancelled {
+
+			; we have a fully loaded login form
+			; enter username and password and press OK
+			; the r7 is the PS version number, probably requires updating with version upgrades
+			BlockInput true
+			ControlSetText(cred.username, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad12", hwndlogin)
+			ControlSetText(cred.password, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad11", hwndlogin)
+			ControlClick("WindowsForms10.BUTTON.app.0.26ac0ad_r7_ad12", hwndlogin, , , , "NA") 
+			BlockInput false
+			
+			Sleep(500)
+
+			; waits for PS home window to appear
+			tick1 := A_TickCount
+			while !cancelled && !(hwndmain := App["PS"].Win["home"].IsReady()) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
 				GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-				if !InStr(WinGetText(hwndlogin), "Loading system components", true) {
-					; success, exit while
-					break		; while
-				}
 				Sleep(500)
 				if PACancelRequest {
 					cancelled := true
@@ -837,34 +864,9 @@ PSStart(cred := CurrentUserCredentials) {
 				}
 			}
 
-			if !cancelled {
-
-				; we have a fully loaded login form
-				; enter username and password and press OK
-				; the r7 is the PS version number, probably requires updating with version upgrades
-				BlockInput true
-				ControlSetText(cred.username, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad12", hwndlogin)
-				ControlSetText(cred.password, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad11", hwndlogin)
-				ControlClick("WindowsForms10.BUTTON.app.0.26ac0ad_r7_ad12", hwndlogin, , , , "NA") 
-				BlockInput false
-				
-				Sleep(500)
-
-				; waits for PS home window to appear
-				tick1 := A_TickCount
-				while !cancelled && !(hwndmain := App["PS"].Win["home"].IsReady()) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-					GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-					Sleep(500)
-					if PACancelRequest {
-						cancelled := true
-						break		; while
-					}
-				}
-
-				if !cancelled && !hwndmain {
-					; if PS main window still not visible after time out, return failure
-					failed := true
-				}
+			if !cancelled && !hwndmain {
+				; if PS main window still not visible after time out, return failure
+				failed := true
 			}
 		}
 	}

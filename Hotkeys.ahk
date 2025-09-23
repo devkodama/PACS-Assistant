@@ -548,6 +548,7 @@ _PA_EIHotkey(key) {
 				}
 			}
 		} catch {
+			; This catch is only reached the first time any hotkey is pressed. A_TimeSincePriorHotkey is "" in that case throwing an error.
 			; only send a Click if the L & R mouse buttons are NOT being pressed, otherwise don't do anything
 			if !GetKeyState("LButton") && !GetKeyState("RButton") {
 				Click("XButton2")

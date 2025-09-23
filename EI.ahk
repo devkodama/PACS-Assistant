@@ -242,6 +242,7 @@ EIIsSearch() {
 	}
 	return 0
 }
+
 EIIsList() {
 	EIhwnd := App["EI"].Win["d"].IsReady()
 	if EIhwnd {
@@ -252,6 +253,7 @@ EIIsList() {
 	}
 	return 0
 }
+
 EIIsText() {
 	EIhwnd := App["EI"].Win["d"].IsReady()
 	if EIhwnd {
@@ -262,6 +264,7 @@ EIIsText() {
 	}
 	return 0
 }
+
 EIIsImage() {
 	EIhwnd := App["EI"].Win["d"].IsReady()
 	if EIhwnd {
