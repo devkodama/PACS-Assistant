@@ -45,11 +45,15 @@ WATCHMOUSE_UPDATE_INTERVAL := 200
 ; interval (ms) for updating dictate button status
 WATCHDICTATE_UPDATE_INTERVAL := 200
 
-; interval (ms) for updating network connection or workstation status
-WATCHNETWORK_UPDATE_INTERVAL := 5000       ; 5000 = 5 seconds
+; interval (ms) for updating network or vpn connection status
+WATCHNETWORK_UPDATE_INTERVAL := 3000       ; 3000 = 3 seconds
+; interval (ms) for updating workstation status (once checked should actually never change)
+WATCHWORKSTATION_UPDATE_INTERVAL := 86400000    ; 86400000 = 24 hours
 
 ; interval (ms) for jiggling mouse to keeping screen awake
 JIGGLEMOUSE_UPDATE_INTERVAL := 60000		; 60000 = 1 minute
+; mouse inactivity timeout (minutes) after which mouse jiggler is deactivated
+JIGGLEMOUSE_DEFAULTTIMEOUT := 0             ; 0 = never
 
 ; interval (ms) for clearing CapsLock after no keyboard input
 CAPSLOCK_TIMEOUT := 10000		; 10000 = 10 sec
@@ -116,6 +120,9 @@ PA_PASSWORD_MAXLENGTH := 20
 ; default width and height of PACS Assistant GUI window
 PA_DEFAULTWIDTH := 1080
 PA_DEFAULTHEIGHT := 350
+
+; on shared workstations only, default inactivity timeout (minutes) after which user password is forgotten
+PA_DEFAULTPASSWORDTIMEOUT := 120
 
 ; minimum width and height to consider a window position valid
 WINPOS_MINWIDTH := 100

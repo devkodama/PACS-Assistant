@@ -13,7 +13,7 @@
  * 	_WatchWindows()						- Update the status of all windows
  * 
  * 	_WatchMouse()						- Update the hwnd of the window under the mouse cursor
- * 	_JiggleMouse()						- Jiggle the mouse to keep screen awake
+ * 	_JiggleMouse()						- Jiggle the mouse to keep screen awake. Also used to clear the password after a timeout.
  *  _ClearCapsLock()					- Clear CapsLock after no keyboard input for a specified time
  * 
  * 
@@ -518,9 +518,13 @@ _JiggleMouse() {
 		return
 	}
 
-	if Setting["MouseJiggler"].enabled {
+	if Setting["MouseJiggler"].enabled && A_TimeIdleMouse > Setting["MouseJiggler_timeout"].value * 60000 {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
+	}
+	if WorkstationIsHospital() && CurrentUserCredentials.password && A_TimeIdlePhysical > Setting["PApasswordtimeout"].value * 60000 {
+		; clear the user's password after timeout period of inactivity
+		CurrentUserCredentials.password := ""
 	}
 }
 
