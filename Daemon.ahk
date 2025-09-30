@@ -518,7 +518,7 @@ _JiggleMouse() {
 		return
 	}
 
-	if Setting["MouseJiggler"].enabled && A_TimeIdleMouse > Setting["MouseJiggler_timeout"].value * 60000 {
+	if Setting["MouseJiggler"].enabled && (!Setting["MouseJiggler_timeout"].value || A_TimeIdleMouse < Setting["MouseJiggler_timeout"].value * 60000) {
 		MouseMove(1, 1, , "R")
 		MouseMove(-1, -1, , "R")
 	}
