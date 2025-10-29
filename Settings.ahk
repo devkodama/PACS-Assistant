@@ -99,7 +99,7 @@ Setting["PS_restore"] := SetItem("PS_restore", "bool", true, , "When PowerScribe
 Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Center PowerScribe popup messages over the main PowerScribe window")
 
 Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
-Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
 
 Setting["PSsavespeech_dismiss"] := SetItem("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
 Setting["PSsavespeech_dismiss_reply"] := SetItem("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
