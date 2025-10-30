@@ -86,13 +86,17 @@ $+CapsLock:: {
 	if Setting["+hkCapsLock"].enabled
 		&& Context(WindowUnderMouse(), "EI", "PS", "PA", "EPIC")
 	{
-		if PSIsReport() {
-			; PS has an open report, so sign the report
-			PSCmdSignReport()
-		} else {
-			; PS does not have an open report, so try to start reading the next case
-			EICmdStartReading()
-		}
+		; [todo] implement check for open report before sending sign report
+		
+		PSCmdSignReport()
+
+		; if PSIsReport() {
+		; 	; PS has an open report, so sign the report
+		; 	PSCmdSignReport()
+		; } else {
+		; 	; PS does not have an open report, so try to start reading the next case
+		; 	EICmdStartReading()
+		; }
 	} else {
 		SetCapsLockState true
 	}
@@ -130,7 +134,7 @@ $^+CapsLock:: {
 ;
 $Tab:: {
 	if Setting["hkTab"].enabled 
-		&& PSIsReportOrAddendum()
+		; && PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		PSCmdNextField()
@@ -140,7 +144,7 @@ $Tab:: {
 }
 $+Tab:: {
 	if Setting["+hkTab"].enabled 
-		&& PSIsReportOrAddendum()
+		; && PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		PSCmdPrevField()
@@ -150,7 +154,7 @@ $+Tab:: {
 }
 $^Tab:: {
 	if Setting["^hkTab"].enabled 
-		&& PSIsReportOrAddendum()
+		; && PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		if A_PriorHotkey = ThisHotkey {
@@ -164,7 +168,7 @@ $^Tab:: {
 }
 $^+Tab:: {
 	if Setting["^+hkTab"].enabled 
-		&& PSIsReportOrAddendum()
+		; && PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm image", "PA")
 	{
 		PSCmdPrevEOL()
@@ -244,7 +248,7 @@ $+Esc:: {
 ;
 $^y:: {
 	if Setting["hkCtrlYZ"].enabled
-		&& PSIsReportOrAddendum()
+		; && PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA")
 	{
 		PSSend("^y")
@@ -254,7 +258,7 @@ $^y:: {
 }
 $^z:: {
 	if Setting["hkCtrlYZ"].enabled
-		&& PSIsReportOrAddendum()
+		; && PSIsReportOrAddendum()
 		&& Context(WindowUnderMouse(), "PS", "EI i1 i2 text list 4dm", "PA")
 	{
 		PSSend("^z")
@@ -320,7 +324,7 @@ $Space:: {
 			Click 2
 			BlockInput false
 		}
-	} else if Context(getwin, "PS report addendum") {
+	} else if Context(getwin, "PS") {
 		if Setting["hkSpaceDelete"].enabled {
 			; Check to see if there is a text selection in the PS report area
 			; If so, smart delete it
