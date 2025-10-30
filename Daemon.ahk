@@ -310,23 +310,23 @@ _RefreshGUI() {
 	}
 
 	; update PS status on GUI
-	visible := App["PS"].Win["main"].visible || App["PS"].Win["report"].visible || App["PS"].Win["login"].visible || App["PS"].Win["addendum"].visible || App["PS"].Win["login"].visible
-	if visible {
-		status |= 0x04
-		if PACurState["PS"] != "true" {
-			PAGui.PostWebMessageAsString("document.getElementById('app-PS').style = `"background-image: url('images/PS.png');`"")
-			PAGui.PostWebMessageAsString("document.getElementById('app-PS-startup').style = `"display: none;`"")
-			PAGui.PostWebMessageAsString("document.getElementById('app-PS-shutdown').style = `"display: block;`"")
-			PAGui.PostWebMessageAsString("document.getElementById('app-PS-forceclose').style = `"display: block;`"")
-			PACurState["PS"] := "true"
-		}
-	} else if !visible && PACurState["PS"] != "false" {
-		PAGui.PostWebMessageAsString("document.getElementById('app-PS').style = `"background-image: url('images/PS-off.png');`"")
-		PAGui.PostWebMessageAsString("document.getElementById('app-PS-startup').style = `"display: block;`"")
-		PAGui.PostWebMessageAsString("document.getElementById('app-PS-shutdown').style = `"display: none;`"")
-		PAGui.PostWebMessageAsString("document.getElementById('app-PS-forceclose').style = `"display: none;`"")
-		PACurState["PS"] := "false"
-	}
+	; visible := App["PS"].Win["main"].visible || App["PS"].Win["report"].visible || App["PS"].Win["login"].visible || App["PS"].Win["addendum"].visible || App["PS"].Win["login"].visible
+	; if visible {
+	; 	status |= 0x04
+	; 	if PACurState["PS"] != "true" {
+	; 		PAGui.PostWebMessageAsString("document.getElementById('app-PS').style = `"background-image: url('images/PS.png');`"")
+	; 		PAGui.PostWebMessageAsString("document.getElementById('app-PS-startup').style = `"display: none;`"")
+	; 		PAGui.PostWebMessageAsString("document.getElementById('app-PS-shutdown').style = `"display: block;`"")
+	; 		PAGui.PostWebMessageAsString("document.getElementById('app-PS-forceclose').style = `"display: block;`"")
+	; 		PACurState["PS"] := "true"
+	; 	}
+	; } else if !visible && PACurState["PS"] != "false" {
+	; 	PAGui.PostWebMessageAsString("document.getElementById('app-PS').style = `"background-image: url('images/PS-off.png');`"")
+	; 	PAGui.PostWebMessageAsString("document.getElementById('app-PS-startup').style = `"display: block;`"")
+	; 	PAGui.PostWebMessageAsString("document.getElementById('app-PS-shutdown').style = `"display: none;`"")
+	; 	PAGui.PostWebMessageAsString("document.getElementById('app-PS-forceclose').style = `"display: none;`"")
+	; 	PACurState["PS"] := "false"
+	; }
 
 	; update EPIC status on GUI
 	visible := App["EPIC"].Win["main"].visible
@@ -445,11 +445,11 @@ _WatchMouse() {
 	static running := false
 
 	; local function to close the PS spelling window if autoclose is enabled
-	_ClosePSspelling() {
-		if App["PSSP"].Win["spelling"].visible && Setting["PSSPspelling_autoclose"].enabled {
-			App["PSSP"].Win["spelling"].Close()
-		}
-	}
+	; _ClosePSspelling() {
+	; 	if App["PSSP"].Win["spelling"].visible && Setting["PSSPspelling_autoclose"].enabled {
+	; 		App["PSSP"].Win["spelling"].Close()
+	; 	}
+	; }
 
 	; don't allow reentry
 	if running {
@@ -482,7 +482,7 @@ _WatchMouse() {
 		; if appkey && winkey {
 			switch appkey {
 				case "EI":
-					_ClosePSspelling()
+					; _ClosePSspelling()
 					try {
 						WinActivate(hwnd)
 					}
@@ -491,12 +491,12 @@ _WatchMouse() {
 						WinActivate(hwnd)
 					}
 				case "PA":
-					_ClosePSspelling()
+					; _ClosePSspelling()
 					try {
 						WinActivate(hwnd)
 					}
 				case "EPIC":
-					_ClosePSspelling()
+					; _ClosePSspelling()
 					try {
 						WinActivate(hwnd)
 					}

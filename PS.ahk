@@ -121,10 +121,7 @@ PSPaste(text := "") {
 
 	if (text) {
 
-		if !(PShwnd := App["PS"].Win["report"].IsReady()) 
-			&& !(PShwnd := App["PS"].Win["main"].IsReady()) 
-			&& !(PShwnd := App["PS"].Win["addendum"].IsReady())
-		{
+		if !(PShwnd := App["PS"].Win["main"].IsReady()) {
 			return
 		}
 
@@ -170,10 +167,7 @@ PSDictateIsOn(forceupdate := false) {
 	static lastcheck := 0
 
 	; If one of PS report, addendum, or main windows does not exist, return false
-	if !(hwndPS := App["PS"].Win["report"].IsReady()) 
-		&& !(hwndPS := App["PS"].Win["main"].IsReady()) 
-		&& !(hwndPS := App["PS"].Win["addendum"].IsReady())
-	{
+	if !(hwndPS := App["PS"].Win["main"].IsReady()) {
 		dictatestatus := false
 
 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
@@ -221,10 +215,10 @@ PSIsRunning() {
 PSIsLogin() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
-		; look for the wintext string within the PS main window
+		; look for identifying graphics within the PS One window
 		try {
-			if InStr(WinGetText(PShwnd), App["PS"].Win["login"].wintext) {
-				; found the wintext string, return the hwnd of the parent window
+			if false {
+				; found, return the hwnd of the parent window
 				return PShwnd
 			}
 		} catch { 
@@ -233,68 +227,68 @@ PSIsLogin() {
 	return 0
 }
 
-PSIsHome() {
-	PShwnd := App["PS"].Win["main"].IsReady() 
-	if PShwnd {
-		; look for the wintext string within the PS main window
-		try {
-			if InStr(WinGetText(PShwnd), App["PS"].Win["home"].wintext) {
-				; found the wintext string, return the hwnd of the parent window
-				return PShwnd
-			}
-		} catch { 
-		}
-	}
-	return 0
-}
+; PSIsHome() {
+; 	PShwnd := App["PS"].Win["main"].IsReady() 
+; 	if PShwnd {
+; 		; look for the wintext string within the PS main window
+; 		try {
+; 			if InStr(WinGetText(PShwnd), App["PS"].Win["home"].wintext) {
+; 				; found the wintext string, return the hwnd of the parent window
+; 				return PShwnd
+; 			}
+; 		} catch { 
+; 		}
+; 	}
+; 	return 0
+; }
 
-PSIsReport() {
-	PShwnd := App["PS"].Win["main"].IsReady() 
-	if PShwnd {
-		; look for the wintext string within the PS main window
-		try {
-			if InStr(WinGetText(PShwnd), App["PS"].Win["report"].wintext) {
-				; found the wintext string, return the hwnd of the parent window
-				return PShwnd
-			}
-		} catch { 
-		}
-	}
-	return 0
-}
+; PSIsReport() {
+; 	PShwnd := App["PS"].Win["main"].IsReady() 
+; 	if PShwnd {
+; 		; look for the wintext string within the PS main window
+; 		try {
+; 			if InStr(WinGetText(PShwnd), App["PS"].Win["report"].wintext) {
+; 				; found the wintext string, return the hwnd of the parent window
+; 				return PShwnd
+; 			}
+; 		} catch { 
+; 		}
+; 	}
+; 	return 0
+; }
 
-PSIsAddendum() {
-	PShwnd := App["PS"].Win["main"].IsReady() 
-	if PShwnd {
-		; look for the wintext string within the PS main window
-		try {
-			if InStr(WinGetText(PShwnd), App["PS"].Win["addendum"].wintext) {
-				; found the wintext string, return the hwnd of the parent window
-				return PShwnd
-			}
-		} catch { 
-		}
-	}
-	return 0
-}
+; PSIsAddendum() {
+; 	PShwnd := App["PS"].Win["main"].IsReady() 
+; 	if PShwnd {
+; 		; look for the wintext string within the PS main window
+; 		try {
+; 			if InStr(WinGetText(PShwnd), App["PS"].Win["addendum"].wintext) {
+; 				; found the wintext string, return the hwnd of the parent window
+; 				return PShwnd
+; 			}
+; 		} catch { 
+; 		}
+; 	}
+; 	return 0
+; }
 
-PSIsReportOrAddendum() {
-	PShwnd := App["PS"].Win["main"].IsReady() 
-	if PShwnd {
-		; look for the wintext string within the PS main window
-		try {
-			gettext := WinGetText(PShwnd)
-			if InStr(gettext, App["PS"].Win["report"].wintext) 
-				|| InStr(gettext, App["PS"].Win["addendum"].wintext) 
-			{
-				; found the wintext string, return the hwnd of the parent window
-				return PShwnd
-			}
-		} catch { 
-		}
-	}
-	return 0
-}
+; PSIsReportOrAddendum() {
+; 	PShwnd := App["PS"].Win["main"].IsReady() 
+; 	if PShwnd {
+; 		; look for the wintext string within the PS main window
+; 		try {
+; 			gettext := WinGetText(PShwnd)
+; 			if InStr(gettext, App["PS"].Win["report"].wintext) 
+; 				|| InStr(gettext, App["PS"].Win["addendum"].wintext) 
+; 			{
+; 				; found the wintext string, return the hwnd of the parent window
+; 				return PShwnd
+; 			}
+; 		} catch { 
+; 		}
+; 	}
+; 	return 0
+; }
 
 
 
@@ -313,171 +307,171 @@ PSShow_main(hwnd, hook, dwmsEventTime) {
 	}
 }
 
-PSShow_recognition(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["recognition"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show recognition")
-}
+; PSShow_recognition(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["recognition"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show recognition")
+; }
 
-PSShow_logout(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["logout"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show logout")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["logout"].CenterWindow(App["PS"].Win["main"])
-	}
-	if Setting["PSlogout_dismiss"].enabled {
-		ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
-	}
-}
+; PSShow_logout(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["logout"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show logout")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["logout"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; 	if Setting["PSlogout_dismiss"].enabled {
+; 		ControlClick(Setting["PSlogout_dismiss_reply"].value, App["PS"].Win["logout"].hwnd)
+; 	}
+; }
 
-PSShow_savespeech(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["savespeech"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show savespeech")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["savespeech"].CenterWindow(App["PS"].Win["main"])
-	}
-	if Setting["PSsavespeech_dismiss"].enabled {
-		ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
-	}
-}
+; PSShow_savespeech(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["savespeech"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show savespeech")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["savespeech"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; 	if Setting["PSsavespeech_dismiss"].enabled {
+; 		ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
+; 	}
+; }
 
-PSShow_savereport(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["savereport"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show savereport")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["savereport"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_savereport(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["savereport"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show savereport")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["savereport"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_deletereport(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["deletereport"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show deletereport")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["deletereport"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_deletereport(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["deletereport"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show deletereport")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["deletereport"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_saveautotext(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["saveautotext"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show saveautotext")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["saveautotext"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_saveautotext(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["saveautotext"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show saveautotext")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["saveautotext"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_unfilled(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["unfilled"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show unfilled")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["unfilled"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_unfilled(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["unfilled"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show unfilled")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["unfilled"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_confirmaddendum(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["confirmaddendum"].hwnd := hwnd
-	if Setting["Debug"].enabled {
-		PlaySound("PS show confirmaddendum")
-	}
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["confirmaddendum"].CenterWindow(App["PS"].Win["main"])
-	}
-	if Setting["PSconfirmaddendum_dismiss"].enabled {
-		ControlClick(Setting["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
-	}
-}
+; PSShow_confirmaddendum(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["confirmaddendum"].hwnd := hwnd
+; 	if Setting["Debug"].enabled {
+; 		PlaySound("PS show confirmaddendum")
+; 	}
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["confirmaddendum"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; 	if Setting["PSconfirmaddendum_dismiss"].enabled {
+; 		ControlClick(Setting["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
+; 	}
+; }
 
-PSShow_confirmanother(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["confirmanother"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show confirmanother")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["confirmanother"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_confirmanother(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["confirmanother"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show confirmanother")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["confirmanother"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_existing(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["existing"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show existing")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["existing"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_existing(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["existing"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show existing")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["existing"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_continue(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["continue"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show continue")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["continue"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_continue(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["continue"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show continue")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["continue"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_ownership(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["ownership"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show ownership")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["ownership"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_ownership(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["ownership"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show ownership")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["ownership"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
-PSShow_microphone(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["microphone"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show microphone")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["microphone"].CenterWindow(App["PS"].Win["main"])
-	}
-	if Setting["PSmicrophone_dismiss"].value {
-		ControlClick(Setting["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
-	}
-}
+; PSShow_microphone(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["microphone"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show microphone")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["microphone"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; 	if Setting["PSmicrophone_dismiss"].value {
+; 		ControlClick(Setting["PSmicrophone_dismiss_reply"].value, App["PS"].Win["microphone"].hwnd)
+; 	}
+; }
 
-PSShow_ras(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["ras"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show ras")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["ras"].CenterWindow(App["PS"].Win["main"])
-	}
-	if Setting["PSras_dismiss"].enabled {
-		ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
-;		MsgBox("Clicked on " Setting["PSras_dismiss_reply"].value " for ras dialog (" App["PS"].Win["ras"].hwnd ")" )
-	}
-}
+; PSShow_ras(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["ras"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show ras")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["ras"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; 	if Setting["PSras_dismiss"].enabled {
+; 		ControlClick(Setting["PSras_dismiss_reply"].value, App["PS"].Win["ras"].hwnd)
+; ;		MsgBox("Clicked on " Setting["PSras_dismiss_reply"].value " for ras dialog (" App["PS"].Win["ras"].hwnd ")" )
+; 	}
+; }
 
-PSShow_find(hwnd, hook, dwmsEventTime) {
-	App["PS"].Win["find"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show find")
-	if Setting["PScenter_dialog"].enabled {
-		App["PS"].Win["find"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSShow_find(hwnd, hook, dwmsEventTime) {
+; 	App["PS"].Win["find"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show find")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		App["PS"].Win["find"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
 
-PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
-	App["PSSP"].Win["spelling"].hwnd := hwnd
-	if Setting["Debug"].enabled
-		PlaySound("PS show spelling")
-	if Setting["PScenter_dialog"].enabled {
-		; also limit window width to <= 90% of parent width
-		pssppos := App["PSSP"].Win["spelling"].pos
-		sppos_w := 0.9 * App["PS"].Win["main"].pos.w
-		if pssppos.w > sppos_w {
-			pssppos.w := sppos_w
-			App["PSSP"].Win["spelling"].pos := pssppos
-		}
-		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
-	}
-}
+; PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
+; 	App["PSSP"].Win["spelling"].hwnd := hwnd
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show spelling")
+; 	if Setting["PScenter_dialog"].enabled {
+; 		; also limit window width to <= 90% of parent width
+; 		pssppos := App["PSSP"].Win["spelling"].pos
+; 		sppos_w := 0.9 * App["PS"].Win["main"].pos.w
+; 		if pssppos.w > sppos_w {
+; 			pssppos.w := sppos_w
+; 			App["PSSP"].Win["spelling"].pos := pssppos
+; 		}
+; 		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
+; 	}
+; }
 
 
 
@@ -567,113 +561,113 @@ PSClose_login() {
 
 }
 
-PSShow_home() {
-	if Setting["Debug"].enabled
-		PlaySound("PS show home")
+; PSShow_home() {
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show home")
 
-	; Automatically turn off microphone when closing a report
-	if Setting["PS_dictate_autoon"].enabled {
-		; turn off the mic if it is on
-		_PSTurnOffMic(true, PS_DICTATEAUTOOFF_DELAY)
-	}
+; 	; Automatically turn off microphone when closing a report
+; 	if Setting["PS_dictate_autoon"].enabled {
+; 		; turn off the mic if it is on
+; 		_PSTurnOffMic(true, PS_DICTATEAUTOOFF_DELAY)
+; 	}
 
-	; [wip]
-	if Setting["EI_parsedata"].enabled {
-		global PACurrentPatient
-		global PACurrentStudy
+; 	; [wip]
+; 	if Setting["EI_parsedata"].enabled {
+; 		global PACurrentPatient
+; 		global PACurrentStudy
 
-		; blank out the current patient and study
-		PACurrentPatient.lastname := ""
-		PACurrentPatient.firstname := ""
-		PACurrentPatient.dob := ""
-		PACurrentPatient.sex := ""
+; 		; blank out the current patient and study
+; 		PACurrentPatient.lastname := ""
+; 		PACurrentPatient.firstname := ""
+; 		PACurrentPatient.dob := ""
+; 		PACurrentPatient.sex := ""
 
-		PACurrentStudy.accession := ""
-		PACurrentStudy.lastfirst := ""
-		PACurrentStudy.dobraw := ""
-		PACurrentStudy.description := ""
-		PACurrentStudy.facility := ""
-		PACurrentStudy.patienttype := ""
-		PACurrentStudy.priority := ""
-		PACurrentStudy.orderingmd := ""
-		PACurrentStudy.referringmd := ""
-		PACurrentStudy.reason := ""
-		PACurrentStudy.other := Array()
-		PACurrentStudy.techcomments := ""
-	}
-}
+; 		PACurrentStudy.accession := ""
+; 		PACurrentStudy.lastfirst := ""
+; 		PACurrentStudy.dobraw := ""
+; 		PACurrentStudy.description := ""
+; 		PACurrentStudy.facility := ""
+; 		PACurrentStudy.patienttype := ""
+; 		PACurrentStudy.priority := ""
+; 		PACurrentStudy.orderingmd := ""
+; 		PACurrentStudy.referringmd := ""
+; 		PACurrentStudy.reason := ""
+; 		PACurrentStudy.other := Array()
+; 		PACurrentStudy.techcomments := ""
+; 	}
+; }
 
-PSClose_home() {
-	if Setting["Debug"].enabled
-		PlaySound("PS close home")
+; PSClose_home() {
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS close home")
 
-}
+; }
 
-;
-PSShow_report() {
-	if Setting["Debug"].enabled
-		PlaySound("PS show report")
+; ;
+; PSShow_report() {
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show report")
 
-	; Automatically turn on microphone when opening a report
-	if Setting["PS_dictate_autoon"].enabled {
-		; turn on the mic if it is not on
-		_PSTurnOnMic(true)
-	}
+; 	; Automatically turn on microphone when opening a report
+; 	if Setting["PS_dictate_autoon"].enabled {
+; 		; turn on the mic if it is not on
+; 		_PSTurnOnMic(true)
+; 	}
 
-	; [wip]
-	if Setting["EI_parsedata"].enabled {
-		global PACurrentPatient
-		global PACurrentStudy
+; 	; [wip]
+; 	if Setting["EI_parsedata"].enabled {
+; 		global PACurrentPatient
+; 		global PACurrentStudy
 	
-		pt := EIRetrievePatientInfo()
-		if pt { 
-			PACurrentPatient.lastname := pt.lastname
-			PACurrentPatient.firstname := pt.firstname
-			PACurrentPatient.dob := pt.dob
-			PACurrentPatient.sex := pt.sex
+; 		pt := EIRetrievePatientInfo()
+; 		if pt { 
+; 			PACurrentPatient.lastname := pt.lastname
+; 			PACurrentPatient.firstname := pt.firstname
+; 			PACurrentPatient.dob := pt.dob
+; 			PACurrentPatient.sex := pt.sex
 
-			st := EIRetrieveStudyInfo(pt)
-			if st {
-				PACurrentStudy.accession := st.accession
-				PACurrentStudy.lastfirst := st.lastfirst
-				PACurrentStudy.dobraw := st.dobraw
-				PACurrentStudy.description := st.description
-				PACurrentStudy.facility := st.facility
-				PACurrentStudy.patienttype := st.patienttype
-				PACurrentStudy.priority := st.priority
-				PACurrentStudy.orderingmd := st.orderingmd
-				PACurrentStudy.referringmd := st.referringmd
-				PACurrentStudy.reason := st.reason
-				PACurrentStudy.other := st.other
-				PACurrentStudy.techcomments := st.techcomments
-			}
+; 			st := EIRetrieveStudyInfo(pt)
+; 			if st {
+; 				PACurrentStudy.accession := st.accession
+; 				PACurrentStudy.lastfirst := st.lastfirst
+; 				PACurrentStudy.dobraw := st.dobraw
+; 				PACurrentStudy.description := st.description
+; 				PACurrentStudy.facility := st.facility
+; 				PACurrentStudy.patienttype := st.patienttype
+; 				PACurrentStudy.priority := st.priority
+; 				PACurrentStudy.orderingmd := st.orderingmd
+; 				PACurrentStudy.referringmd := st.referringmd
+; 				PACurrentStudy.reason := st.reason
+; 				PACurrentStudy.other := st.other
+; 				PACurrentStudy.techcomments := st.techcomments
+; 			}
 
-		}
+; 		}
 
-	}
-}
+; 	}
+; }
 
-PSClose_report() {
-	if Setting["Debug"].enabled
-		PlaySound("PS close report")
+; PSClose_report() {
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS close report")
 
-}
+; }
 
-PSShow_addendum() {
-	if Setting["Debug"].enabled
-		PlaySound("PS show addendum")
+; PSShow_addendum() {
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS show addendum")
 
-	; Automatically turn on microphone when opening a report
-	if Setting["PS_dictate_autoon"].enabled {
-		; turn on the mic if it is not on
-		_PSTurnOnMic(true)
-	}
-}
+; 	; Automatically turn on microphone when opening a report
+; 	if Setting["PS_dictate_autoon"].enabled {
+; 		; turn on the mic if it is not on
+; 		_PSTurnOnMic(true)
+; 	}
+; }
 
-PSClose_addendum() {
-	if Setting["Debug"].enabled
-		PlaySound("PS close addendum")
-}
+; PSClose_addendum() {
+; 	if Setting["Debug"].enabled
+; 		PlaySound("PS close addendum")
+; }
 
 
 /**********************************************************
