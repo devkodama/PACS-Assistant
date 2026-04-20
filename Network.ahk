@@ -424,9 +424,9 @@ VPNStart(cred := CurrentUserCredentials) {
 			if statustext = "Ready to connect."
 				|| statustext = "Certificate Validation Failure"
 				|| statustext = "Connection attempt has timed out" {
-				; at this point, if the last dialog box was "otp", then we
+				; at this point, if the last dialog box was "otp" or "login", then we
 				; infer the user clicked the Cancel button so we abort the entire login process
-				if lastdialog = "otp" {
+				if lastdialog = "otp" || lastdialog = "login" {
 					cancelled := true
 					break		; exit while
 				}
