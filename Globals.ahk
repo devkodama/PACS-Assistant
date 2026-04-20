@@ -68,9 +68,13 @@ VPN_DISCONNECT_TIMEOUT := 10
 VPN_DIALOG_TIMEOUT := 30
 ; number of failed login attempts (username/password failures) in total allowed
 VPN_FAILEDLOGINS_MAX := 5
-; VPN URL string
-VPN_DEFAULTURL := "vpn.adventhealth.com/SecureAuth"
-
+; VPN URL strings
+VPN_DEFAULTURL1 := "vpn.adventhealth.com/FH"
+VPN_DEFAULTURL1_USEPASSWORD := false
+VPN_DEFAULTURL1_HASDIALOG := false
+VPN_DEFAULTURL2 := "vpn.adventhealth.com/SecureAuth"
+VPN_DEFAULTURL2_USEPASSWORD := true
+VPN_DEFAULTURL2_HASDIALOG := true
 
 ; timeout (seconds) for starting up EI to get to login window
 EI_LOGIN_TIMEOUT := 60

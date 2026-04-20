@@ -80,6 +80,13 @@ Setting["Voice"] := SetItem("Voice", "select", "Zira", Map("Dave", 0, "Zira", 1)
 Setting["Layout"] := SetItem("Layout", "select", "Default", Map("Default", "Default", "Layout1", "Layout1"), "Current window layout")
 
 ; VPN settings
+Setting["VPN_server"] := SetItem("VPN_server", "select", "Primary", Map("Primary", "Primary", "Alternate", "Alternate"), "Which VPN server to use")
+Setting["VPN_url1"] := SetItem("VPN_url1", "text", VPN_DEFAULTURL1, , "Primary VPN URL (" . VPN_DEFAULTURL1 . ")")
+Setting["VPN_url1_usepassword"] := SetItem("VPN_url1_usepassword", "bool", VPN_DEFAULTURL1_USEPASSWORD, , "Use stored password (default " . (VPN_DEFAULTURL1_USEPASSWORD?"yes":"no") . ")")
+Setting["VPN_url1_hasdialog"] := SetItem("VPN_url1_hasdialog", "bool", VPN_DEFAULTURL1_HASDIALOG, , "Has confirmation dialog (default " . (VPN_DEFAULTURL1_HASDIALOG?"yes":"no") . ")")
+Setting["VPN_url2"] := SetItem("VPN_url2", "text", VPN_DEFAULTURL2, , "Alternate VPN URL (" . VPN_DEFAULTURL2 . ")")
+Setting["VPN_url2_usepassword"] := SetItem("VPN_url2_usepassword", "bool", VPN_DEFAULTURL2_USEPASSWORD, , "Use stored password (default " . (VPN_DEFAULTURL2_USEPASSWORD?"yes":"no") . ")")
+Setting["VPN_url2_hasdialog"] := SetItem("VPN_url2_hasdialog", "bool", VPN_DEFAULTURL2_HASDIALOG, , "Has confirmation dialog (default " . (VPN_DEFAULTURL2_HASDIALOG?"yes":"no") . ")")
 Setting["VPN_center"] := SetItem("VPN_center", "bool", false, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
@@ -148,7 +155,6 @@ Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar 
 
 ; Advanced
 Setting["Debug"] := SetItem("Debug", "bool", false, , "Enable debugging messages")
-Setting["VPN_url"] := SetItem("VPN_url", "text", VPN_DEFAULTURL, , "VPN URL (default is " . VPN_DEFAULTURL . ")")
 Setting["EI_SERVER"] := SetItem("EI_SERVER", "text", EI_SERVER, , "EI server (default is " . EI_SERVER . ")")
 
 ; Misc settings
@@ -186,6 +192,13 @@ SettingsPage.Push("UseVoice")
 SettingsPage.Push(">Voice")
 
 SettingsPage.Push("#VPN")
+SettingsPage.Push("VPN_server")
+SettingsPage.Push(">VPN_url1")
+SettingsPage.Push(">>VPN_url1_usepassword")
+SettingsPage.Push(">>VPN_url1_hasdialog")
+SettingsPage.Push(">VPN_url2")
+SettingsPage.Push(">>VPN_url2_usepassword")
+SettingsPage.Push(">>VPN_url2_hasdialog")
 SettingsPage.Push("VPN_center")
 
 SettingsPage.Push("#EI")
@@ -232,7 +245,6 @@ SettingsPage.Push("hkSpaceClick")
 SettingsPage.Push("#Advanced")
 SettingsPage.Push("Debug")
 SettingsPage.Push("PAautoupdate")
-SettingsPage.Push("VPN_url")
 SettingsPage.Push("EI_SERVER")
 SettingsPage.Push("Layout")
 
