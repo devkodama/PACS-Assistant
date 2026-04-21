@@ -392,9 +392,6 @@ _WatchWindows() {
 	
 	; runs regardless of PAActive
 
-	; [todo] if PS spelling window is open for more than 1 second while mouse is not
-	; over a PS window, then close it?
-
 	; trigger close hooks before show hooks
 
 	; poll windows and trigger hook_close
@@ -417,7 +414,7 @@ _WatchWindows() {
 
 	if Setting["Debug"].enabled {
 		; update window info for GUI
-		PAWindowInfo := PrintWindows( , , false) 
+		PAWindowInfo := PrintWindows( , , true) 
 		PAWindowInfo .= "Layout=" . Setting["Layout"].value . "<br/>"
 		PAWindowInfo .= Layout[Setting["Layout"].value].Print()
 		PAWindowInfo .= FormatTime(A_Now,"M/d/yyyy HH:mm:ss")

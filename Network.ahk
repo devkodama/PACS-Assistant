@@ -184,10 +184,10 @@ VPNShow_main(hwnd, hook, dwmsEventTime) {
 	App["VPN"].Win["main"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("VPN show main")
-	if Setting["VPN_center"].enabled {
-		; center on the current monitor
-		App["VPN"].Win["main"].CenterWindow()
-	}
+	; if Setting["VPN_center"].enabled {
+	; 	; center on the current monitor
+	; 	App["VPN"].Win["main"].CenterWindow()
+	; }
 }
 
 VPNShow_prefs(hwnd, hook, dwmsEventTime) {

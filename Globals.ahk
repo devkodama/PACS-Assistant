@@ -155,7 +155,9 @@ EXE_VPNCLI := A_ProgramFiles_x86 . "\Cisco\Cisco Secure Client\vpncli.exe"
 
 EXE_EI := A_ProgramFiles_x86 . "\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
 
-EXE_PS := A_UserDir . "\Desktop\Nuance.PowerScribe360.application"
+; EXE_PS := A_UserDir . "\Desktop\Nuance.PowerScribe360.application"
+EXE_PS := "C:\WINDOWS\system32\rundll32.exe"
+PS_CLIOPTIONS := "dfshim.dll, ShOpenVerbApplication https://psone.adventhealth.com/PSOneReportingClient/Client/Nuance.PSOne.application"
 
 EXE_EPIC := A_ProgramFiles_x86 . "\Epic\Hyperdrive\VersionIndependent\Hyperspace.exe"
 EPIC_CLIOPTIONS := "Id=605 Env=PRD TZ=America/Chicago enableGPU=false"
@@ -219,12 +221,18 @@ global PACancelRequest := false
 ; This is true at startup and set to false after the first time UpdateAll() is called
 global _PAUpdate_Initial := true
 
+; This holds the last state that PS was in, either "login" or "home"
+global _PSLastState := ""
+
+; This holds the last found coordinates of the Create Addendum button
+global _PSCreateAddendumXY := [0, 0]
+
 ; This is false at startup and set to true after the GUI is up and running.
 global _GUIIsRunning := false
 
-
 ; the main PACS Assistant GUI
 global PAGUI
+
 
 ; Global dispatch queues (array of functions)
 global DispatchQueue := Array()

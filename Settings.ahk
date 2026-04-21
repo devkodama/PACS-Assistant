@@ -87,7 +87,7 @@ Setting["VPN_url1_hasdialog"] := SetItem("VPN_url1_hasdialog", "bool", VPN_DEFAU
 Setting["VPN_url2"] := SetItem("VPN_url2", "text", VPN_DEFAULTURL2, , "Alternate VPN URL (" . VPN_DEFAULTURL2 . ")")
 Setting["VPN_url2_usepassword"] := SetItem("VPN_url2_usepassword", "bool", VPN_DEFAULTURL2_USEPASSWORD, , "Use stored password (default " . (VPN_DEFAULTURL2_USEPASSWORD?"yes":"no") . ")")
 Setting["VPN_url2_hasdialog"] := SetItem("VPN_url2_hasdialog", "bool", VPN_DEFAULTURL2_HASDIALOG, , "Has confirmation dialog (default " . (VPN_DEFAULTURL2_HASDIALOG?"yes":"no") . ")")
-Setting["VPN_center"] := SetItem("VPN_center", "bool", false, , "When the VPN window appears, center it on the screen")
+; Setting["VPN_center"] := SetItem("VPN_center", "bool", false, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
 Setting["EI_restore"] := SetItem("EI_restore", "bool", true, , "When EI opens, auto restore windows to their saved positions")
@@ -101,31 +101,28 @@ Setting["EIchat_show"] := SetItem("EIchat_show", "bool", false, , "Show Chat win
 
 Setting["EI_parsedata"] := SetItem("EI_parsedata", "bool", false, , "Parse EI patient and study info on PS report open")
 
+
 ; PS settings
 Setting["PS_restore"] := SetItem("PS_restore", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
-Setting["PScenter_dialog"] := SetItem("PScenter_dialog", "bool", true, , "Center PowerScribe popup messages over the main PowerScribe window")
 
-Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to logout confirmation message when you have draft or unsigned reports")
-Setting["PSlogout_dismiss_reply"] := SetItem("PSlogout_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to log off confirmation message when you have draft or unsigned reports")
 
-Setting["PSsavespeech_dismiss"] := SetItem("PSsavespeech_dismiss", "bool", false, , "Automatically answer 'Save changes to speech files?' message")
-Setting["PSsavespeech_dismiss_reply"] := SetItem("PSsavespeech_dismiss_reply", "select", "No", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
-
-Setting["PSconfirmaddendum_dismiss"] := SetItem("PSconfirmaddendum_dismiss", "bool", true, , "Automatically answer Yes to 'Create addendum?' message")
-Setting["PSconfirmaddendum_dismiss_reply"] := SetItem("PSconfirmaddendum_dismiss_reply", "select", "Yes", Map("Yes", "&Yes", "No", "&No"), "Answer to give")
+Setting["PScreateaddendum_confirm"] := SetItem("PScreateaddendum_confirm", "bool", true, , "Automatically click Create Addendum button")
 
 Setting["PS_dictate_autoon"] := SetItem("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
 
 Setting["PS_dictate_idleoff"] := SetItem("PS_dictate_idleoff", "bool", true, , "Automatically turn microphone off after a period of inactivity")
 Setting["PS_dictate_idletimeout"] := SetItem("PS_dictate_idletimeout", "num", 2, [1, 120], "After how many minutes?")
 
-Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' error message")
-Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' error message.")
+; Setting["PSmicrophone_dismiss"] := SetItem("PSmicrophone_dismiss", "bool", true, , "Automatically dismiss 'Microphone disconnected' error message")
+; Setting["PSmicrophone_dismiss_reply"] := SetItem("PSmicrophone_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'Microphone disconnected' error message.")
 
 Setting["PSras_dismiss"] := SetItem("PSras_dismiss", "bool", true, , "Automatically dismiss 'The call to RAS timed out' error message")
-Setting["PSras_dismiss_reply"] := SetItem("PSras_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'The call to RAS timed out' error message.")
+; Setting["PSras_dismiss_reply"] := SetItem("PSras_dismiss_reply", "select", "OK", Map("OK", "OK"), "Reply to PowerScribe 'The call to RAS timed out' error message.")
 
-Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window if mouse is outside of the PowerScribe window")
+; Setting["PSSPspelling_autoclose"] := SetItem("PSSPspelling_autoclose", "bool", true, , "Auto close the Spelling window if mouse is outside of the PowerScribe window")
+
+
 
 ; EPIC settings
 Setting["EPIC_restore"] := SetItem("EPIC_restore", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
@@ -199,7 +196,7 @@ SettingsPage.Push(">>VPN_url1_hasdialog")
 SettingsPage.Push(">VPN_url2")
 SettingsPage.Push(">>VPN_url2_usepassword")
 SettingsPage.Push(">>VPN_url2_hasdialog")
-SettingsPage.Push("VPN_center")
+; SettingsPage.Push("VPN_center")
 
 SettingsPage.Push("#EI")
 SettingsPage.Push("EI_restore")
@@ -213,14 +210,14 @@ SettingsPage.Push("PS_restore")
 SettingsPage.Push("PS_dictate_autoon")
 SettingsPage.Push("PS_dictate_idleoff")
 SettingsPage.Push(">PS_dictate_idletimeout")
-SettingsPage.Push("PScenter_dialog")
-SettingsPage.Push("PSconfirmaddendum_dismiss")
 SettingsPage.Push("PSlogout_dismiss")
-SettingsPage.Push("PSsavespeech_dismiss")
-SettingsPage.Push(">PSsavespeech_dismiss_reply")
-SettingsPage.Push("PSmicrophone_dismiss")
-SettingsPage.Push("PSras_dismiss")
-SettingsPage.Push("PSSPspelling_autoclose")
+SettingsPage.Push("PScreateaddendum_confirm")
+
+; SettingsPage.Push("PSsavespeech_dismiss")
+; SettingsPage.Push(">PSsavespeech_dismiss_reply")
+; SettingsPage.Push("PSmicrophone_dismiss")
+; SettingsPage.Push("PSras_dismiss")
+; SettingsPage.Push("PSSPspelling_autoclose")
 
 SettingsPage.Push("#Epic")
 SettingsPage.Push("EPIC_restore")

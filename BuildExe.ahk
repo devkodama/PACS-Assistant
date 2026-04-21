@@ -2,8 +2,8 @@
  * BuildExe.ahk
  * 
  * Helper script to make a compiled version of PACS Assistant (stand-alone exe).
- * Run this script by itself. It is not part of the main PACS Assistant script.
  * 
+ * Run this script by itself. It is not part of the main PACS Assistant script.
  * Update productVersion with the current version specification before running.
  * 
  * This script will regenerate the Compiled.ahk file to contain necessary 
