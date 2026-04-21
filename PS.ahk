@@ -1,7 +1,7 @@
 /**
  * PS.ahk
  *
- * Functions for working with PowerScribe
+ * Functions for working with PowerScribe One
  *
  *
  * This module defines the functions:
@@ -14,30 +14,20 @@
  * 	PSIsLogin()
  * 	PSIsHome()
  * 	PSIsReport()
- * 	PSIsAddendum()
- * 	PSIsReportOrAddendum()
+ * 	PSIsCreateAddendum()
  * 	
  * 	PSShow_main()							- Callback functions
- * 	PSShow_recognition()
- * 	PSShow_logout()
- * 	PSShow_savespeech()
- * 	PSShow_savereport()
- * 	PSShow_deletereport()
- *	PSShow_saveautotext()
- * 	PSShow_unfilled()
- * 	PSShow_confirmaddendum()
- * 	PSShow_confirmanotheraddendum()
- * 	PSShow_existing()
- * 	PSShow_continue()
- * 	PSShow_ownership()
- * 	PSShow_microphone()
- * 	PSShow_find()
- * 	PSShow_spelling()
+ * 	PSShow_login()
+ * 	PSClose_login()
+ * 
+ * 	PSShow_home()
+ * 	PSClose_home()
+ * 	PSShow_report()
+ * 	PSClose_report()
  * 
  * 	PSStart(cred := CurrentUserCredentials)	- Start up PowerScribe
  * 	PSStop()								- Shut down PowerScribe
  * 
- * 	RetrieveDataPS()						- Retrieves obtainable data from PowerScribe main reporting window
  * 
  * 	PSCmdNextField()						- Send the Next field command (Tab) to PS
  * 	PSCmdPrevField()						- Send the Prev field command (Shift-Tab) to PS
@@ -145,15 +135,15 @@ PSPaste(text := "") {
  */
 
 
-; Returns the state of the PS360 Dictate (mic) button by reading the toolbar button
+; Returns the state of the PSOne Dictate (mic) button by reading the mic button
 ; The Dicate button must be visible on screen
 ;
 ; If the Dictate button is found and is On, returns true.
 ;
 ; Otherwise return false.
 ;
-; Search PS360 client window area from (0,16) to (width, 128). The toolbar
-; button should be within this area.
+; Search area within PSOne client window is from (0,96) to (width/2, 240). 
+; The mic button should be within this area.
 ;
 ; Dictate status is cached, only checked every WATCHDICTATE_UPDATE_INTERVAL,
 ; unless forceupdate is true.
@@ -174,7 +164,7 @@ PSDictateIsOn(forceupdate := false) {
 		try {
 			; search window for dictate on button icon using FindText()
 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
-			if FindText(&x, &y, x0, y0 + 16, x0 + w0, y0 + 128, 0.001, 0.001, PAText["PSDictateOn"]) {
+			if FindText(&x, &y, x0, y0 + 96, x0 + w0 / 2, y0 + 240, 0.25, 0, PAText["PSDictateOn"]) {
 				; dictate button is on
 				dictatestatus := true
 				if Setting["PS_dictate_idleoff"].enabled {
@@ -200,6 +190,46 @@ PSDictateIsOn(forceupdate := false) {
 	return dictatestatus
 }
 
+; PSDictateIsOn_XXX(forceupdate := false) {
+; 	static dictatestatus := false
+; 	static lastcheck := 0
+
+; 	; If the PS main window does not exist, return false
+; 	if !(hwndPS := App["PS"].Win["main"].IsReady()) {
+; 		dictatestatus := false
+
+; 	} else if forceupdate || ((A_TickCount - lastcheck) > WATCHDICTATE_UPDATE_INTERVAL) {
+; 		try {
+; 			; search window for green color around dictation on button
+; 			WinGetClientPos(&x0, &y0, &w0, &h0, hwndPS)
+; 			TTip("pixsearch(" x0 "," y0 "," x0 + w0 "," y0 + h0  ")...")
+; 			if PixelSearch(&x, &y, x0, y0, x0 + w0, y0 + h0, 0x0F548C, 0x10) {
+; 				TTip("pixsearch(" x0 "," y0 "," x0 + w0 "," y0 + h0  ")..." x ", " y)
+; 				; dictate button is on
+; 				dictatestatus := true
+; 				if Setting["PS_dictate_idleoff"].enabled {
+; 					; Turn off mic if no keyboard or mouse activity for a prolonged time.
+; 					; A_TimeIdlePhysical is the number of milliseconds that have elapsed since the system last received physical keyboard or mouse input
+; 					; PASettings["PS_dictate_idletimeout"].value is in minutes, so multiply by 60000 to get milliseconds
+; 					if dictatestatus && A_TimeIdlePhysical > (Setting["PS_dictate_idletimeout"].value * 60000) {
+; 						; microphone is currently on and we have idled for greater than timeout, so turn off the mic
+; 						PSSend("{F4}")		; Stop Dictation
+; 						GUIStatus("Microphone turned off")
+; 						dictatestatus := false
+; 					}
+; 				}
+; 			} else {
+; 				dictatestatus := false
+; 			}
+; 			lastcheck := A_TickCount
+; 		} catch {
+; 			dictatestatus := false
+; 		}
+; 	}
+
+; 	return dictatestatus
+; }
+
 
 ; Returns TRUE if PS is running, FALSE if not
 PSIsRunning() {
@@ -211,85 +241,66 @@ PSIsRunning() {
 ;
 ; These	PS pseudowindows are subwindows of main: login, home, report, addendum
 ;
+; Search area within PSOne client window is from (0 ,64) to (width, 160) for most indicators. 
+; The target should be within this area. Can usually narrow it down further.
+; For the Log on button, just search the entire client area.
+;
 ; Returns the hwnd of the parent window if the pseudowindow is showing, 0 if not.
 PSIsLogin() {
 	PShwnd := App["PS"].Win["main"].IsReady() 
 	if PShwnd {
-		; look for identifying graphics within the PS One window
-		try {
-			if false {
-				; found, return the hwnd of the parent window
-				return PShwnd
-			}
-		} catch { 
+		; look for image match for Log on button
+		WinGetClientPos(&x0, &y0, &w0, &h0, PShwnd)
+		if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0, 0, PAText["PSIsLogin"]) {
+			return PShwnd
 		}
 	}
 	return 0
 }
 
-; PSIsHome() {
-; 	PShwnd := App["PS"].Win["main"].IsReady() 
-; 	if PShwnd {
-; 		; look for the wintext string within the PS main window
-; 		try {
-; 			if InStr(WinGetText(PShwnd), App["PS"].Win["home"].wintext) {
-; 				; found the wintext string, return the hwnd of the parent window
-; 				return PShwnd
-; 			}
-; 		} catch { 
-; 		}
-; 	}
-; 	return 0
-; }
+PSIsHome() {
+	PShwnd := App["PS"].Win["main"].IsReady() 
+	if PShwnd {
+		; look for image match for My Dashboard icon
+		WinGetClientPos(&x0, &y0, &w0, &h0, PShwnd)
+		if FindText(&x, &y, x0 + w0 - 128, y0 + 32, x0 + w0 - 96, y0 + 64, 0, 0, PAText["PSIsHome"]) {
+			return PShwnd
+		}
+	}
+	return 0
+}
 
-; PSIsReport() {
-; 	PShwnd := App["PS"].Win["main"].IsReady() 
-; 	if PShwnd {
-; 		; look for the wintext string within the PS main window
-; 		try {
-; 			if InStr(WinGetText(PShwnd), App["PS"].Win["report"].wintext) {
-; 				; found the wintext string, return the hwnd of the parent window
-; 				return PShwnd
-; 			}
-; 		} catch { 
-; 		}
-; 	}
-; 	return 0
-; }
+; If the Draft indicator is showing (either new report or addendum)
+PSIsReport() {
+	PShwnd := App["PS"].Win["main"].IsReady() 
 
-; PSIsAddendum() {
-; 	PShwnd := App["PS"].Win["main"].IsReady() 
-; 	if PShwnd {
-; 		; look for the wintext string within the PS main window
-; 		try {
-; 			if InStr(WinGetText(PShwnd), App["PS"].Win["addendum"].wintext) {
-; 				; found the wintext string, return the hwnd of the parent window
-; 				return PShwnd
-; 			}
-; 		} catch { 
-; 		}
-; 	}
-; 	return 0
-; }
+	if PShwnd {
+		; look for image match for Draft indicator
+		WinGetClientPos(&x0, &y0, &w0, &h0, PShwnd)
+		if FindText(&x, &y, x0, y0 + 160, x0 + w0, y0 + 192, 0, 0, PAText["PSIsDraft"]) {
+			return PShwnd
+		}
+	}
+	return 0
+}
 
-; PSIsReportOrAddendum() {
-; 	PShwnd := App["PS"].Win["main"].IsReady() 
-; 	if PShwnd {
-; 		; look for the wintext string within the PS main window
-; 		try {
-; 			gettext := WinGetText(PShwnd)
-; 			if InStr(gettext, App["PS"].Win["report"].wintext) 
-; 				|| InStr(gettext, App["PS"].Win["addendum"].wintext) 
-; 			{
-; 				; found the wintext string, return the hwnd of the parent window
-; 				return PShwnd
-; 			}
-; 		} catch { 
-; 		}
-; 	}
-; 	return 0
-; }
+; If the Create Addendum button is showing
+PSIsCreateAddendum() {
+	global _PSCreateAddendumXY
 
+	PShwnd := App["PS"].Win["main"].IsReady() 
+
+	if PShwnd {
+		; look for image match for Create Addendum button
+		WinGetClientPos(&x0, &y0, &w0, &h0, PShwnd)
+		if FindText(&x, &y, x0, y0 + 64, x0 + w0 / 2, y0 + 128, 0.25, 0, PAText["PSIsCreateAddendum"]) {
+			; save location of the Create Addendum button
+			_PSCreateAddendumXY := [x, y]
+			return PShwnd
+		}
+	}
+	return 0
+}
 
 
 
@@ -297,21 +308,41 @@ PSIsLogin() {
  * Callback functions called on PS window events
  */
 
-
 PSShow_main(hwnd, hook, dwmsEventTime) {
 	App["PS"].Win["main"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("PS show main")
-	if Setting["PS_restore"].enabled {
-		App["PS"].Win["main"].Restore()
-	}
 }
 
-; PSShow_recognition(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["recognition"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show recognition")
-; }
+; Handle various dialog boxes
+PSShow_dialog(hwnd, hook, dwmsEventTime) {
+	App["PS"].Win["dialog"].hwnd := hwnd
+
+	; need pause to ensure dialog is fully displayed before accessing it
+	Sleep(500)
+	
+	; get coordiates of dialog box
+	WinGetClientPos(&x0, &y0, &w0, &h0, hwnd)
+
+	; look for image match for logout confirmation dialog
+	if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0.25, 0, PAText["PSIsLogoutDialog"]) {
+		if Setting["Debug"].enabled
+			PlaySound("logout dialog")
+		if Setting["PSlogout_dismiss"].enabled {
+			; dismiss logout confirmation dialog with default option [*Yes]
+			WinActivate(hwnd)
+			Send("{Enter}")
+		}
+
+	; look for image match for delete confirmation dialog - reuse screenshot (last zero parameter)
+	} else if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0.25, 0, PAText["PSIsDeleteDialog"], 0) {
+		if Setting["Debug"].enabled
+			PlaySound("delete dialog")
+
+	} else {
+
+	}
+}
 
 ; PSShow_logout(hwnd, hook, dwmsEventTime) {
 ; 	App["PS"].Win["logout"].hwnd := hwnd
@@ -325,73 +356,12 @@ PSShow_main(hwnd, hook, dwmsEventTime) {
 ; 	}
 ; }
 
-; PSShow_savespeech(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["savespeech"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show savespeech")
-; 	if Setting["PScenter_dialog"].enabled {
-; 		App["PS"].Win["savespeech"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; 	if Setting["PSsavespeech_dismiss"].enabled {
-; 		ControlClick(Setting["PSsavespeech_dismiss_reply"].value, App["PS"].Win["savespeech"].hwnd)
-; 	}
-; }
-
-; PSShow_savereport(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["savereport"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show savereport")
-; 	if Setting["PScenter_dialog"].enabled {
-; 		App["PS"].Win["savereport"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; }
-
-; PSShow_deletereport(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["deletereport"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show deletereport")
-; 	if Setting["PScenter_dialog"].enabled {
-; 		App["PS"].Win["deletereport"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; }
-
-; PSShow_saveautotext(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["saveautotext"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show saveautotext")
-; 	if Setting["PScenter_dialog"].enabled {
-; 		App["PS"].Win["saveautotext"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; }
-
 ; PSShow_unfilled(hwnd, hook, dwmsEventTime) {
 ; 	App["PS"].Win["unfilled"].hwnd := hwnd
 ; 	if Setting["Debug"].enabled
 ; 		PlaySound("PS show unfilled")
 ; 	if Setting["PScenter_dialog"].enabled {
 ; 		App["PS"].Win["unfilled"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; }
-
-; PSShow_confirmaddendum(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["confirmaddendum"].hwnd := hwnd
-; 	if Setting["Debug"].enabled {
-; 		PlaySound("PS show confirmaddendum")
-; 	}
-; 	if Setting["PScenter_dialog"].enabled {
-; 		App["PS"].Win["confirmaddendum"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; 	if Setting["PSconfirmaddendum_dismiss"].enabled {
-; 		ControlClick(Setting["PSconfirmaddendum_dismiss_reply"].value, App["PS"].Win["confirmaddendum"].hwnd)
-; 	}
-; }
-
-; PSShow_confirmanother(hwnd, hook, dwmsEventTime) {
-; 	App["PS"].Win["confirmanother"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show confirmanother")
-; 	if Setting["PScenter_dialog"].enabled {
-; 		App["PS"].Win["confirmanother"].CenterWindow(App["PS"].Win["main"])
 ; 	}
 ; }
 
@@ -457,26 +427,8 @@ PSShow_main(hwnd, hook, dwmsEventTime) {
 ; }
 
 
-; PSSPShow_spelling(hwnd, hook, dwmsEventTime) {
-; 	App["PSSP"].Win["spelling"].hwnd := hwnd
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show spelling")
-; 	if Setting["PScenter_dialog"].enabled {
-; 		; also limit window width to <= 90% of parent width
-; 		pssppos := App["PSSP"].Win["spelling"].pos
-; 		sppos_w := 0.9 * App["PS"].Win["main"].pos.w
-; 		if pssppos.w > sppos_w {
-; 			pssppos.w := sppos_w
-; 			App["PSSP"].Win["spelling"].pos := pssppos
-; 		}
-; 		App["PSSP"].Win["spelling"].CenterWindow(App["PS"].Win["main"])
-; 	}
-; }
-
-
-
 ; helper functions to turn on or off the mic, called by PSShow_report() and PSClose_report()
-; initial should be set to true the first time this is called
+; initial needs to be set to true when this is called by the user
 _PSTurnOnMic(initial := false) {
 	static cmdsenttime := 0			; timestamp of last command send
 
@@ -550,15 +502,30 @@ _PSTurnOffMic(initial := false, delay := 0) {
 
 ; pseudowindows
 PSShow_login() {
+	global _PSLastState
+
 	if Setting["Debug"].enabled
 		PlaySound("PS show login")
-
+	_PSLastState := "login"
 }
 
 PSClose_login() {
 	if Setting["Debug"].enabled
 		PlaySound("PS close login")
 
+}
+
+PSShow_home() {
+	global _PSLastState
+
+	if Setting["Debug"].enabled
+		PlaySound("PS show home")
+
+	; restore window position if this is the first time after login
+	if _PSLastState != "home" && Setting["PS_restore"].enabled {
+		App["PS"].Win["main"].Restore()
+		_PSLastState := "home"
+	}
 }
 
 ; PSShow_home() {
@@ -597,77 +564,92 @@ PSClose_login() {
 ; 	}
 ; }
 
-; PSClose_home() {
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS close home")
+PSClose_home() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close home")
 
-; }
+}
 
-; ;
-; PSShow_report() {
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show report")
 
-; 	; Automatically turn on microphone when opening a report
-; 	if Setting["PS_dictate_autoon"].enabled {
-; 		; turn on the mic if it is not on
-; 		_PSTurnOnMic(true)
-; 	}
+;
+PSShow_report() {
+	if Setting["Debug"].enabled
+		PlaySound("PS show report")
 
-; 	; [wip]
-; 	if Setting["EI_parsedata"].enabled {
-; 		global PACurrentPatient
-; 		global PACurrentStudy
+	; Automatically turn on microphone when opening a report
+	if Setting["PS_dictate_autoon"].enabled {
+		; turn on the mic if it is not on
+		_PSTurnOnMic(true)
+	}
+
+	; [wip]
+	; if Setting["EI_parsedata"].enabled {
+	; 	global PACurrentPatient
+	; 	global PACurrentStudy
 	
-; 		pt := EIRetrievePatientInfo()
-; 		if pt { 
-; 			PACurrentPatient.lastname := pt.lastname
-; 			PACurrentPatient.firstname := pt.firstname
-; 			PACurrentPatient.dob := pt.dob
-; 			PACurrentPatient.sex := pt.sex
+	; 	pt := EIRetrievePatientInfo()
+	; 	if pt { 
+	; 		PACurrentPatient.lastname := pt.lastname
+	; 		PACurrentPatient.firstname := pt.firstname
+	; 		PACurrentPatient.dob := pt.dob
+	; 		PACurrentPatient.sex := pt.sex
 
-; 			st := EIRetrieveStudyInfo(pt)
-; 			if st {
-; 				PACurrentStudy.accession := st.accession
-; 				PACurrentStudy.lastfirst := st.lastfirst
-; 				PACurrentStudy.dobraw := st.dobraw
-; 				PACurrentStudy.description := st.description
-; 				PACurrentStudy.facility := st.facility
-; 				PACurrentStudy.patienttype := st.patienttype
-; 				PACurrentStudy.priority := st.priority
-; 				PACurrentStudy.orderingmd := st.orderingmd
-; 				PACurrentStudy.referringmd := st.referringmd
-; 				PACurrentStudy.reason := st.reason
-; 				PACurrentStudy.other := st.other
-; 				PACurrentStudy.techcomments := st.techcomments
-; 			}
+	; 		st := EIRetrieveStudyInfo(pt)
+	; 		if st {
+	; 			PACurrentStudy.accession := st.accession
+	; 			PACurrentStudy.lastfirst := st.lastfirst
+	; 			PACurrentStudy.dobraw := st.dobraw
+	; 			PACurrentStudy.description := st.description
+	; 			PACurrentStudy.facility := st.facility
+	; 			PACurrentStudy.patienttype := st.patienttype
+	; 			PACurrentStudy.priority := st.priority
+	; 			PACurrentStudy.orderingmd := st.orderingmd
+	; 			PACurrentStudy.referringmd := st.referringmd
+	; 			PACurrentStudy.reason := st.reason
+	; 			PACurrentStudy.other := st.other
+	; 			PACurrentStudy.techcomments := st.techcomments
+	; 		}
 
-; 		}
+	; 	}
 
-; 	}
-; }
+	; }
+}
 
-; PSClose_report() {
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS close report")
+PSClose_report() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close report")
 
-; }
+}
 
-; PSShow_addendum() {
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS show addendum")
+PSShow_createaddendum() {
+	global _PSCreateAddendumXY
 
-; 	; Automatically turn on microphone when opening a report
-; 	if Setting["PS_dictate_autoon"].enabled {
-; 		; turn on the mic if it is not on
-; 		_PSTurnOnMic(true)
-; 	}
-; }
+	if Setting["Debug"].enabled
+		PlaySound("PS create addendum")
+TTip("aa")
 
-; PSClose_addendum() {
-; 	if Setting["Debug"].enabled
-; 		PlaySound("PS close addendum")
-; }
+	if Setting["PScreateaddendum_confirm"].enabled {
+TTip("{Click " _PSCreateAddendumXY[1] " " _PSCreateAddendumXY[2] "}")
+
+		; use last known coordiates of Create Addendum button
+		; click the button
+		CoordMode("Mouse", "Screen")
+		BlockInput true				; prevent user input from interfering
+		MouseGetPos(&savex, &savey)
+		; Click(_PSCreateAddendumXY[1], _PSCreateAddendumXY[2])
+		SendEvent("{Click " _PSCreateAddendumXY[1] " " _PSCreateAddendumXY[2] "}")
+		MouseMove(savex, savey)
+		BlockInput false			; resume user input
+	}
+}
+
+
+PSClose_createaddendum() {
+	if Setting["Debug"].enabled
+		PlaySound("PS close addendum")
+}
+
+
 
 
 /**********************************************************
@@ -791,11 +773,10 @@ PSStart(cred := CurrentUserCredentials) {
 	GUIShowCancelButton()
 
 	; run PS
-	Run('"' . EXE_PS . '"')
+	Run('"' . EXE_PS . '" ' . PS_CLIOPTIONS)
 	Sleep(500)
-	; App["PS"].Update()
 
-	; wait for login window to exist
+	; wait for login window
 	tick1 := A_TickCount
 	while !(hwndlogin := App["PS"].Win["login"].IsReady()) && (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
 		GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
@@ -813,20 +794,25 @@ PSStart(cred := CurrentUserCredentials) {
 
 	if !cancelled && !failed {
 		; PS login window is ready
+		; fill in username and password on login form
 
-		; delay to allow enabling of Log On button
-		sleep(1000)
+		; enter username, Tab, password, Enter
+		WinActivate(hwndlogin)		; focus defaults to User name field
+		BlockInput true				; prevent user input from interfering
+		Sleep(200)
+		Send(cred.username)
+		Sleep(200)
+		Send("{Tab}")				; Send Tab key to move to Password field
+		Sleep(200)
+		Send(cred.password)
+		Sleep(200)
+		Send("{Enter}")				; Send Enter key to start login
+		BlockInput false			; resume user input
 
-;			WinActivate(hwndlogin)
-
-		; Need to wait until "Loading system components..." has completed and text is gone
-		; so that Log On button will be enabled
-		while (A_TickCount - tick1 < PS_LOGIN_TIMEOUT * 1000) {
+		; wait for PS home window to appear
+		tick1 := A_TickCount
+		while !cancelled && !(hwndmain := App["PS"].Win["home"].IsReady()) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
 			GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-			if !InStr(WinGetText(hwndlogin), "Loading system components", true) {
-				; success, exit while
-				break		; while
-			}
 			Sleep(500)
 			if PACancelRequest {
 				cancelled := true
@@ -834,34 +820,9 @@ PSStart(cred := CurrentUserCredentials) {
 			}
 		}
 
-		if !cancelled {
-
-			; we have a fully loaded login form
-			; enter username and password and press OK
-			; the r7 is the PS version number, probably requires updating with version upgrades
-			BlockInput true
-			ControlSetText(cred.username, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad12", hwndlogin)
-			ControlSetText(cred.password, "WindowsForms10.EDIT.app.0.26ac0ad_r7_ad11", hwndlogin)
-			ControlClick("WindowsForms10.BUTTON.app.0.26ac0ad_r7_ad12", hwndlogin, , , , "NA") 
-			BlockInput false
-			
-			Sleep(500)
-
-			; waits for PS home window to appear
-			tick1 := A_TickCount
-			while !cancelled && !(hwndmain := App["PS"].Win["home"].IsReady()) && (A_TickCount - tick1 < PS_MAIN_TIMEOUT * 1000) {
-				GUIStatus("Starting PowerScribe... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
-				Sleep(500)
-				if PACancelRequest {
-					cancelled := true
-					break		; while
-				}
-			}
-
-			if !cancelled && !hwndmain {
-				; if PS main window still not visible after time out, return failure
-				failed := true
-			}
+		if !cancelled && !hwndmain {
+			; if PS main window still not visible after time out, return failure
+			failed := true
 		}
 	}
 
@@ -959,7 +920,6 @@ PSStop() {
 			; We're at the login window. Close it.
 			PSSend("!{F4}")
 		}
-		; App["PS"].Update()
 		if PACancelRequest {
 			cancelled := true
 			break
@@ -1007,41 +967,41 @@ PSStop() {
 ;	["report"] = text of report body
 ; Returns empty object if no PowerScribe window
 ;
-RetrieveDataPS() {
+; RetrieveDataPS() {
 
-	hwndPS := WinExist("PowerScribe")
-	if (hwndPS) {
-		data := Map()
+; 	hwndPS := WinExist("PowerScribe")
+; 	if (hwndPS) {
+; 		data := Map()
 
-		text :=  WinGetText(hwndPS)
+; 		text :=  WinGetText(hwndPS)
 
-		headerpos := RegExMatch(text, "Report - ([A-Z]+), ([A-Z]+) - (ADV[0-9]+)", &headerobj)
+; 		headerpos := RegExMatch(text, "Report - ([A-Z]+), ([A-Z]+) - (ADV[0-9]+)", &headerobj)
 
-		if (headerpos) {
-			data["firstname"] := headerobj[2]
-			data["lastname"] := headerobj[1]
-			data["accession"] := headerobj[3]
+; 		if (headerpos) {
+; 			data["firstname"] := headerobj[2]
+; 			data["lastname"] := headerobj[1]
+; 			data["accession"] := headerobj[3]
 
-			footerpos := RegExMatch(text, "Findings Only\s+Original Report", &reportobj)
-			;msgbox footerpos
+; 			footerpos := RegExMatch(text, "Findings Only\s+Original Report", &reportobj)
+; 			;msgbox footerpos
 
-			if (footerpos) {
-				data["report"] := Trim(SubStr(text, headerpos + headerobj.Len + 2, footerpos - headerpos - headerobj.Len - 2))
-				;msgbox headerobj.Len
-				;msgbox reportobj.Len
-				;msgbox data["report"]
+; 			if (footerpos) {
+; 				data["report"] := Trim(SubStr(text, headerpos + headerobj.Len + 2, footerpos - headerpos - headerobj.Len - 2))
+; 				;msgbox headerobj.Len
+; 				;msgbox reportobj.Len
+; 				;msgbox data["report"]
 
-			} else {
-				data["report"] := ""
-			}
-			return data
-		}
+; 			} else {
+; 				data["report"] := ""
+; 			}
+; 			return data
+; 		}
 
-		return 0		; nothing returned
-	}
+; 		return 0		; nothing returned
+; 	}
 
-	return 0		; nothing returned
-}
+; 	return 0		; nothing returned
+; }
 
 
 

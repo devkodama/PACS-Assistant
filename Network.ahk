@@ -184,10 +184,10 @@ VPNShow_main(hwnd, hook, dwmsEventTime) {
 	App["VPN"].Win["main"].hwnd := hwnd
 	if Setting["Debug"].enabled
 		PlaySound("VPN show main")
-	if Setting["VPN_center"].enabled {
-		; center on the current monitor
-		App["VPN"].Win["main"].CenterWindow()
-	}
+	; if Setting["VPN_center"].enabled {
+	; 	; center on the current monitor
+	; 	App["VPN"].Win["main"].CenterWindow()
+	; }
 }
 
 VPNShow_prefs(hwnd, hook, dwmsEventTime) {
@@ -234,6 +234,8 @@ VPNShow_connected(hwnd, hook, dwmsEventTime) {
 ; If not connected, uses cred to establish a VPN connection.
 ; The parameter cred is an object with username and password properties.
 ;
+; The VPN server is determined by Setting["VPN_server"] and Setting["VPN_url1"] or Setting["VPN_url2"].
+;
 ; Periodically checks PACancelRequest to see if it should cancel the 
 ; connection attempt and quit.
 ;
@@ -254,8 +256,31 @@ VPNStart(cred := CurrentUserCredentials) {
 	if VPNIsConnected(true) {
 		GUIStatus("VPN is already connected")
 		running := false
-		return 1
+		return 1	; successful
 	}
+
+	; determine the vpn server url; if no VPN server, return unsuccessful
+	switch Setting["VPN_server"].value {
+		case "Primary":
+			vpnurl := Setting["VPN_url1"].value
+			usepassword := Setting["VPN_url1_usepassword"].value
+			hasdialog := Setting["VPN_url1_hasdialog"].value
+		case "Alternate":
+			vpnurl := Setting["VPN_url2"].value
+			usepassword := Setting["VPN_url2_usepassword"].value
+			hasdialog := Setting["VPN_url2_hasdialog"].value
+		default:
+			vpnurl := ""
+			usepassword := true
+	}
+	if !vpnurl {
+		GUIStatus("VPN server not specified, check Settings page")
+		running := false
+		return 0	; unsuccessful
+	}
+	; vpnurl contains the desired server url
+	; usepassword is true if we should use the default credentials, or false if we need to ask for a different password
+	; hasdialog is true if we need to wait for and dismiss a connected confirmation dialog
 
 	; if no username, ask user before proceeding
 	if !cred.username && !GUIGetUsername() {
@@ -266,7 +291,7 @@ VPNStart(cred := CurrentUserCredentials) {
 	}
 	
 	; if no password, ask user before proceeding
-	if !cred.Password && !GUIGetPassword() {
+	if usepassword && !cred.Password && !GUIGetPassword() {
 		; couldn't get a password from the user, return failure (0)
 		GUIStatus("Could not start VPN - password needed")
 		running := false
@@ -306,17 +331,25 @@ VPNStart(cred := CurrentUserCredentials) {
 
 		GUIStatus("Starting VPN... (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 
-		; look for connected info dialog box
-		if hwndconnected := App["VPN"].Win["connected"].IsReady() {
-			; close connection info window
-			WinClose(hwndconnected)
-
-			; confirm connection
+		if hasdialog {
+			; look for connected info dialog box, dismiss if found
+			if hwndconnected := App["VPN"].Win["connected"].IsReady() {
+				; close connection info window
+				WinClose(hwndconnected)
+				; verify connected
+				connected := VPNIsConnected(true)
+				if connected {
+					lastdialog := "connected"
+					break		; exit while loop
+				}
+			}
+		} else {
+			; just check if connected
 			connected := VPNIsConnected(true)
 			if connected {
+				lastdialog := "connected"
 				break		; exit while loop
 			}
-			lastdialog := "connected"
 		}
 
 		; look for one time password dialog box
@@ -326,7 +359,7 @@ VPNStart(cred := CurrentUserCredentials) {
 			while (App["VPN"].Win["otp"].IsReady()) && (A_TickCount - tick0 < VPN_CONNECT_TIMEOUT * 1000) {
 				GUIStatus("Starting VPN - Please provide one time passcode from the Authenticate app (elapsed time " . Round((A_TickCount - tick0) / 1000, 0) . " seconds)")
 				Sleep(500)
-;				WinActivate(hwndotp) 		; keep OTP window focused
+;				WinActivate(hwndotp) 		; keep OTP window focused - bad idea
 				if PACancelRequest {
 					cancelled := true
 					break			; inner while
@@ -356,7 +389,7 @@ VPNStart(cred := CurrentUserCredentials) {
 				WinWaitClose(hwndlogin)
 				; if failed more than two times already, ask user for another password before trying again
 				if failedlogins >= 2 {
-					if GUIGetPassword("Re-enter your password") {
+					if usepassword && GUIGetPassword("Re-enter your password") {
 						cred.password := CurrentUserCredentials.password
 					} else {
 						cancelled := true
@@ -364,13 +397,20 @@ VPNStart(cred := CurrentUserCredentials) {
 				}
 			} else {
 				; We have a login dialog box.
-				; Go ahead and enter username and password and press OK.
-				BlockInput true
-				ControlSetText(cred.username, "Edit1", hwndlogin)
-				ControlSetText(cred.password, "Edit2", hwndlogin)
-				ControlClick("OK", hwndlogin, , , , "NA") 
-				BlockInput false
-				WinWaitClose(hwndlogin)
+				if usepassword {
+					; Go ahead and enter username and password and press OK.
+					BlockInput true
+					ControlSetText(cred.username, "Edit1", hwndlogin)
+					ControlSetText(cred.password, "Edit2", hwndlogin)
+					ControlClick("OK", hwndlogin, , , , "NA") 
+					BlockInput false
+					WinWaitClose(hwndlogin)
+				} else {
+					; Enter username and wait for user to enter password and press OK.
+					WinActivate(hwndlogin) 		; focus login window
+					ControlSetText(cred.username, "Edit1", hwndlogin)
+					WinWaitClose(hwndlogin)
+				}
 			}
 			lastdialog := "login"
 			continue		; while
@@ -384,9 +424,9 @@ VPNStart(cred := CurrentUserCredentials) {
 			if statustext = "Ready to connect."
 				|| statustext = "Certificate Validation Failure"
 				|| statustext = "Connection attempt has timed out" {
-				; at this point, if the last dialog box was "otp", then we
+				; at this point, if the last dialog box was "otp" or "login", then we
 				; infer the user clicked the Cancel button so we abort the entire login process
-				if lastdialog = "otp" {
+				if lastdialog = "otp" || lastdialog = "login" {
 					cancelled := true
 					break		; exit while
 				}
@@ -394,11 +434,11 @@ VPNStart(cred := CurrentUserCredentials) {
 				; user didn't cancel the otp dialog, so enter the vpn url
 				BlockInput true
 				ControlSetText("", "Edit1", hwndmain)			; need to clear the edit box first
-				ControlSendText(Setting["VPN_url"].value, "Edit1", hwndmain)		; set the vpn url
+				ControlSendText(vpnurl, "Edit1", hwndmain)		; set the vpn url
 				ControlClick("Button1", hwndmain, , , , "NA")	; click Connect button
 				BlockInput false
 			} else if InStr(statustext, "Contacting ", true) {
-				GUIStatus("Starting VPN - Contacting server " . Setting["VPN_url"].value . "...")
+				GUIStatus("Starting VPN - Contacting server " . vpnurl . "...")
 			} else if InStr(statustext, "Login failed", true) {
 				GUIStatus("Starting VPN - Incorrect username or password")
 			}

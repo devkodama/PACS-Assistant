@@ -152,11 +152,32 @@ PAText["EI_VolumeViewing"] := "|<EI_VolumeViewing>*90$26.zzU7zy00zy00Dz001z000TU
 
 
 
-; PS toolbar Dictate button: On
-PAText["PSDictateOn"] := "|<PSDictateOn>*200$8.zk000000000wTgzTzzxyD8"
-; PS toolbar Dictate button: Off
-PAText["PSDictateOff"] := "|<PSDictateOff>*200$8.00000000000wTgzDzzxyD8"
+; PS login page - Log On button
+PAText["PSIsLogin"] := "|<PSIsLogin>*152$43.zzzzzzzzzzzzzzwzzzy3zyTzzyAzzDzzzCDzbksD7Y3nn9bXmNtlYnltAwsmNwsaSSNAyAnD1VkTUtbzzzDzzzzzz7zzzzzw7zzzzzzzzzzzzzzzzzy"
+; PS home page - My Dashboard icon
+PAText["PSIsHome"] := "|<PSIsHome>*74$21.zzzzzzznzzyTw7nzUySy7nXUyM87m8DyTXznyzyTzznzzy003k00Tzzzzzzw"
 
+; PS toolbar Dictate button: On - first string for green or red mic, second string for oversaturated red mic
+PAText["PSDictateOn"] := "|<PSDictateOn>*95$37.zw007zzs000zzk3zU7zUDzy0zUzzzsD1zzzz11zzzzk3zzzzy3zzzzzXzzzzzu"
+PAText["PSDictateOn"] .= "|<PSDictateOn>*98$37.zzk1zzzy003zzs000Dzs1zk1zk7zzUTUTzzw3UzzzzUUzzzzs1zzzzz1zzzzzlzzzzzx"
+
+; PS toolbar mic select downarrow
+; PAText["PSSelectMic"] := "|<>*69$24.3zzz3zzz3zzz1zzz1zzz3znw3zls3zsl3zw33zy77zzD7zzz7zzzDzzzTzzzU"
+
+; PS draft report page - Draft indicator (works with dark or green surround)
+PAText["PSIsDraft"] := "|<PSIsDraft>*119$44.00000001000000Uk0000kA8z000M1aAs004892300122kUnnlzsw8Ata4AD23A0l23kUn3wEUw8AlX48D23AEl23knX6QEkoDkkz4C9U0000028000001X000000m"
+
+; PS final report page (when initiating an addendum) - Final indicator
+PAText["PSIsFinal"] := "|<PSIsFinal>*106$49.zzzzzzzzzzzzzzzzw0000000S0000000D20000027X000008Xl7wU004Nt20E0024wV000012SkU4z3kVjME2Qn4ELgDlA838/q40a4TY5v20H2Mm2xV09V8N1SkU4kaQVj8E2MFyEbY000000Hl000000Nsk000008w8000008Tzzzzzzzzzzzzzzzz"
+; PS final report page (when initiating an addendum) - Create Addendum button
+PAText["PSIsCreateAddendum"] := "|<PSIsCreateAddendum>*139$58.UzzzzzwTnsHzzyTzlzDXbzztzz7wyDVV127sC21y4baNDYm93tUMN0yHACC6TBYzk4ksGQYaNDCG989kE8UwtUUU"
+; PS draft report page (when dictating an addendum) - Addendum in dictation indicator (next to Draft indicator)
+PAText["PSIsAddendum"] := "|<PSIsAddendum>*122$92.TzzzzzzzzzzzzzzrzzzzzzzzzzzzzzxzzzzwzbzzztzzzzTzyTzDtzzzyTzzzrzzXznyTzzzbzzzxzzkzwzbzzztzzzzTzwbUA1ks7UNn0Vrzz9sX4Na8l6Ql2BzzaQwbYwbAtbAtnTztnD9t09mSNnCQrzw0nmSHyQbaQnbBzzD4wbYzbAtbAtnTzntUA1WNn4MXCQrztyQ3UQ6Qs70nbBzzzzzzzzzzzzzzzTzzzzzzzzzzzzzzs"
+
+; PS logout dialog box
+PAText["PSIsLogoutDialog"] := "|<PSIsLogoutDialog>*127$113.zznzszzzzzlzzzzzzllzzbzlzzzzzXzzzzzz33zzzzXzwTzz7zzzzzySTzzzz7zszzyDzzzzzwwnb4sC0zUsDwQ7k7y3U076NUA0zXUDsk7UDs3XnAAnD8sz7DDlbaSTnXba8NaDllyASTWDAwzDbDCEnC3XXwMwz4SNtyTCSQgCT377slty8wnnwyQwsMQzWCDlXnwFtbbtwttsktbYQTXbbsnnDDtlnnlnn08szX0TlUD0Tk7bbbbb0llz71zXUy0zkTDC"
+; PS delete confirmation dialog box
+PAText["PSIsDeleteDialog"] := "|<PSIsDeleteDialog>*130$110.zznzwzzzzzzlzwzzzzzzwzzDzzzzzwTzDzzzzzzzznzyTzzz7znzyTzzzzzwzzbzzzlzwzzbznbYw70TUMDz0Q7D1UQAslC0k7yQ1zU60nUCS1CAn7AszbDDllb4tlbD93AtzDDtXnwwFtASNnmGHC3nnyMwTD40H06Q0YVnsAwzaD7nl0Ak3b08MQznDDtXnwwFzATtnz67AwnnyQwzb6SnbiQxllnUAwzX0Ts1U4s1XUAwww7DDsMDz0Q7D1sQ6"
 
 
 

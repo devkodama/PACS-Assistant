@@ -68,9 +68,13 @@ VPN_DISCONNECT_TIMEOUT := 10
 VPN_DIALOG_TIMEOUT := 30
 ; number of failed login attempts (username/password failures) in total allowed
 VPN_FAILEDLOGINS_MAX := 5
-; VPN URL string
-VPN_DEFAULTURL := "vpn.adventhealth.com/SecureAuth"
-
+; VPN URL strings
+VPN_DEFAULTURL1 := "vpn.adventhealth.com/FH"
+VPN_DEFAULTURL1_USEPASSWORD := false
+VPN_DEFAULTURL1_HASDIALOG := false
+VPN_DEFAULTURL2 := "vpn.adventhealth.com/SecureAuth"
+VPN_DEFAULTURL2_USEPASSWORD := true
+VPN_DEFAULTURL2_HASDIALOG := true
 
 ; timeout (seconds) for starting up EI to get to login window
 EI_LOGIN_TIMEOUT := 60
@@ -151,7 +155,9 @@ EXE_VPNCLI := A_ProgramFiles_x86 . "\Cisco\Cisco Secure Client\vpncli.exe"
 
 EXE_EI := A_ProgramFiles_x86 . "\Agfa\Enterprise Imaging\EnterpriseImagingLauncher.exe"
 
-EXE_PS := A_UserDir . "\Desktop\Nuance.PowerScribe360.application"
+; EXE_PS := A_UserDir . "\Desktop\Nuance.PowerScribe360.application"
+EXE_PS := "C:\WINDOWS\system32\rundll32.exe"
+PS_CLIOPTIONS := "dfshim.dll, ShOpenVerbApplication https://psone.adventhealth.com/PSOneReportingClient/Client/Nuance.PSOne.application"
 
 EXE_EPIC := A_ProgramFiles_x86 . "\Epic\Hyperdrive\VersionIndependent\Hyperspace.exe"
 EPIC_CLIOPTIONS := "Id=605 Env=PRD TZ=America/Chicago enableGPU=false"
@@ -215,12 +221,18 @@ global PACancelRequest := false
 ; This is true at startup and set to false after the first time UpdateAll() is called
 global _PAUpdate_Initial := true
 
+; This holds the last state that PS was in, either "login" or "home"
+global _PSLastState := ""
+
+; This holds the last found coordinates of the Create Addendum button
+global _PSCreateAddendumXY := [0, 0]
+
 ; This is false at startup and set to true after the GUI is up and running.
 global _GUIIsRunning := false
 
-
 ; the main PACS Assistant GUI
 global PAGUI
+
 
 ; Global dispatch queues (array of functions)
 global DispatchQueue := Array()

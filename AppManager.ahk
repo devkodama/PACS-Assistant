@@ -128,8 +128,8 @@ App["EICLIN"].Win["vessel"] := WinItem("vessel", App["EICLIN"], App["EICLIN"].Wi
 
 ; PowerScribe
 App["PS"].Win["main"] := WinItem("main", App["PS"], , "PowerScribe One", , , PSShow_main)
+App["PS"].Win["dialog"] := WinItem("dialog", App["PS"], , "RadWindow", , , PSShow_dialog)
 ; App["PS"].Win["recognition"] := WinItem("recognition", App["PS"], , "PowerScribe", "*Finishing recognition", , PSShow_recognition)
-; App["PS"].Win["logout"] := WinItem("logout", App["PS"], , "PowerScribe", "Are you sure you wish to log off the application?", , PSShow_logout)
 ; App["PS"].Win["savespeech"] := WinItem("savespeech", App["PS"], , "PowerScribe", "Your speech files have changed. Do you wish to save the changes?", , PSShow_savespeech)
 ; App["PS"].Win["savereport"] := WinItem("savereport", App["PS"], , "PowerScribe", "Do you want to save the changes to the", , PSShow_savereport)
 ; App["PS"].Win["deletereport"] := WinItem("deletereport", App["PS"], , "PowerScribe", "Are you sure you want to delete", , PSShow_deletereport)
@@ -146,16 +146,23 @@ App["PS"].Win["main"] := WinItem("main", App["PS"], , "PowerScribe One", , , PSS
 
 ; PowerScribe pseudowindows
 App["PS"].Win["login"] := WinItem("login", App["PS"], App["PS"].Win["main"], , , true, PSShow_login, PSClose_login, PSIsLogin)
-; App["PS"].Win["home"] := WinItem("home", App["PS"], App["PS"].Win["main"], , "Signing queue", true, PSShow_home, PSClose_home, PSIsHome)
-; App["PS"].Win["report"] := WinItem("report", App["PS"], App["PS"].Win["main"], , "Report -", true, PSShow_report, PSClose_report, PSIsReport)
-; App["PS"].Win["addendum"] := WinItem("addendum", App["PS"], App["PS"].Win["main"], , "Addendum -", true, PSShow_addendum, PSClose_addendum, PSIsAddendum)
+App["PS"].Win["home"] := WinItem("home", App["PS"], App["PS"].Win["main"], , , true, PSShow_home, PSClose_home, PSIsHome)
+App["PS"].Win["report"] := WinItem("report", App["PS"], App["PS"].Win["main"], , , true, PSShow_report, PSClose_report, PSIsReport)
+App["PS"].Win["createaddendum"] := WinItem("createaddendum", App["PS"], App["PS"].Win["main"], , , true, PSShow_createaddendum, , PSIsCreateAddendum)
+
+; App["PS"].Win["logout"] := WinItem("logout", App["PS"], App["PS"].Win["dialog"], , , true, , PSIsLogoutDialog)
+; App["PS"].Win["delete"] := WinItem("delete", App["PS"], App["PS"].Win["dialog"], , , true, , PSIsDeleteDialog)
+
 
 ; PowerScribe spelling window
 ; App["PSSP"].Win["spelling"] := WinItem("spelling", App["PSSP"], , "Spelling", , , PSSPShow_spelling)
 
+
+
 ; for Epic
 App["EPIC"].Win["main"] := WinItem("main", App["EPIC"], , "Production", , , EPICShow_main)
 App["EPIC"].Win["chat"] := WinItem("chat", App["EPIC"], , "Secure Chat", , , EPICShow_chat)
+
 ; pseudowindows, parent is main window App["EI"].Win["main"]
 App["EPIC"].Win["login"] := WinItem("login", App["EPIC"], App["EPIC"].Win["main"], , , true, EPICShow_login, EPICClose_login, EPICIsLogin)
 App["EPIC"].Win["timezone"] := WinItem("timezone", App["EPIC"], App["EPIC"].Win["main"], , , true, EPICShow_timezone, EPICClose_timezone, EPICIsTimezone)
