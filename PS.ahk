@@ -339,6 +339,11 @@ PSShow_dialog(hwnd, hook, dwmsEventTime) {
 		if Setting["Debug"].enabled
 			PlaySound("delete dialog")
 
+	; ; look for image match for network issue dialog - reuse screenshot (last zero parameter)
+	; } else if FindText(&x, &y, x0, y0, x0 + w0, y0 + h0, 0.25, 0, PAText["PSIsNetworkIssueDialog"], 0) {
+	; 	if Setting["Debug"].enabled
+	; 		PlaySound("network issue dialog")
+
 	} else {
 
 	}

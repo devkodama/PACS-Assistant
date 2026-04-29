@@ -90,8 +90,8 @@ Setting["VPN_url2_hasdialog"] := SetItem("VPN_url2_hasdialog", "bool", VPN_DEFAU
 ; Setting["VPN_center"] := SetItem("VPN_center", "bool", false, , "When the VPN window appears, center it on the screen")
 
 ; EI settings
-Setting["EI_restore"] := SetItem("EI_restore", "bool", true, , "When EI opens, auto restore windows to their saved positions")
-Setting["ClickLock"] := SetItem("ClickLock", "select", "Spacebar", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
+Setting["EI_restore"] := SetItem("EI_restore", "bool", false, , "When EI opens, auto restore windows to their saved positions")
+Setting["ClickLock"] := SetItem("ClickLock", "select", "Off", Map("Off", "Off", "Spacebar", "Manual"), "Enable Click Lock for left mouse button")
 Setting["ClickLock_interval"] := SetItem("ClickLock_interval", "num", 2000, [500, 5000], "For Auto Click Lock, how long (in ms) the left mouse button needs to be held down before click lock activates.")
 
 Setting["EIactivate"] := SetItem("EIactivate", "bool", false, , "Enable automatic image viewport activation before specific shortcut keys. Before enabling, enter a list of EI shortcuts on the next line.") 
@@ -103,11 +103,11 @@ Setting["EI_parsedata"] := SetItem("EI_parsedata", "bool", false, , "Parse EI pa
 
 
 ; PS settings
-Setting["PS_restore"] := SetItem("PS_restore", "bool", true, , "When PowerScribe opens, auto restore window to its saved position")
+Setting["PS_restore"] := SetItem("PS_restore", "bool", false, , "When PowerScribe opens, auto restore window to its saved position")
 
-Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", true, , "Automatically answer Yes to log off confirmation message when you have draft or unsigned reports")
+Setting["PSlogout_dismiss"] := SetItem("PSlogout_dismiss", "bool", false, , "Automatically answer Yes to log off confirmation message when you have draft or unsigned reports")
 
-Setting["PScreateaddendum_confirm"] := SetItem("PScreateaddendum_confirm", "bool", true, , "Automatically click Create Addendum button")
+Setting["PScreateaddendum_confirm"] := SetItem("PScreateaddendum_confirm", "bool", false, , "Automatically click Create Addendum button")
 
 Setting["PS_dictate_autoon"] := SetItem("PS_dictate_autoon", "bool", true, , "Automatically turn microphone on when opening a report and off when closing a report")
 
@@ -125,7 +125,7 @@ Setting["PSras_dismiss"] := SetItem("PSras_dismiss", "bool", true, , "Automatica
 
 
 ; EPIC settings
-Setting["EPIC_restore"] := SetItem("EPIC_restore", "bool", true, , "When Epic opens, auto restore windows to their saved positions")
+Setting["EPIC_restore"] := SetItem("EPIC_restore", "bool", false, , "When Epic opens, auto restore windows to their saved positions")
 Setting["EPICtimezone_dismiss"] := SetItem("EPICtimezone_dismiss", "bool", true, , "Automatically dismiss the Time Zone confirmation message")
 
 ; Hotkey settings
@@ -145,7 +145,7 @@ Setting["^hkBacktick"] := SetItem("^hkBacktick", "bool", true, , "Ctrl-Backtick 
 
 Setting["+hkEsc"] := SetItem("+hkEsc", "bool", false, , "Shift-Escape ⇒ Close current study")
 
-Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", false, , "Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
+Setting["hkCtrlYZ"] := SetItem("hkCtrlYZ", "bool", true, , "Ctrl-Y & Ctrl-Z ⇒ PowerScribe Redo/Undo")
 
 Setting["hkSpaceClick"] := SetItem("hkSpaceClick", "bool", true, , "Spacebar to double click")
 Setting["hkSpaceDelete"] := SetItem("hkSpaceDelete", "bool", false, , "Spacebar to delete text in PowerScribe")
@@ -245,10 +245,10 @@ SettingsPage.Push("PAautoupdate")
 SettingsPage.Push("EI_SERVER")
 SettingsPage.Push("Layout")
 
-SettingsPage.Push("#Beta - Experimental, may not be working")
-SettingsPage.Push("EI_parsedata")
-SettingsPage.Push("hkSpaceDelete")
-SettingsPage.Push("EIchat_show")
+; SettingsPage.Push("#Beta - Experimental, may not be working")
+; SettingsPage.Push("EI_parsedata")
+; SettingsPage.Push("hkSpaceDelete")
+; SettingsPage.Push("EIchat_show")
 
 
 /**********************************************************
