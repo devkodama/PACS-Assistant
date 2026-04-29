@@ -18,9 +18,9 @@ PACS Assistant is highly customizable--most of its features can be selectively e
 
 In the Documents folder on your computer, create a folder named _PACS Assistant_.
 
-Download the file [PACS Assistant.exe](https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe) and put it in the _PACS Assistant_ folder you just created.
+Download the file [PACS Assistant.exe](https://github.com/devkodama/PACS-Assistant/raw/refs/heads/main/Standalone/PACS%20Assistant/PACS%20Assistant.exe) and put it in the _PACS Assistant_ folder.
 
-Doubleclick _PACS Assistant.exe_ to run. You may get a warning message from User Account Control--click Yes to continue.
+Doubleclick _PACS Assistant.exe_ to run. You may get a warning message from User Account Control--click Yes to continue. (The first time you run it after downloading, you may need to click *More info* then click *Run anyway*.)
 
 The first time you run PACS Assistant, you'll need to enter your PACS username and password. On home workstations, PACS Assistant can remember your username and password so you don't have to enter them again. On hospital workstations, for security reasons PACS Assistant will remember your username and settings but not your password.
 
@@ -28,19 +28,17 @@ The first time you run PACS Assistant, you'll need to enter your PACS username a
 
 ## Single sign on
 
-On home workstations, PACS Assistant can connect to the VPN and start EI, Powerscribe, and Epic with minimal supervision. To begin, click on the **Power** button, wait a few seconds, and enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
+On home workstations, PACS Assistant can connect to the VPN and start EI, Powerscribe, and Epic with minimal supervision. To begin, click on the **Power** button, wait a few seconds, and when prompted enter a one time passcode from the Authenticate app on your mobile phone. The rest happens automatically.
 
 On hospital workstations, PACS Assistant can start EI, Powerscribe, and Epic. You will have to enter your password each time you run PACS Assistant. For security reasons, your password is not stored after PACS Assistamt is closed.
 
 ## Window management
 
-(Work in progress...)
-
 PACS Assistant can remember your window layout and restore windows to the same positions when PACS starts up. In PACS Assistant, go to the Window Manager tab. Arrange your EI, PowerScribe, Epic, and Epic Chat windows as you like. Click the Remember windows button. Next time you start PACS, PACS Assistant will restore windows to their remembered positions.
 
 The Restore windows button moves windows back to their last remembered position(s).
 
-The Reset layout button autogenerates a window layout for EI, PowerScribe, and Epic based on the current monitor configuration. The new layout will replace the previously saved layout.
+(*Work in progress*) The Reset layout button autogenerates a window layout for EI, PowerScribe, and Epic based on the current monitor configuration. The new layout will replace the previously saved layout.
 
 PACS Assistant can automatically dismiss selected popup messages such as PowerScribe, EI, or Epic confirmation messages. In PACS Assistant, go to the Settings tab to enable or disable.
 
@@ -133,7 +131,7 @@ The **Spacebar** can do one of several things:
 
 * Double-click in EI Image window - When the mouse pointer is over an EI image window, pressing **Spacebar** performs a double-click. This is useful to enlarge or restore the size of a series, or if the mouse is over a series thumbnail to place the series into the active viewport.
 
-> ⚠️ Known issue: In some places, the spacebar no longer works to type a space. For example, when creating a text annotation on an image, the space bar will send a double-click which leads to unwanted side effects. If you need to type a space, you can press **Shift-Spacebar** to enter a space, or temporarily disable PACS Assistant while you are typing.
+> ⚠️ Known issue: In some places, the spacebar no longer works to type a space. For example, when creating a text annotation on an image, the space bar will send a double-click which leads to unwanted side effects. If you need to type a space, you can press **Shift-Spacebar** to enter a space, or temporarily turn off PACS Assistant (F2 or toggle switch) while you are typing.
 
 * Double-click on EI desktop List page - When the mouse pointer is over the EI desktop List page, pressing **Spacebar** performs a double-click. This is useful to open a study, for example.
 
@@ -169,6 +167,6 @@ PACS Assistant is optimized for a handsfree setup, *i.e.* a handsfree microphone
 
 PACS Assistant could be used with an accessory keypad such as a Tartarus gaming keypad by reassigning its functions to keypad keys. (This can be done the file Hotkeys.ahk.) I've found that I prefer using the regular keyboard because it doesn't require extra hardware and is always available on every workstation.
 
-PACS Assistant is still under heavy development with more features to come. You may (will) encounter bugs or conflicts with other applications; in many cases, temporariliy disabling PACS Assistant with the on/off toggle switch can bypass the problem.
+PACS Assistant is still under development with more features to come. You may encounter bugs or conflicts with other applications; in many cases, temporariliy disabling PACS Assistant with the on/off toggle switch (F2) can bypass the problem.
 
 Feedback is welcome--let me know of any issues you encounter or features you'd like to see.
