@@ -133,7 +133,11 @@ VPNIsConnected(forceupdate := false) {
 	static lastcheck := 0		; setting lastcheck to 0 initially forces an update on the first call
 
 	if forceupdate || ((A_TickCount - lastcheck) > WATCHNETWORK_UPDATE_INTERVAL) {
-		vpnstatus := InStr(StdoutToVar('"' . EXE_VPNCLI . '" state').Output, "state: Connected") ? true : false
+		try {
+			vpnstatus := InStr(StdoutToVar('"' . EXE_VPNCLI . '" state').Output, "state: Connected") ? true : false
+		} catch Error as err {
+			vpnstatus := false
+		}
 		lastcheck := A_TickCount
 	}
 	return vpnstatus
